@@ -1,0 +1,23 @@
+// stable_ok.ae — Type-stable function (should pass ae check with zero errors)
+
+stable fn multiply(a: i64, b: i64) -> i64 {
+    a * b
+}
+
+stable fn is_positive(n: i64) -> bool {
+    n > 0
+}
+
+stable fn clamp(x: i64, lo: i64, hi: i64) -> i64 {
+    if x < lo {
+        lo
+    } else {
+        if x > hi { hi } else { x }
+    }
+}
+
+fn main() {
+    print(multiply(6, 7));
+    print(is_positive(-3));
+    print(clamp(150, 0, 100));
+}

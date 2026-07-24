@@ -1,0 +1,45 @@
+// Greatest Common Divisor (GCD) using Euclidean Algorithm
+fn gcd(a: i64, b: i64) -> i64 {
+    while b != 0 {
+        print(b);
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+// Collatz Conjecture: returns the number of steps to reach 1
+fn collatz(n: i64) -> i64 {
+    let steps = 0;
+    while n > 1 {
+        print(n);
+        if n % 2 == 0 {
+            n = n / 2;
+        } else {
+            n = n * 3 + 1;
+        }
+        steps = steps + 1;
+    }
+    return steps;
+}
+
+fn main() {
+    print("--- Euclidean Algorithm (GCD) ---");
+    let x = 48;
+    let y = 18;
+    print("GCD of 48 and 18 is:");
+    print(gcd(x, y));
+    assert(gcd(x, y) == 6);
+
+    print("");
+    print("--- Collatz Conjecture ---");
+    let start_num = 27;
+    print("Steps to reach 1 from 27:");
+    let steps = collatz(start_num);
+    print(steps);
+    assert(steps == 111);
+    
+    print("");
+    print("Both algorithms executed successfully!");
+}

@@ -1,0 +1,17 @@
+// type_error.ae — Intentional type stability violation
+// ae check should produce: error[E0401]: type stability violation
+//
+// The `ratio` function has a branch that returns i64 (0) and
+// another that returns f64 (x / y), causing a Union<i64, f64>
+// return type. Under `stable`, this is a compile-time error.
+
+stable fn ratio(x: f64, y: f64) -> f64 {
+    if y == 0.0 {
+        return 0;       // <-- BUG: returns i64 literal, not f64
+    }
+    x / y               // <-- returns f64
+}
+
+fn main() {
+    print(ratio(10.0, 2.0));
+}

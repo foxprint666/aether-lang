@@ -1,0 +1,10 @@
+[package]
+name    = "ae-codegen"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ae-ast    = { workspace = true }
+ae-sema   = { workspace = true }
+thiserror = { workspace = true }
+

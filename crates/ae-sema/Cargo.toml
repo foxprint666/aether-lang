@@ -1,0 +1,9 @@
+[package]
+name    = "ae-sema"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ae-ast    = { workspace = true }
+ae-syntax = { workspace = true }
+thiserror = { workspace = true }

@@ -1,0 +1,10 @@
+[package]
+name    = "ae-syntax"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ae-ast     = { workspace = true }
+logos      = { workspace = true }
+miette     = { workspace = true }
+thiserror  = { workspace = true }

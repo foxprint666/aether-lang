@@ -1,0 +1,11 @@
+[package]
+name        = "ae-ast"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+blake3     = { workspace = true }
+hex        = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+miette     = { workspace = true }

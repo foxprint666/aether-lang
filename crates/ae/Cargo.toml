@@ -1,0 +1,15 @@
+[package]
+name    = "ae"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "ae"
+path = "src/main.rs"
+
+[dependencies]
+ae-ast     = { workspace = true }
+ae-syntax  = { workspace = true }
+ae-sema    = { workspace = true }
+ae-codegen = { workspace = true }
+serde_json = { workspace = true }
