@@ -4,13 +4,22 @@
 //! the typed AST. This gives us a fully working `ae run` immediately, while
 //! the Cranelift JIT backend is scaffolded for Phase 1.
 //!
+//! # Array semantics
+//! Arrays use `Rc<RefCell<Vec<Value>>>` for shared-reference semantics.
+//! This means `push(arr, val)` mutates in-place — all bindings holding a
+//! reference to the same array see the change. This matches standard
+//! imperative semantics and will transition to heap-pointer passing when
+//! the Cranelift JIT is enabled in Phase 1.
+//!
 //! # Cranelift SSA Note
 //! When the JIT is active in Phase 1, all mutable variables will use
 //! `cranelift_frontend::Variable` + `builder.declare_var()` / `def_var()` /
 //! `use_var()`. Cranelift constructs SSA form (with phi nodes) automatically
 //! from these calls — no manual dominance-frontier analysis required.
 
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use ae_ast::{AstNodeKind, AstStore, BinOpKind, ContentHash, SpanTable, UnaryOpKind};
 use ae_sema::SemaResult;
@@ -19,12 +28,17 @@ use ae_sema::SemaResult;
 //  Runtime value
 // ─────────────────────────────────────────────
 
+/// Shared-reference array wrapper.
+pub type AeArray = Rc<RefCell<Vec<Value>>>;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Int(i64),
     Float(f64),
     Bool(bool),
     Str(String),
+    /// Shared-reference array: Rc<RefCell<Vec<Value>>>
+    Array(AeArray),
     Unit,
 }
 
@@ -39,6 +53,10 @@ impl std::fmt::Display for Value {
             Value::Bool(b)  => write!(f, "{}", b),
             Value::Str(s)   => write!(f, "{}", s),
             Value::Unit     => write!(f, "()"),
+            Value::Array(a) => {
+                let elems: Vec<String> = a.borrow().iter().map(|v| format!("{}", v)).collect();
+                write!(f, "[{}]", elems.join(", "))
+            }
         }
     }
 }
@@ -57,12 +75,16 @@ pub enum ExecError {
     TypeError(String),
     #[error("division by zero")]
     DivByZero,
-    #[error("assertion failed")]
-    AssertFailed,
+    #[error("assertion failed: {0}")]
+    AssertFailed(String),
+    #[error("index out of bounds: index {0} on array of length {1}")]
+    IndexOutOfBounds(i64, usize),
     #[error("missing AST node for hash")]
     MissingNode,
     #[error("raw blocks cannot be executed in Phase 0 (unsafe escape hatch)")]
     RawBlock,
+    #[error("explicit panic: {0}")]
+    Panic(String),
 }
 
 // ─────────────────────────────────────────────
@@ -95,9 +117,9 @@ pub struct Interpreter<'a> {
     store:    &'a AstStore,
     _spans:   &'a SpanTable,
     _sema:    &'a SemaResult,
-    /// Function definitions: name → body hash + param names
+    /// Function definitions: name → (param names, body hash)
     fns:      HashMap<String, (Vec<String>, ContentHash)>,
-    /// Global env (call frames pushed on the stack below)
+    /// Global env (shared across all top-level statements)
     globals:  HashMap<String, Value>,
 }
 
@@ -155,6 +177,24 @@ impl<'a> Interpreter<'a> {
         self.store.get(&hash).map(|n| &n.kind).ok_or(ExecError::MissingNode)
     }
 
+    // ── Variable assignment with proper scoping ──
+    //
+    // Lookup order: current frame first, then globals.
+    // If not found anywhere → error (no silent global creation).
+
+    fn assign(&mut self, name: &str, val: Value, frame: &mut Frame) -> Result<(), ExecError> {
+        if frame.contains_key(name) {
+            frame.insert(name.to_string(), val);
+        } else if self.globals.contains_key(name) {
+            self.globals.insert(name.to_string(), val);
+        } else {
+            return Err(ExecError::UndefinedVar(format!(
+                "`{}` — did you forget `let {} = ...`?", name, name
+            )));
+        }
+        Ok(())
+    }
+
     // ── Execute a node, return a Signal ─────
 
     fn exec(&mut self, hash: ContentHash, frame: &mut Frame) -> Result<Signal, ExecError> {
@@ -185,11 +225,7 @@ impl<'a> Interpreter<'a> {
             // ── Assignment ───────────────────
             AstNodeKind::Assign { name, value } => {
                 let v = self.exec(value, frame)?.into_value();
-                if frame.contains_key(&name) {
-                    frame.insert(name, v);
-                } else {
-                    self.globals.insert(name, v);
-                }
+                self.assign(&name, v, frame)?;
                 Ok(Signal::Value(Value::Unit))
             }
 
@@ -225,6 +261,41 @@ impl<'a> Interpreter<'a> {
                 for a in args { arg_vals.push(self.exec(a, frame)?.into_value()); }
                 let result = self.call_fn(&func, arg_vals, frame)?;
                 Ok(Signal::Value(result))
+            }
+
+            // ── Array literal ─────────────────
+            AstNodeKind::ArrayLit(elems) => {
+                let mut vals = Vec::new();
+                for h in elems {
+                    vals.push(self.exec(h, frame)?.into_value());
+                }
+                Ok(Signal::Value(Value::Array(Rc::new(RefCell::new(vals)))))
+            }
+
+            // ── Index ────────────────────────
+            AstNodeKind::Index { array, index } => {
+                let arr_val = self.exec(array, frame)?.into_value();
+                let idx_val = self.exec(index, frame)?.into_value();
+                match (arr_val, idx_val) {
+                    (Value::Array(arr), Value::Int(i)) => {
+                        let borrowed = arr.borrow();
+                        let len = borrowed.len();
+                        let idx = if i < 0 { len as i64 + i } else { i } as usize;
+                        borrowed.get(idx)
+                            .cloned()
+                            .ok_or(ExecError::IndexOutOfBounds(i, len))
+                            .map(Signal::Value)
+                    }
+                    (Value::Str(s), Value::Int(i)) => {
+                        let chars: Vec<char> = s.chars().collect();
+                        let len = chars.len();
+                        let idx = if i < 0 { len as i64 + i } else { i } as usize;
+                        chars.get(idx)
+                            .map(|c| Signal::Value(Value::Str(c.to_string())))
+                            .ok_or(ExecError::IndexOutOfBounds(i, len))
+                    }
+                    _ => Err(ExecError::TypeError("index requires array[i64]".into())),
+                }
             }
 
             // ── Block ────────────────────────
@@ -277,8 +348,7 @@ impl<'a> Interpreter<'a> {
 
             // ── For ──────────────────────────
             AstNodeKind::For { var, iter, body } => {
-                let iter_hash = iter;
-                let iter_kind = self.node(iter_hash)?.clone();
+                let iter_kind = self.node(iter)?.clone();
                 let (start_h, end_h) = match iter_kind {
                     AstNodeKind::Range { start, end } => (start, end),
                     _ => return Err(ExecError::TypeError("for loop requires a range(start, end)".into())),
@@ -341,20 +411,200 @@ impl<'a> Interpreter<'a> {
 
     fn call_fn(&mut self, name: &str, args: Vec<Value>, parent_frame: &mut Frame) -> Result<Value, ExecError> {
         match name {
+            // ── I/O ──────────────────────────────────────────────────────
             "print" => {
                 for a in &args { println!("{}", a); }
                 return Ok(Value::Unit);
             }
+            "eprint" => {
+                for a in &args { eprintln!("{}", a); }
+                return Ok(Value::Unit);
+            }
+
+            // ── Assertions / control ─────────────────────────────────────
             "assert" => {
                 match args.first() {
                     Some(Value::Bool(true)) => return Ok(Value::Unit),
-                    Some(Value::Bool(false)) => return Err(ExecError::AssertFailed),
+                    Some(Value::Bool(false)) => {
+                        let msg = args.get(1).map(|v| v.to_string()).unwrap_or_else(|| "assertion failed".into());
+                        return Err(ExecError::AssertFailed(msg));
+                    }
                     _ => return Err(ExecError::TypeError("assert expects bool".into())),
                 }
             }
+            "panic" => {
+                let msg = args.first().map(|v| v.to_string()).unwrap_or_else(|| "explicit panic".into());
+                return Err(ExecError::Panic(msg));
+            }
+
+            // ── Type conversion ──────────────────────────────────────────
+            "to_str" => {
+                let v = args.into_iter().next().ok_or_else(|| ExecError::TypeError("to_str needs 1 arg".into()))?;
+                return Ok(Value::Str(v.to_string()));
+            }
+            "to_int" => {
+                return match args.first() {
+                    Some(Value::Float(f)) => Ok(Value::Int(*f as i64)),
+                    Some(Value::Str(s))   => s.trim().parse::<i64>().map(Value::Int)
+                        .map_err(|_| ExecError::TypeError(format!("cannot parse `{}` as i64", s))),
+                    Some(Value::Int(n))   => Ok(Value::Int(*n)),
+                    _ => Err(ExecError::TypeError("to_int requires float, str, or int".into())),
+                };
+            }
+            "to_float" => {
+                return match args.first() {
+                    Some(Value::Int(n))  => Ok(Value::Float(*n as f64)),
+                    Some(Value::Str(s))  => s.trim().parse::<f64>().map(Value::Float)
+                        .map_err(|_| ExecError::TypeError(format!("cannot parse `{}` as f64", s))),
+                    Some(Value::Float(f)) => Ok(Value::Float(*f)),
+                    _ => Err(ExecError::TypeError("to_float requires int, str, or float".into())),
+                };
+            }
+
+            // ── String operations ────────────────────────────────────────
+            "format" => {
+                return builtin_format(&args);
+            }
+            "str_len" => {
+                return match args.first() {
+                    Some(Value::Str(s)) => Ok(Value::Int(s.chars().count() as i64)),
+                    _ => Err(ExecError::TypeError("str_len requires str".into())),
+                };
+            }
+            "str_contains" => {
+                return match (args.get(0), args.get(1)) {
+                    (Some(Value::Str(s)), Some(Value::Str(pat))) => Ok(Value::Bool(s.contains(pat.as_str()))),
+                    _ => Err(ExecError::TypeError("str_contains(str, str) expected".into())),
+                };
+            }
+            "str_starts_with" => {
+                return match (args.get(0), args.get(1)) {
+                    (Some(Value::Str(s)), Some(Value::Str(pat))) => Ok(Value::Bool(s.starts_with(pat.as_str()))),
+                    _ => Err(ExecError::TypeError("str_starts_with(str, str) expected".into())),
+                };
+            }
+
+            // ── Math ─────────────────────────────────────────────────────
+            "sqrt" => {
+                return match args.first() {
+                    Some(Value::Float(f)) => Ok(Value::Float(f.sqrt())),
+                    Some(Value::Int(n))   => Ok(Value::Float((*n as f64).sqrt())),
+                    _ => Err(ExecError::TypeError("sqrt requires numeric".into())),
+                };
+            }
+            "abs" => {
+                return match args.first() {
+                    Some(Value::Int(n))   => Ok(Value::Int(n.abs())),
+                    Some(Value::Float(f)) => Ok(Value::Float(f.abs())),
+                    _ => Err(ExecError::TypeError("abs requires numeric".into())),
+                };
+            }
+            "min" => {
+                return match (args.get(0), args.get(1)) {
+                    (Some(Value::Int(a)), Some(Value::Int(b)))     => Ok(Value::Int(*a.min(b))),
+                    (Some(Value::Float(a)), Some(Value::Float(b))) => Ok(Value::Float(a.min(*b))),
+                    _ => Err(ExecError::TypeError("min(numeric, numeric) expected".into())),
+                };
+            }
+            "max" => {
+                return match (args.get(0), args.get(1)) {
+                    (Some(Value::Int(a)), Some(Value::Int(b)))     => Ok(Value::Int(*a.max(b))),
+                    (Some(Value::Float(a)), Some(Value::Float(b))) => Ok(Value::Float(a.max(*b))),
+                    _ => Err(ExecError::TypeError("max(numeric, numeric) expected".into())),
+                };
+            }
+            "pow" => {
+                return match (args.get(0), args.get(1)) {
+                    (Some(Value::Int(base)), Some(Value::Int(exp))) => {
+                        Ok(Value::Int(base.pow(*exp as u32)))
+                    }
+                    (Some(Value::Float(base)), Some(Value::Float(exp))) => {
+                        Ok(Value::Float(base.powf(*exp)))
+                    }
+                    _ => Err(ExecError::TypeError("pow(numeric, numeric) expected".into())),
+                };
+            }
+
+            // ── Array operations ─────────────────────────────────────────
+            "len" => {
+                return match args.first() {
+                    Some(Value::Array(a)) => Ok(Value::Int(a.borrow().len() as i64)),
+                    Some(Value::Str(s))   => Ok(Value::Int(s.chars().count() as i64)),
+                    _ => Err(ExecError::TypeError("len requires array or str".into())),
+                };
+            }
+            "push" => {
+                return match args.get(0) {
+                    Some(Value::Array(a)) => {
+                        let arr = Rc::clone(a); // clone Rc before consuming args
+                        let val = args.into_iter().nth(1).ok_or_else(|| ExecError::TypeError("push(arr, val) needs 2 args".into()))?;
+                        arr.borrow_mut().push(val);
+                        Ok(Value::Unit)
+                    }
+                    _ => Err(ExecError::TypeError("push(array, value) expected".into())),
+                };
+            }
+            "pop" => {
+                return match args.first() {
+                    Some(Value::Array(a)) => {
+                        a.borrow_mut().pop().map(Ok).unwrap_or(Ok(Value::Unit))
+                    }
+                    _ => Err(ExecError::TypeError("pop(array) expected".into())),
+                };
+            }
+            "get" => {
+                return match (args.get(0), args.get(1)) {
+                    (Some(Value::Array(a)), Some(Value::Int(i))) => {
+                        let borrowed = a.borrow();
+                        let len = borrowed.len();
+                        let idx = *i as usize;
+                        borrowed.get(idx).cloned()
+                            .ok_or(ExecError::IndexOutOfBounds(*i, len))
+                    }
+                    _ => Err(ExecError::TypeError("get(array, i64) expected".into())),
+                };
+            }
+            "set" => {
+                return match (args.get(0), args.get(1), args.get(2)) {
+                    (Some(Value::Array(a)), Some(Value::Int(i)), Some(val)) => {
+                        let idx = *i as usize;
+                        let val = val.clone();
+                        let mut borrow = a.borrow_mut();
+                        let len = borrow.len();
+                        if idx >= len {
+                            return Err(ExecError::IndexOutOfBounds(*i, len));
+                        }
+                        borrow[idx] = val;
+                        Ok(Value::Unit)
+                    }
+                    _ => Err(ExecError::TypeError("set(array, i64, value) expected".into())),
+                };
+            }
+            "new_array" => {
+                // new_array(size, fill_value) — creates a pre-filled array
+                return match (args.get(0), args.get(1)) {
+                    (Some(Value::Int(n)), Some(fill)) => {
+                        let arr = vec![fill.clone(); *n as usize];
+                        Ok(Value::Array(Rc::new(RefCell::new(arr))))
+                    }
+                    _ => Err(ExecError::TypeError("new_array(i64, value) expected".into())),
+                };
+            }
+            "array_copy" => {
+                // Deep copy an array (breaks shared reference)
+                return match args.first() {
+                    Some(Value::Array(a)) => {
+                        let copy = a.borrow().clone();
+                        Ok(Value::Array(Rc::new(RefCell::new(copy))))
+                    }
+                    _ => Err(ExecError::TypeError("array_copy(array) expected".into())),
+                };
+            }
+
             _ => {}
         }
 
+        // User-defined function
         let (pnames, body) = self.fns.get(name)
             .cloned()
             .ok_or_else(|| ExecError::UndefinedFn(name.to_string()))?;
@@ -371,6 +621,39 @@ impl<'a> Interpreter<'a> {
 }
 
 // ─────────────────────────────────────────────
+//  format() builtin
+// ─────────────────────────────────────────────
+
+fn builtin_format(args: &[Value]) -> Result<Value, ExecError> {
+    if args.is_empty() {
+        return Err(ExecError::TypeError("format() requires at least a template string".into()));
+    }
+    let template = match &args[0] {
+        Value::Str(s) => s.clone(),
+        _ => return Err(ExecError::TypeError("First argument to format() must be a string".into())),
+    };
+
+    let mut result = String::new();
+    let mut arg_idx = 1;
+    let mut chars = template.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        if c == '{' && chars.peek() == Some(&'}') {
+            chars.next(); // consume '}'
+            if arg_idx < args.len() {
+                result.push_str(&args[arg_idx].to_string());
+                arg_idx += 1;
+            } else {
+                return Err(ExecError::TypeError("Not enough arguments for format template".into()));
+            }
+        } else {
+            result.push(c);
+        }
+    }
+    Ok(Value::Str(result))
+}
+
+// ─────────────────────────────────────────────
 //  Binary operator evaluation
 // ─────────────────────────────────────────────
 
@@ -378,9 +661,9 @@ fn eval_binop(op: BinOpKind, l: Value, r: Value) -> Result<Value, ExecError> {
     use Value::*;
     match (l, r) {
         (Int(a), Int(b)) => match op {
-            BinOpKind::Add => Ok(Int(a + b)),
-            BinOpKind::Sub => Ok(Int(a - b)),
-            BinOpKind::Mul => Ok(Int(a * b)),
+            BinOpKind::Add => Ok(Int(a.wrapping_add(b))),
+            BinOpKind::Sub => Ok(Int(a.wrapping_sub(b))),
+            BinOpKind::Mul => Ok(Int(a.wrapping_mul(b))),
             BinOpKind::Div => { if b == 0 { Err(ExecError::DivByZero) } else { Ok(Int(a / b)) } }
             BinOpKind::Mod => { if b == 0 { Err(ExecError::DivByZero) } else { Ok(Int(a % b)) } }
             BinOpKind::Eq  => Ok(Bool(a == b)),
@@ -424,8 +707,10 @@ fn eval_binop(op: BinOpKind, l: Value, r: Value) -> Result<Value, ExecError> {
             BinOpKind::Add => Ok(Str(a + &b.to_string())),
             _ => Err(ExecError::TypeError("str + int only supports concatenation".into())),
         },
+        (Str(a), Float(b)) => match op {
+            BinOpKind::Add => Ok(Str(a + &b.to_string())),
+            _ => Err(ExecError::TypeError("str + float only supports concatenation".into())),
+        },
         (l, r) => Err(ExecError::TypeError(format!("incompatible operands: {:?} and {:?}", l, r))),
     }
 }
-
-// iter_nodes() is defined on AstStore in ae-ast; no orphan impl needed here.

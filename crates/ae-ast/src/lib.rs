@@ -41,6 +41,8 @@ pub enum AetherTypeSer {
     Auto,
     Unit,
     Union(Vec<AetherTypeSer>),
+    /// Homogeneous array: `[T]`
+    Array(Box<AetherTypeSer>),
 }
 
 impl std::fmt::Display for AetherTypeSer {
@@ -58,6 +60,7 @@ impl std::fmt::Display for AetherTypeSer {
                 let parts: Vec<String> = ts.iter().map(|t| t.to_string()).collect();
                 write!(f, "Union<{}>", parts.join(", "))
             }
+            Self::Array(inner) => write!(f, "[{}]", inner),
         }
     }
 }
@@ -170,14 +173,23 @@ pub enum AstNodeKind {
         args: Vec<ContentHash>,
     },
 
-    // ── Blocks ────────────────────────────────
+    // ── Collections ───────────────────────
+    /// `[expr, expr, ...]` array literal
+    ArrayLit(Vec<ContentHash>),
+    /// `array[index]` index expression
+    Index {
+        array: ContentHash,
+        index: ContentHash,
+    },
+
+    // ── Blocks ────────────────────────────
     Block(Vec<ContentHash>),
 
-    // ── Low-level escape hatch ────────────────
+    // ── Low-level escape hatch ────────────
     /// `raw { ... }` — parsed but semantically quarantined in Phase 0
     RawBlock(Vec<ContentHash>),
 
-    // ── Program root ──────────────────────────
+    // ── Program root ──────────────────────
     Program(Vec<ContentHash>),
 }
 

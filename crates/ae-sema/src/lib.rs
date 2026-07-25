@@ -25,6 +25,8 @@ pub enum AetherType {
     Auto,
     Unit,
     Union(Vec<AetherType>),
+    /// Typed array: `[T]`
+    Array(Box<AetherType>),
     Fn {
         params: Vec<AetherType>,
         ret: Box<AetherType>,
@@ -46,6 +48,7 @@ impl std::fmt::Display for AetherType {
                 let s: Vec<_> = ts.iter().map(|t| t.to_string()).collect();
                 write!(f, "Union<{}>", s.join(", "))
             }
+            Self::Array(inner) => write!(f, "[{}]", inner),
             Self::Fn { params, ret } => {
                 let ps: Vec<_> = params.iter().map(|t| t.to_string()).collect();
                 write!(f, "fn({}) -> {}", ps.join(", "), ret)
@@ -57,15 +60,16 @@ impl std::fmt::Display for AetherType {
 impl From<&AetherTypeSer> for AetherType {
     fn from(s: &AetherTypeSer) -> Self {
         match s {
-            AetherTypeSer::I32 => AetherType::I32,
-            AetherTypeSer::I64 => AetherType::I64,
-            AetherTypeSer::F32 => AetherType::F32,
-            AetherTypeSer::F64 => AetherType::F64,
-            AetherTypeSer::Bool => AetherType::Bool,
-            AetherTypeSer::Str => AetherType::Str,
-            AetherTypeSer::Auto => AetherType::Auto,
-            AetherTypeSer::Unit => AetherType::Unit,
+            AetherTypeSer::I32   => AetherType::I32,
+            AetherTypeSer::I64   => AetherType::I64,
+            AetherTypeSer::F32   => AetherType::F32,
+            AetherTypeSer::F64   => AetherType::F64,
+            AetherTypeSer::Bool  => AetherType::Bool,
+            AetherTypeSer::Str   => AetherType::Str,
+            AetherTypeSer::Auto  => AetherType::Auto,
+            AetherTypeSer::Unit  => AetherType::Unit,
             AetherTypeSer::Union(ts) => AetherType::Union(ts.iter().map(Into::into).collect()),
+            AetherTypeSer::Array(inner) => AetherType::Array(Box::new(AetherType::from(inner.as_ref()))),
         }
     }
 }
@@ -230,9 +234,44 @@ impl<'a> Analyzer<'a> {
             in_stable_fn: false,
         };
         a.env.push(); // global scope
-        // Pre-define built-in functions
-        a.fn_sigs.insert("print".into(),  (vec![AetherType::Auto], AetherType::Unit));
-        a.fn_sigs.insert("assert".into(), (vec![AetherType::Bool], AetherType::Unit));
+        // ── Built-in functions ───────────────────────────────────────
+        let auto = AetherType::Auto;
+        let unit = AetherType::Unit;
+        let bool_t = AetherType::Bool;
+        let int_t  = AetherType::I64;
+        let float_t = AetherType::F64;
+        let str_t  = AetherType::Str;
+        let arr_t  = AetherType::Array(Box::new(AetherType::Auto));
+
+        // I/O
+        a.fn_sigs.insert("print".into(),   (vec![auto.clone()], unit.clone()));
+        a.fn_sigs.insert("eprint".into(),  (vec![auto.clone()], unit.clone()));
+        // Assertions
+        a.fn_sigs.insert("assert".into(),  (vec![bool_t.clone(), auto.clone()], unit.clone()));
+        a.fn_sigs.insert("panic".into(),   (vec![str_t.clone()], unit.clone()));
+        // Type conversion
+        a.fn_sigs.insert("to_str".into(),  (vec![auto.clone()], str_t.clone()));
+        a.fn_sigs.insert("to_int".into(),  (vec![auto.clone()], int_t.clone()));
+        a.fn_sigs.insert("to_float".into(),(vec![auto.clone()], float_t.clone()));
+        // String ops
+        a.fn_sigs.insert("format".into(),  (vec![str_t.clone()], str_t.clone()));
+        a.fn_sigs.insert("str_len".into(), (vec![str_t.clone()], int_t.clone()));
+        a.fn_sigs.insert("str_contains".into(),   (vec![str_t.clone(), str_t.clone()], bool_t.clone()));
+        a.fn_sigs.insert("str_starts_with".into(),(vec![str_t.clone(), str_t.clone()], bool_t.clone()));
+        // Math
+        a.fn_sigs.insert("sqrt".into(), (vec![float_t.clone()], float_t.clone()));
+        a.fn_sigs.insert("abs".into(),  (vec![auto.clone()],    auto.clone()));
+        a.fn_sigs.insert("min".into(),  (vec![auto.clone(), auto.clone()], auto.clone()));
+        a.fn_sigs.insert("max".into(),  (vec![auto.clone(), auto.clone()], auto.clone()));
+        a.fn_sigs.insert("pow".into(),  (vec![auto.clone(), auto.clone()], auto.clone()));
+        // Array ops
+        a.fn_sigs.insert("len".into(),        (vec![auto.clone()],                          int_t.clone()));
+        a.fn_sigs.insert("push".into(),       (vec![arr_t.clone(), auto.clone()],            unit.clone()));
+        a.fn_sigs.insert("pop".into(),        (vec![arr_t.clone()],                          auto.clone()));
+        a.fn_sigs.insert("get".into(),        (vec![arr_t.clone(), int_t.clone()],           auto.clone()));
+        a.fn_sigs.insert("set".into(),        (vec![arr_t.clone(), int_t.clone(), auto.clone()], unit.clone()));
+        a.fn_sigs.insert("new_array".into(),  (vec![int_t.clone(), auto.clone()],            arr_t.clone()));
+        a.fn_sigs.insert("array_copy".into(), (vec![arr_t.clone()],                          arr_t.clone()));
         a
     }
 
@@ -475,6 +514,28 @@ impl<'a> Analyzer<'a> {
             }
 
             AstNodeKind::Break | AstNodeKind::Continue => AetherType::Unit,
+
+            // ── Array literal ─────────────────
+            AstNodeKind::ArrayLit(elems) => {
+                // Infer element type from first element; subsequent elements widen via merge
+                let mut elem_ty = AetherType::Auto;
+                for h in elems {
+                    let t = self.analyze(h);
+                    elem_ty = merge_types(elem_ty, t);
+                }
+                AetherType::Array(Box::new(elem_ty))
+            }
+
+            // ── Index ────────────────────────
+            AstNodeKind::Index { array, index } => {
+                let arr_ty = self.analyze(array);
+                self.analyze(index);
+                match arr_ty {
+                    AetherType::Array(inner) => *inner,
+                    AetherType::Str => AetherType::Str, // char indexing returns str
+                    _ => AetherType::Auto,
+                }
+            }
         }
     }
 

@@ -597,23 +597,35 @@ impl<'src> Parser<'src> {
     fn parse_call(&mut self) -> Result<ContentHash, ParseError> {
         let mut expr = self.parse_primary()?;
 
-        // Check if this is a call: `ident(`
-        if self.peek() == Some(&Token::LParen) {
-            // Extract function name from the expr node
-            if let Some(node) = self.store.get(&expr) {
-                if let AstNodeKind::Ident(name) = node.kind.clone() {
-                    let start = self.current_span().start;
-                    self.advance(); // consume `(`
-                    let mut args = Vec::new();
-                    while self.peek() != Some(&Token::RParen) {
-                        args.push(self.parse_expr()?);
-                        if !self.eat(&Token::Comma) { break; }
+        loop {
+            if self.peek() == Some(&Token::LParen) {
+                // Function call: extract name from ident node
+                if let Some(node) = self.store.get(&expr) {
+                    if let AstNodeKind::Ident(name) = node.kind.clone() {
+                        let start = self.current_span().start;
+                        self.advance(); // consume `(`
+                        let mut args = Vec::new();
+                        while self.peek() != Some(&Token::RParen) {
+                            args.push(self.parse_expr()?);
+                            if !self.eat(&Token::Comma) { break; }
+                        }
+                        self.expect(&Token::RParen, "`)` after arguments")?;
+                        let end = self.current_span().end;
+                        expr = self.mk(AstNodeKind::Call { func: name, args }, start..end);
+                        continue;
                     }
-                    self.expect(&Token::RParen, "`)` after arguments")?;
-                    let end = self.current_span().end;
-                    expr = self.mk(AstNodeKind::Call { func: name, args }, start..end);
                 }
+            } else if self.peek() == Some(&Token::LBracket) {
+                // Index operation: expr[index]
+                let start = self.current_span().start;
+                self.advance(); // consume `[`
+                let index = self.parse_expr()?;
+                self.expect(&Token::RBracket, "`]` after index")?;
+                let end = self.current_span().end;
+                expr = self.mk(AstNodeKind::Index { array: expr, index }, start..end);
+                continue;
             }
+            break;
         }
 
         Ok(expr)
@@ -657,6 +669,19 @@ impl<'src> Parser<'src> {
                 let inner = self.parse_expr()?;
                 self.expect(&Token::RParen, "`)` closing grouped expression")?;
                 Ok(inner)
+            }
+            Some(Token::LBracket) => {
+                // Array literal: [expr, expr, ...]
+                let start = self.current_span().start;
+                self.advance(); // consume `[`
+                let mut elems: Vec<ContentHash> = Vec::new();
+                while self.peek() != Some(&Token::RBracket) && self.peek().is_some() {
+                    elems.push(self.parse_expr()?);
+                    if !self.eat(&Token::Comma) { break; }
+                }
+                self.expect(&Token::RBracket, "`]` closing array literal")?;
+                let end = self.current_span().end;
+                Ok(self.mk(AstNodeKind::ArrayLit(elems), start..end))
             }
             Some(Token::If) => self.parse_if(),
             Some(Token::LBrace) => self.parse_block(),

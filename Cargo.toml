@@ -4,6 +4,7 @@ members = [
     "crates/ae-syntax",
     "crates/ae-sema",
     "crates/ae-codegen",
+    "crates/ae-lsp",
     "crates/ae",
 ]
 resolver = "2"
@@ -19,18 +20,14 @@ blake3     = "1"
 hex        = "0.4"
 serde      = { version = "1", features = ["derive"] }
 serde_json = "1"
+# miette: default-features=false → pure Rust, no windows-sys C-dep
 miette     = { version = "7", default-features = false }
 thiserror  = "1"
 logos      = "0.14"
-clap       = { version = "4", features = ["derive"] }
-tokio      = { version = "1", features = ["full"] }
-tower-lsp  = "0.20"
+# clap: drop `color` (anstyle → windows-sys C-dep), keep everything else
+clap       = { version = "4", features = ["derive", "std", "help", "usage", "error-context", "suggestions"], default-features = false }
+# lsp-types: pure Rust LSP type definitions
 lsp-types  = "0.95"
-cranelift-codegen  = "0.113"
-cranelift-frontend = "0.113"
-cranelift-jit      = "0.113"
-cranelift-module   = "0.113"
-cranelift-native   = "0.113"
 
 ae-ast     = { path = "crates/ae-ast" }
 ae-syntax  = { path = "crates/ae-syntax" }

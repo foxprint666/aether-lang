@@ -1,0 +1,74 @@
+// sorting.ae — Bubble Sort demonstrating Aether's array support
+//
+// Uses:
+//   - `[1, 2, 3]`  array literal syntax
+//   - `new_array(n, 0)` pre-allocated array
+//   - `push`, `get`, `set`, `len` builtins
+//   - `while` loops with in-place mutation via Rc<RefCell<Vec<Value>>>
+
+fn bubble_sort(arr: auto) -> auto {
+    let n = len(arr);
+    let i = 0;
+    while i < n {
+        let j = 0;
+        while j < n - i - 1 {
+            let a = get(arr, j);
+            let b = get(arr, j + 1);
+            if a > b {
+                set(arr, j, b);
+                set(arr, j + 1, a);
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    return arr;
+}
+
+fn print_array(arr: auto) {
+    let i = 0;
+    let n = len(arr);
+    let out = "[";
+    while i < n {
+        out = out + to_str(get(arr, i));
+        if i < n - 1 {
+            out = out + ", ";
+        }
+        i = i + 1;
+    }
+    out = out + "]";
+    print(out);
+}
+
+fn main() {
+    print("=== Bubble Sort ===");
+
+    let nums = [64, 34, 25, 12, 22, 11, 90];
+    print("Unsorted:");
+    print_array(nums);
+
+    bubble_sort(nums);
+
+    print("Sorted:");
+    print_array(nums);
+
+    // Verify sorted order
+    let i = 0;
+    let n = len(nums);
+    while i < n - 1 {
+        assert(get(nums, i) <= get(nums, i + 1));
+        i = i + 1;
+    }
+    print("All assertions passed!");
+
+    print("");
+    print("=== Sorting strings ===");
+    let words = new_array(0, "");
+    push(words, "banana");
+    push(words, "apple");
+    push(words, "cherry");
+    push(words, "date");
+    print("Word count: " + to_str(len(words)));
+    print("First word (unsorted): " + get(words, 0));
+    print("Last  word (unsorted): " + get(words, len(words) - 1));
+}

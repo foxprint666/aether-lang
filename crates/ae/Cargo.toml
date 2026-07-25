@@ -12,4 +12,6 @@ ae-ast     = { workspace = true }
 ae-syntax  = { workspace = true }
 ae-sema    = { workspace = true }
 ae-codegen = { workspace = true }
+ae-lsp     = { workspace = true }
+clap       = { workspace = true }
 serde_json = { workspace = true }

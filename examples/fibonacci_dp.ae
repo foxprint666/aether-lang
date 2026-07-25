@@ -1,0 +1,104 @@
+// fibonacci_dp.ae — Dynamic Programming Fibonacci
+//
+// Demonstrates:
+//   - `new_array(n, 0)` for pre-allocated memoization table
+//   - `get` / `set` for O(1) array access
+//   - Comparison between recursive (exponential) and DP (linear) approaches
+
+// Naive recursive — O(2^n)
+fn fib_recursive(n: i64) -> i64 {
+    if n <= 1 {
+        return n;
+    }
+    return fib_recursive(n - 1) + fib_recursive(n - 2);
+}
+
+// Bottom-up DP — O(n) time, O(n) space
+fn fib_dp(n: i64) -> i64 {
+    if n <= 1 {
+        return n;
+    }
+    let memo = new_array(n + 1, 0);
+    set(memo, 0, 0);
+    set(memo, 1, 1);
+    let i = 2;
+    while i <= n {
+        let val = get(memo, i - 1) + get(memo, i - 2);
+        set(memo, i, val);
+        i = i + 1;
+    }
+    return get(memo, n);
+}
+
+// Space-optimized DP — O(n) time, O(1) space
+fn fib_optimized(n: i64) -> i64 {
+    if n <= 1 {
+        return n;
+    }
+    let a = 0;
+    let b = 1;
+    let i = 2;
+    while i <= n {
+        let c = a + b;
+        a = b;
+        b = c;
+        i = i + 1;
+    }
+    return b;
+}
+
+fn main() {
+    print("=== Fibonacci: Dynamic Programming ===");
+    print("");
+
+    // Build and display the Fibonacci sequence up to F(20)
+    let limit = 20;
+    let results = new_array(limit + 1, 0);
+
+    let i = 0;
+    while i <= limit {
+        let val = fib_dp(i);
+        set(results, i, val);
+        i = i + 1;
+    }
+
+    print("First 21 Fibonacci numbers (DP):");
+    let row = "";
+    let j = 0;
+    while j <= limit {
+        row = row + "F(" + to_str(j) + ")=" + to_str(get(results, j));
+        if j < limit {
+            row = row + "  ";
+        }
+        if j % 7 == 6 {
+            print(row);
+            row = "";
+        }
+        j = j + 1;
+    }
+    if str_len(row) > 0 {
+        print(row);
+    }
+
+    print("");
+    print("=== Cross-validation: recursive vs DP vs optimized ===");
+    let k = 0;
+    while k <= 15 {
+        let r = fib_recursive(k);
+        let d = fib_dp(k);
+        let o = fib_optimized(k);
+        assert(r == d);
+        assert(d == o);
+        k = k + 1;
+    }
+    print("All three implementations agree for F(0)..F(15) ✓");
+
+    print("");
+    print("F(40) via optimized (recursive would be too slow):");
+    print(fib_optimized(40));
+
+    assert(fib_optimized(10) == 55);
+    assert(fib_optimized(20) == 6765);
+    assert(fib_optimized(30) == 832040);
+    print("All assertions passed!");
+}
