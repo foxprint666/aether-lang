@@ -24,6 +24,9 @@ use std::rc::Rc;
 use ae_ast::{AstNodeKind, AstStore, BinOpKind, ContentHash, SpanTable, UnaryOpKind};
 use ae_sema::SemaResult;
 
+pub mod jit;
+pub mod aot;
+
 // ─────────────────────────────────────────────
 //  Runtime value
 // ─────────────────────────────────────────────

@@ -1,0 +1,20 @@
+fn add(a: i64, b: i64) -> i64 {
+    a + b
+}
+
+fn count_to(limit: i64) -> i64 {
+    let i = 0;
+    while i < limit {
+        print("Looping...");
+        print(i);
+        i = add(i, 1);
+    }
+    i
+}
+
+fn main() -> i64 {
+    print("Starting multi-function & while loop test!");
+    let total = count_to(3);
+    print("Done!");
+    total
+}

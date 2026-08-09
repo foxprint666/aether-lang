@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-safe-infra/patch-schema/v1.0",
+  "title": "AI-Safe Execution Patch",
+  "description": "Structured patch instruction for AI-driven code modification. Consumed by the AI-Safe Execution Infrastructure runtime.",
+  "type": "object",
+  "required": ["schema_version", "patch_id", "action", "target", "changes"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Schema version. Must be '1.0' for this revision."
+    },
+    "patch_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this patch. Used to correlate snapshots, logs, and rollback records."
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "modify_function",
+        "add_function",
+        "remove_function",
+        "modify_class",
+        "update_import",
+        "replace_block",
+        "run_script"
+      ],
+      "description": "Top-level action type. Determines which validation rules and execution path apply."
+    },
+    "target": {
+      "type": "object",
+      "required": ["file"],
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string",
+          "pattern": "^[^/\\\\]+[\\s\\S]*$",
+          "description": "Relative path from project root to the target file. Must not be absolute."
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Name of the function, class, or symbol to target. Required for symbol-level actions."
+        },
+        "symbol_type": {
+          "type": "string",
+          "enum": ["function", "class", "method", "variable", "import", "module"],
+          "description": "Type of the targeted symbol."
+        },
+        "line_hint": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Optional line number hint for disambiguation. Not used as the sole locator."
+        }
+      }
+    },
+    "changes": {
+      "type": "object",
+      "required": ["operation"],
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "type": "string",
+          "enum": [
+            "replace_body",
+            "insert_before",
+            "insert_after",
+            "update_logic",
+            "context_replace",
+            "add_import",
+            "remove_import",
+            "run"
+          ],
+          "description": "The specific transformation to perform within the targeted symbol."
+        },
+        "payload": {
+          "type": "string",
+          "maxLength": 65536,
+          "description": "Code content or structured diff payload. Max 64KB to prevent oversized patches."
+        },
+        "context_before": {
+          "type": "string",
+          "description": "For context_replace: lines before the change anchor. Used as a locator, not a line number."
+        },
+        "context_after": {
+          "type": "string",
+          "description": "For context_replace: lines after the change anchor."
+        },
+        "imports": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "For update_import: list of import statements to add or remove."
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional execution constraints applied to the sandbox. Defaults applied if omitted.",
+      "properties": {
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 30000,
+          "default": 5000,
+          "description": "Maximum execution time in milliseconds. Range: 100ms–30s."
+        },
+        "memory_limit_mb": {
+          "type": "integer",
+          "minimum": 8,
+          "maximum": 2048,
+          "default": 128,
+          "description": "Maximum memory allocation in megabytes. Range: 8MB–2048MB."
+        },
+        "allow_network": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the sandbox may make outbound network calls. Defaults to false (deny)."
+        },
+        "allow_filesystem": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the sandbox may read/write the filesystem outside its working directory. Defaults to false (deny)."
+        },
+        "sandbox_tier": {
+          "type": "string",
+          "enum": ["t1_cranelift", "t2_wasm", "t3_subprocess", "auto"],
+          "default": "auto",
+          "description": "Preferred sandbox tier. 'auto' selects the most secure available tier."
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional metadata for observability and audit tracking.",
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "description": "Identifier of the AI agent that generated this patch."
+        },
+        "model": {
+          "type": "string",
+          "description": "Name of the LLM/model that generated this patch."
+        },
+        "intent": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Human-readable description of the patch's intended effect. Used in audit logs."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of patch generation."
+        }
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "action": { "enum": ["modify_function", "add_function", "remove_function", "modify_class"] }
+    }
+  },
+  "then": {
+    "properties": {
+      "target": {
+        "required": ["file", "symbol", "symbol_type"]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "action": { "const": "run_script" } }
+      },
+      "then": {
+        "properties": {
+          "changes": {
+            "properties": {
+              "operation": { "const": "run" },
+              "payload": { "minLength": 1 }
+            },
+            "required": ["operation", "payload"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "action": { "const": "replace_block" } }
+      },
+      "then": {
+        "properties": {
+          "changes": {
+            "properties": {
+              "operation": { "const": "context_replace" },
+              "context_before": { "minLength": 1 },
+              "payload": { "minLength": 1 }
+            },
+            "required": ["operation", "payload", "context_before"]
+          }
+        }
+      }
+    }
+  ]
+}

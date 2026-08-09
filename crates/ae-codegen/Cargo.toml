@@ -8,3 +8,13 @@ ae-ast    = { workspace = true }
 ae-sema   = { workspace = true }
 thiserror = { workspace = true }
 
+# Phase 4: Cranelift JIT Compilation
+cranelift-codegen  = "0.113"
+cranelift-frontend = "0.113"
+cranelift-jit      = "0.113"
+cranelift-module   = "0.113"
+cranelift-native   = "0.113"
+cranelift-object  = "0.113"
+object            = "0.36"
+
+
