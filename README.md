@@ -25,6 +25,23 @@ AI coding agents (LLMs, Copilots, AutoGPT, etc.) currently modify codebases by g
 
 ## Repository Layout
 
+```mermaid
+graph TD
+    A[aether-lang/] --> B[sdk/python/ <br> AI-Safe Runtime v1.0]
+    A --> C[sdk/node/ <br> AI-Safe Runtime Node.js]
+    A --> D[crates/ <br> Legacy Cranelift Compiler]
+    
+    B --> B1[Validation Layer]
+    B --> B2[Snapshot System]
+    B --> B3[Sandbox T3]
+    B --> B4[AST Engine LibCST]
+    
+    C --> C1[Validation Layer]
+    C --> C2[Snapshot System]
+    C --> C3[Sandbox T3 Node20]
+    C --> C4[AST Engine Recast]
+```
+
 ```
 aether-lang/
 │
@@ -59,74 +76,43 @@ aether-lang/
 
 ## System Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                         AI Agent                                      │
-│            (Any LLM/agent that wants to modify a codebase)           │
-└─────────────────────────────┬────────────────────────────────────────┘
-                              │
-                    Structured Patch JSON
-                    {
-                      "schema_version": "1.0",
-                      "patch_id": "<uuid-v4>",
-                      "action": "modify_function",
-                      "target": { "file": "src/app.py", ... },
-                      "changes": { "operation": "replace_body", ... }
-                    }
-                              │
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                      VALIDATION LAYER                                 │
-│                                                                       │
-│  Gate 1: JSON Schema (< 1ms)                                          │
-│    • Enforces all required fields, enum values, UUID format           │
-│    • Rejects payloads > 64 KB                                         │
-│    • Validates timeout bounds [100ms – 30s]                           │
-│    • additionalProperties: false — no unknown fields                  │
-│                                                                       │
-│  Gate 2: Security Rules (< 1ms)                                       │
-│    • (action, operation) allow-list                                   │
-│    • Absolute paths + ../ traversal → rejected                        │
-│    • os.system / subprocess / eval in payload → rejected              │
-│    • run_script without trust_level='elevated' → rejected             │
-└─────────────────────────────┬────────────────────────────────────────┘
-                              │ valid only
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                      SNAPSHOT SYSTEM                                  │
-│                                                                       │
-│  Before touching any file:                                            │
-│    1. Acquire cross-platform write lock (fcntl / msvcrt)              │
-│    2. Walk project tree — skip node_modules / venv / __pycache__      │
-│       Apply .gitignore + .ai_runtimeignore patterns                   │
-│    3. Write atomic .tar.gz archive (temp → rename, no partial writes) │
-│    4. Record in SQLite (WAL mode, concurrent readers safe)            │
-│    5. Return SnapshotHandle → used for rollback                       │
-└─────────────────────────────┬────────────────────────────────────────┘
-                              │
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                     SANDBOX EXECUTION                                 │
-│                                                                       │
-│  Tier 1 ── Cranelift JIT  (v1.2)  Zero-syscall, max isolation        │
-│            └─ Reuses crates/ae-codegen Cranelift engine via FFI      │
-│                                                                       │
-│  Tier 2 ── Wasmtime/WASM  (v1.1)  Hardware boundary, WASI caps       │
-│                                                                       │
-│  Tier 3 ── Subprocess     (v1.0)  ← CURRENT                          │
-│            ├── Windows: Win32 Job Objects (per-process memory limit)  │
-│            ├── Unix:    resource.setrlimit (RLIMIT_AS + RLIMIT_CPU)   │
-│            ├── Timeout: subprocess.communicate(timeout=)              │
-│            └── Isolation: CREATE_NEW_PROCESS_GROUP / setsid()         │
-│                                                                       │
-│  Auto-selects highest available tier.                                 │
-└──────────────┬───────────────────────────────────────┬───────────────┘
-               │                                       │
-           Success                                  Failure
-               │                                       │
-               ▼                                       ▼
-    commit_snapshot(handle)              restore(handle)
-    (archive kept, status='committed')   (extract .tar.gz, status='rolled_back')
+```mermaid
+flowchart TD
+    Agent["🤖 AI Agent"] -->|JSON Patch| Validation
+    
+    subgraph Validation["🛡️ VALIDATION LAYER"]
+        G1{"Gate 1: JSON Schema"} 
+        G2{"Gate 2: Security Rules"}
+        G1 -->|Valid| G2
+    end
+    
+    subgraph Snapshot["📸 SNAPSHOT SYSTEM"]
+        Lock["Acquire Write Lock"]
+        Tar["Create .tar.gz Archive"]
+        DB["Log to SQLite"]
+        Lock --> Tar --> DB
+    end
+    
+    subgraph Sandbox["⚙️ SANDBOX EXECUTION"]
+        T1["Tier 1: Cranelift JIT (Zero-syscall)"]
+        T2["Tier 2: Wasmtime/WASM (WASI)"]
+        T3["Tier 3: Subprocess (OS Limits)"]
+    end
+    
+    subgraph AST["🌳 AST ENGINE"]
+        PyAST["Python LibCST"]
+        NodeAST["Node.js Recast"]
+    end
+    
+    Validation -->|Valid| Snapshot
+    Validation -->|Invalid| Reject["❌ Reject"]
+    
+    Snapshot --> Sandbox
+    Sandbox -->|Success| AST
+    Sandbox -->|Failure| Rollback["⏪ Rollback"]
+    
+    AST -->|Success| Commit["✅ Commit"]
+    AST -->|Failure| Rollback
 ```
 
 ---
@@ -238,9 +224,9 @@ pytest tests/ -v
 | 1 | Validation Layer (JSON Schema + Rules) | ✅ Complete |
 | 2 | T3 Sandbox (subprocess + OS limits) | ✅ Complete |
 | 3 | Snapshot System (tar.gz + SQLite + locks) | ✅ Complete |
-| 4 | Observability (audit log, diffs, CLI status) | 🔄 In Progress |
-| 5 | AST Apply Engine (`modify_function` via `ast`/`libcst`) | 🔜 Planned |
-| 6 | Node.js SDK (`sdk/node/`) | 🔜 Planned |
+| 4 | Observability (audit log, diffs, CLI status) | ✅ Complete |
+| 5 | AST Apply Engine (`modify_function` via `ast`/`libcst`) | ✅ Complete |
+| 6 | Node.js SDK (`sdk/node/`) | ✅ Complete |
 | 7 | T2 Sandbox (Wasmtime/WASI) | 🔜 Planned |
 | 8 | T1 Sandbox (Cranelift JIT FFI) | 🔜 Planned |
 

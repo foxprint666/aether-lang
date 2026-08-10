@@ -89,6 +89,12 @@ if _IS_WINDOWS:
             ("PeakProcessMemoryUsed", ctypes.c_size_t),
             ("PeakJobMemoryUsed",     ctypes.c_size_t),
         ]
+        
+    class _JOBOBJECT_ASSOCIATE_COMPLETION_PORT(ctypes.Structure):
+        _fields_ = [
+            ("CompletionKey", ctypes.c_void_p),
+            ("CompletionPort", ctypes.c_void_p)
+        ]
 
     def _apply_windows_job_memory_limit(pid: int, memory_limit_mb: int) -> bool:
         """
@@ -128,12 +134,45 @@ if _IS_WINDOWS:
                 ctypes.byref(info),
                 ctypes.sizeof(info),
             )
+            
+            _kernel32.CreateIoCompletionPort.argtypes = [_wt.HANDLE, _wt.HANDLE, ctypes.c_void_p, _wt.DWORD]
+            _kernel32.CreateIoCompletionPort.restype = _wt.HANDLE
+            iocp = _kernel32.CreateIoCompletionPort(_wt.HANDLE(-1), None, 0, 1)
+
+            assoc = _JOBOBJECT_ASSOCIATE_COMPLETION_PORT()
+            assoc.CompletionKey = ctypes.c_void_p(job)
+            assoc.CompletionPort = ctypes.c_void_p(iocp)
+            _kernel32.SetInformationJobObject(
+                job,
+                7, # JobObjectAssociateCompletionPortInformation
+                ctypes.byref(assoc),
+                ctypes.sizeof(assoc)
+            )
 
             # Assign process to Job Object
             _kernel32.AssignProcessToJobObject(job, proc_handle)
+            
+            import threading
+            def watchdog():
+                msg = ctypes.c_uint32()
+                key = ctypes.c_void_p()
+                ov = ctypes.c_void_p()
+                while True:
+                    res = _kernel32.GetQueuedCompletionStatus(iocp, ctypes.byref(msg), ctypes.byref(key), ctypes.byref(ov), 0xFFFFFFFF)
+                    if not res:
+                        break
+                    if msg.value in (9, 10): # PROCESS_MEMORY_LIMIT or JOB_MEMORY_LIMIT
+                        _kernel32.TerminateProcess(proc_handle, 137) # OOM exit code approximation
+                        break
+                    elif msg.value == 4: # ACTIVE_PROCESS_ZERO
+                        break
+                _kernel32.CloseHandle(proc_handle)
+                _kernel32.CloseHandle(job)
+                _kernel32.CloseHandle(iocp)
 
-            _kernel32.CloseHandle(proc_handle)
-            _kernel32.CloseHandle(job)
+            t = threading.Thread(target=watchdog, daemon=True)
+            t.start()
+            
             return True
         except Exception:
             return False
@@ -158,6 +197,7 @@ class T3SubprocessSandbox:
         timeout_ms:      int,
         memory_limit_mb: int,
         allow_network:   bool,
+        allow_filesystem:bool,
         cwd:             Path,
     ) -> ExecutionResult:
         t0 = time.perf_counter()
@@ -168,8 +208,11 @@ class T3SubprocessSandbox:
             result_path = result_file.name
 
         request_json = json.dumps({
-            "payload":     payload,
-            "result_path": result_path,
+            "payload":          payload,
+            "result_path":      result_path,
+            "allow_network":    allow_network,
+            "allow_filesystem": allow_filesystem,
+            "working_dir":      str(cwd),
         })
 
         timeout_sec = timeout_ms / 1000.0
@@ -179,6 +222,7 @@ class T3SubprocessSandbox:
                 request_json=request_json,
                 cwd=cwd,
                 memory_limit_mb=memory_limit_mb,
+                allow_network=allow_network,
             )
 
             try:
@@ -236,6 +280,7 @@ class T3SubprocessSandbox:
         request_json: str,
         cwd: Path,
         memory_limit_mb: int,
+        allow_network: bool,
     ) -> subprocess.Popen:
         """Spawn the worker subprocess with platform-appropriate isolation."""
 
@@ -243,15 +288,16 @@ class T3SubprocessSandbox:
         cmd    = [python, str(_RUNNER_PATH)]
 
         if _IS_WINDOWS:
-            return self._spawn_windows(cmd, request_json, cwd)
+            return self._spawn_windows(cmd, request_json, cwd, memory_limit_mb)
         else:
-            return self._spawn_unix(cmd, request_json, cwd, memory_limit_mb)
+            return self._spawn_unix(cmd, request_json, cwd, memory_limit_mb, allow_network)
 
     @staticmethod
     def _spawn_windows(
         cmd: list[str],
         request_json: str,
         cwd: Path,
+        memory_limit_mb: int,
     ) -> subprocess.Popen:
         """
         Windows spawn: CREATE_NEW_PROCESS_GROUP for signal isolation.
@@ -265,6 +311,9 @@ class T3SubprocessSandbox:
             cwd=str(cwd),
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
         )
+        # Enforce memory limit via Windows Job Objects
+        _apply_windows_job_memory_limit(proc.pid, memory_limit_mb)
+        
         # Send payload via stdin
         proc.stdin.write(request_json.encode("utf-8"))
         proc.stdin.close()
@@ -276,6 +325,7 @@ class T3SubprocessSandbox:
         request_json: str,
         cwd: Path,
         memory_limit_mb: int,
+        allow_network: bool,
     ) -> subprocess.Popen:
         """
         Unix spawn: setsid() for process group isolation + resource.setrlimit
@@ -303,6 +353,9 @@ class T3SubprocessSandbox:
                 )
             except Exception:
                 pass  # Best-effort; don't abort the child
+
+        if not allow_network:
+            cmd = ["unshare", "-r", "-n"] + cmd
 
         proc = subprocess.Popen(
             cmd,

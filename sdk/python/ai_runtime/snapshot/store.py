@@ -149,6 +149,7 @@ class SnapshotStore:
             status="pending",
             created_at=time.time(),
             archive_size_bytes=size_bytes,
+            file_count=file_count,
         )
 
     def restore(self, handle: SnapshotHandle) -> None:
@@ -248,7 +249,7 @@ class SnapshotStore:
         with self._connect() as con:
             row = con.execute(
                 "SELECT id, patch_id, project_root, archive_path, "
-                "created_at, status, archive_size_bytes "
+                "created_at, status, archive_size_bytes, file_count "
                 "FROM snapshots WHERE id = ?",
                 (snapshot_id,),
             ).fetchone()
@@ -264,6 +265,7 @@ class SnapshotStore:
             created_at=row[4],
             status=row[5],
             archive_size_bytes=row[6],
+            file_count=row[7],
         )
 
     # ── Private helpers ────────────────────────────────────────────────────

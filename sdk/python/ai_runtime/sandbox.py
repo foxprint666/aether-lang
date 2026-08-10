@@ -30,22 +30,6 @@ from .sandbox_t3 import T3SubprocessSandbox
 
 
 # ---------------------------------------------------------------------------
-# Data types
-# ---------------------------------------------------------------------------
-
-@dataclass
-class SnapshotHandle:
-    """
-    Opaque reference to a pre-modification snapshot.
-    Populated by Phase 3 (Snapshot & Rollback System).
-    """
-    snapshot_id: str
-    project_root: str
-    created_at: float = field(default_factory=time.time)
-    path: Optional[str] = None  # filesystem path to the archive
-
-
-# ---------------------------------------------------------------------------
 # Sandbox
 # ---------------------------------------------------------------------------
 
@@ -79,6 +63,13 @@ class Sandbox:
         self.preferred_tier = preferred_tier
         self._t3: Optional[T3SubprocessSandbox] = None
         self._store = None  # SnapshotStore — lazily initialized
+        self._audit_log = None
+
+    def _get_audit_log(self):
+        if self._audit_log is None:
+            from .observability import AuditLog
+            self._audit_log = AuditLog(project_root=self.project_root)
+        return self._audit_log
 
     # --- Context manager support ---
 
@@ -105,7 +96,15 @@ class Sandbox:
         Returns:
             SnapshotHandle with path pointing to the .tar.gz archive.
         """
-        return self._get_store().capture(patch_id=patch_id)
+        handle = self._get_store().capture(patch_id=patch_id)
+        log = self._get_audit_log()
+        log.record(log.event_snapshot_captured(
+            patch_id=patch_id,
+            snapshot_id=handle.snapshot_id,
+            file_count=handle.file_count,
+            size_bytes=handle.archive_size_bytes,
+        ))
+        return handle
 
     def restore(self, handle: SnapshotHandle) -> None:
         """
@@ -119,10 +118,20 @@ class Sandbox:
             FileNotFoundError: If the archive has been pruned.
         """
         self._get_store().restore(handle)
+        log = self._get_audit_log()
+        log.record(log.event_rollback(
+            patch_id=handle.patch_id,
+            snapshot_id=handle.snapshot_id,
+        ))
 
     def commit_snapshot(self, handle: SnapshotHandle) -> None:
         """Mark a snapshot as committed (patch applied successfully)."""
         self._get_store().commit(handle)
+        log = self._get_audit_log()
+        log.record(log.event_committed(
+            patch_id=handle.patch_id,
+            snapshot_id=handle.snapshot_id,
+        ))
 
     def _get_store(self):
         if self._store is None:
@@ -134,6 +143,7 @@ class Sandbox:
         self,
         payload: str,
         *,
+        patch_id:        str  = "",
         timeout_ms:      int  = _DEFAULT_TIMEOUT_MS,
         memory_limit_mb: int  = _DEFAULT_MEMORY_MB,
         allow_network:   bool = _DEFAULT_ALLOW_NETWORK,
@@ -158,22 +168,42 @@ class Sandbox:
         cwd  = Path(working_dir) if working_dir else self.project_root
 
         if tier == "t3_subprocess":
-            return self._execute_t3(
+            result = self._execute_t3(
                 payload=payload,
                 timeout_ms=timeout_ms,
                 memory_limit_mb=memory_limit_mb,
                 allow_network=allow_network,
+                allow_filesystem=allow_filesystem,
+                cwd=cwd,
+            )
+        else:
+            # T2/T1 — stubs, fall through to T3 for now
+            result = self._execute_t3(
+                payload=payload,
+                timeout_ms=timeout_ms,
+                memory_limit_mb=memory_limit_mb,
+                allow_network=allow_network,
+                allow_filesystem=allow_filesystem,
                 cwd=cwd,
             )
 
-        # T2/T1 — stubs, fall through to T3 for now
-        return self._execute_t3(
-            payload=payload,
-            timeout_ms=timeout_ms,
-            memory_limit_mb=memory_limit_mb,
-            allow_network=allow_network,
-            cwd=cwd,
-        )
+        log = self._get_audit_log()
+        if result.failed:
+            log.record(log.event_execution_failed(
+                patch_id=patch_id,
+                tier=tier,
+                elapsed_ms=result.elapsed_ms,
+                error=result.stderr or result.error or "Unknown error",
+            ))
+        else:
+            log.record(log.event_execution_ok(
+                patch_id=patch_id,
+                tier=tier,
+                elapsed_ms=result.elapsed_ms,
+                stdout=result.stdout,
+            ))
+            
+        return result
 
     # --- Tier resolution ---
 
@@ -217,6 +247,7 @@ class Sandbox:
         timeout_ms: int,
         memory_limit_mb: int,
         allow_network: bool,
+        allow_filesystem: bool,
         cwd: Path,
     ) -> ExecutionResult:
         if self._t3 is None:
@@ -227,5 +258,6 @@ class Sandbox:
             timeout_ms=timeout_ms,
             memory_limit_mb=memory_limit_mb,
             allow_network=allow_network,
+            allow_filesystem=allow_filesystem,
             cwd=cwd,
         )

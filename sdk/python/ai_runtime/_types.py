@@ -45,6 +45,7 @@ class SnapshotHandle:
         status:            'pending' | 'committed' | 'rolled_back'
         created_at:        Unix timestamp of capture.
         archive_size_bytes: Compressed archive size in bytes (0 if unknown).
+        file_count:        Number of files in the snapshot (0 if unknown).
     """
     snapshot_id:        str
     project_root:       str
@@ -53,3 +54,4 @@ class SnapshotHandle:
     status:             str           = "pending"
     created_at:         float         = field(default_factory=time.time)
     archive_size_bytes: int           = 0
+    file_count:         int           = 0

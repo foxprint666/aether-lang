@@ -391,8 +391,8 @@ Current suite: **94 tests, 94 passed** (Python 3.14 / Windows 11)
 | 1 — Validation Layer | ✅ Done | JSON Schema Gate + security rule allow-list |
 | 2 — Sandbox (T3) | ✅ Done | Subprocess isolation, Windows Job Objects, Unix rlimit |
 | 3 — Snapshot System | ✅ Done | `.tar.gz` archives, SQLite WAL, gitignore-aware, cross-platform locks |
-| 4 — Observability | 🔄 Next | Structured diffs, audit log, `ae-safe status` CLI |
-| 5 — AST Apply Engine | 🔜 Planned | Real `modify_function` / `add_function` via `ast` + `libcst` |
+| 4 — Observability | ✅ Done | Structured diffs, audit log, `ae-safe status` CLI |
+| 5 — AST Apply Engine | 🔄 Next | Real `modify_function` / `add_function` via `ast` + `libcst` |
 | 6 — Node.js SDK | 🔜 Planned | `sdk/node/` TypeScript port |
 | 7 — T2 Sandbox (WASM) | 🔜 Planned | Wasmtime WASI integration |
 | 8 — T1 Sandbox (JIT) | 🔜 Planned | Cranelift FFI from existing `crates/ae-codegen` |

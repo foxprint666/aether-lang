@@ -309,7 +309,14 @@ class TestEngineStats:
 
         assert engine.stats["rejected"] == 1
 
-    def test_process_increments_applied(self, engine):
+    def test_process_increments_applied(self, tmp_path):
+        from ai_runtime import PatchEngine
+        engine = PatchEngine(project_root=str(tmp_path))
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        app_py = src_dir / "app.py"
+        app_py.write_text("def calculate_total(items):\n    return 0\n")
+        
         patch = make_patch()
         engine.process(patch)
         assert engine.stats["applied"] == 1

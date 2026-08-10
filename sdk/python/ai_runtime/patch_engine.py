@@ -80,6 +80,13 @@ class PatchEngine:
         self._rejected_count = 0
         self._sandbox        = sandbox
         self._project_root   = project_root
+        self._audit_log      = None
+
+    def _get_audit_log(self):
+        if self._audit_log is None:
+            from .observability import AuditLog
+            self._audit_log = AuditLog(project_root=self._project_root or ".")
+        return self._audit_log
 
     def _get_sandbox(self) -> "Sandbox":
         """Lazy-initialize sandbox on first use."""
@@ -118,32 +125,54 @@ class PatchEngine:
         else:
             schema_result = validate_schema(patch)
 
+        patch_dict = patch if isinstance(patch, dict) else {}
+
         # --- Gate 1: Schema ---
         if not schema_result.valid:
             self._rejected_count += 1
             elapsed = (time.perf_counter() - t0) * 1000
+            
+            log = self._get_audit_log()
+            log.record(log.event_validation_rejected(
+                patch=patch_dict,
+                errors=schema_result.errors,
+                elapsed_ms=round(elapsed, 2)
+            ))
+            
             return ValidationReport(
                 ok=False,
                 schema_result=schema_result,
                 rules_result=None,
                 elapsed_ms=round(elapsed, 2),
-                patch_id=patch.get("patch_id") if isinstance(patch, dict) else None,
+                patch_id=patch_dict.get("patch_id")
             )
 
         # --- Gate 2: Rules ---
-        rules_result = check_rules(patch, trust_level=trust_level)  # type: ignore[arg-type]
+        rules_result = check_rules(patch_dict, trust_level=trust_level)  # type: ignore[arg-type]
         ok = rules_result.valid
+
+        elapsed = (time.perf_counter() - t0) * 1000
+        log = self._get_audit_log()
 
         if not ok:
             self._rejected_count += 1
-        elapsed = (time.perf_counter() - t0) * 1000
+            log.record(log.event_validation_rejected(
+                patch=patch_dict,
+                errors=[v.message for v in rules_result.violations],
+                elapsed_ms=round(elapsed, 2)
+            ))
+        else:
+            log.record(log.event_validation_ok(
+                patch=patch_dict,
+                elapsed_ms=round(elapsed, 2)
+            ))
 
         return ValidationReport(
             ok=ok,
             schema_result=schema_result,
             rules_result=rules_result,
             elapsed_ms=round(elapsed, 2),
-            patch_id=patch.get("patch_id") if isinstance(patch, dict) else None,  # type: ignore[union-attr]
+            patch_id=patch_dict.get("patch_id"),
         )
 
     def apply(self, patch: dict) -> None:
@@ -174,11 +203,10 @@ class PatchEngine:
             return result
 
         # All other actions dispatch to their stub/AST handler
-        handler = _ACTION_HANDLERS.get(action)
-        if handler is None:
-            raise ValueError(f"No apply handler for action '{action}'")
+        # All other actions dispatch to the AST handler
+        from .ast.engine import apply_patch
+        apply_patch(patch, self._project_root or ".")
 
-        handler(patch)
         self._applied_count += 1
 
     def process(
@@ -214,35 +242,7 @@ class PatchEngine:
 # Action handlers (Phase 1: stubs with clear TODOs for Phase 2)
 # ---------------------------------------------------------------------------
 
-def _apply_modify_function(patch: dict) -> None:
-    """Replace or update a function body in the target file."""
-    # TODO (Phase 2): Parse target file AST, locate symbol, apply changes.payload
-    _write_patch_stub(patch, "modify_function")
-
-
-def _apply_add_function(patch: dict) -> None:
-    """Insert a new function into the target file."""
-    _write_patch_stub(patch, "add_function")
-
-
-def _apply_remove_function(patch: dict) -> None:
-    """Remove a function from the target file."""
-    _write_patch_stub(patch, "remove_function")
-
-
-def _apply_modify_class(patch: dict) -> None:
-    """Modify a class in the target file."""
-    _write_patch_stub(patch, "modify_class")
-
-
-def _apply_update_import(patch: dict) -> None:
-    """Add or remove import statements in the target file."""
-    _write_patch_stub(patch, "update_import")
-
-
-def _apply_replace_block(patch: dict) -> None:
-    """Context-based block replacement in the target file."""
-    _write_patch_stub(patch, "replace_block")
+# AST actions are routed directly to ast.engine.apply_patch
 
 
 def _apply_run_script(patch: dict, *, sandbox: Optional["Sandbox"] = None) -> "ExecutionResult":
@@ -255,10 +255,12 @@ def _apply_run_script(patch: dict, *, sandbox: Optional["Sandbox"] = None) -> "E
     changes   = patch.get("changes", {})
     payload   = changes.get("payload", "")
     constraints = patch.get("constraints", {})
+    patch_id  = patch.get("patch_id", "")
 
     sb = sandbox or Sandbox()
     result = sb.execute(
         payload=payload,
+        patch_id=patch_id,
         timeout_ms=constraints.get("timeout_ms", 5000),
         memory_limit_mb=constraints.get("memory_limit_mb", 128),
         allow_network=constraints.get("allow_network", False),
@@ -267,27 +269,4 @@ def _apply_run_script(patch: dict, *, sandbox: Optional["Sandbox"] = None) -> "E
     return result
 
 
-def _write_patch_stub(patch: dict, action: str) -> None:
-    """
-    Placeholder: writes a JSON record of the patch to a staging file.
-    This allows end-to-end testing of the validation pipeline before
-    the real AST transformation engine (Phase 2) is complete.
-    """
-    import os
-    staging_dir = ".ai_runtime/staged"
-    os.makedirs(staging_dir, exist_ok=True)
-    patch_id = patch.get("patch_id", "unknown")
-    staging_path = os.path.join(staging_dir, f"{patch_id}.json")
-    with open(staging_path, "w") as f:
-        json.dump({"action": action, "patch": patch, "status": "staged"}, f, indent=2)
 
-
-_ACTION_HANDLERS: dict[str, object] = {
-    "modify_function":  _apply_modify_function,
-    "add_function":     _apply_add_function,
-    "remove_function":  _apply_remove_function,
-    "modify_class":     _apply_modify_class,
-    "update_import":    _apply_update_import,
-    "replace_block":    _apply_replace_block,
-    "run_script":       _apply_run_script,
-}

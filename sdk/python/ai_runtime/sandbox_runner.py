@@ -30,6 +30,9 @@ def main() -> None:
         request = json.loads(sys.stdin.read())
         payload = request["payload"]
         result_path = request["result_path"]
+        allow_network = request.get("allow_network", False)
+        allow_filesystem = request.get("allow_filesystem", False)
+        working_dir = request.get("working_dir")
     except Exception as e:
         # Can't even parse the request — exit with code 2
         sys.exit(2)
@@ -40,6 +43,60 @@ def main() -> None:
     old_stdout, old_stderr = sys.stdout, sys.stderr
     sys.stdout = captured_out
     sys.stderr = captured_err
+
+    # Enforce Python-level security boundaries (if requested)
+    if not allow_network or not allow_filesystem:
+        working_dir_abs = os.path.abspath(working_dir) if working_dir else None
+
+        def audit_hook(event, args):
+            if not allow_network:
+                if event in ("socket.bind", "socket.connect", "socket.__new__"):
+                    raise PermissionError(f"Network access disabled (event: {event})")
+            
+            if not allow_filesystem and working_dir_abs:
+                if event == "open":
+                    path = args[0]
+                    mode = args[1] if len(args) > 1 else "r"
+                    is_write = False
+                    if isinstance(mode, int):
+                        is_write = bool((mode & os.O_WRONLY) or (mode & os.O_RDWR) or (mode & os.O_CREAT) or (mode & os.O_TRUNC) or (mode & os.O_APPEND))
+                    else:
+                        is_write = any(c in str(mode) for c in "wax+")
+                        
+                    if is_write:
+                        try:
+                            target = os.path.abspath(path)
+                        except Exception:
+                            target = ""
+                        base = working_dir_abs
+                        if sys.platform == "win32":
+                            target = target.lower()
+                            base = base.lower()
+                        if not target.startswith(base + os.sep) and target != base:
+                            result_target = os.path.abspath(result_path)
+                            if sys.platform == "win32":
+                                result_target = result_target.lower()
+                            if target != result_target:
+                                raise PermissionError(f"Filesystem write outside working directory disabled (path: {path})")
+                elif event in ("os.mkdir", "os.rmdir", "os.remove", "os.rename", "os.chmod", "os.chown", "shutil.rmtree"):
+                    for p in args:
+                        if isinstance(p, (str, bytes, os.PathLike)):
+                            try:
+                                target = os.path.abspath(p)
+                            except Exception:
+                                target = ""
+                            base = working_dir_abs
+                            if sys.platform == "win32":
+                                target = target.lower()
+                                base = base.lower()
+                            if not target.startswith(base + os.sep) and target != base:
+                                result_target = os.path.abspath(result_path)
+                                if sys.platform == "win32":
+                                    result_target = result_target.lower()
+                                if target != result_target:
+                                    raise PermissionError(f"Filesystem write outside working directory disabled (event: {event}, path: {p})")
+
+        sys.addaudithook(audit_hook)
 
     exit_code = 0
     error_msg = None

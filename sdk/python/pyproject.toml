@@ -25,6 +25,7 @@ dependencies = [
     "jsonschema>=4.22",          # JSON Schema Draft 2020-12 validation
     "pathspec>=0.12",            # .gitignore-style pattern matching for snapshot archiver
     "zstandard>=0.23; sys_platform != 'win32'",  # fast snapshot compression (optional on Windows)
+    "libcst>=1.1.0",             # AST parsing and transformation
 ]
 
 [project.optional-dependencies]
