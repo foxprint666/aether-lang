@@ -124,6 +124,8 @@ pub struct Interpreter<'a> {
     fns:      HashMap<String, (Vec<String>, ContentHash)>,
     /// Global env (shared across all top-level statements)
     globals:  HashMap<String, Value>,
+    /// Flag to track if we're executing top-level statements
+    in_global_scope: bool,
 }
 
 type Frame = HashMap<String, Value>;
@@ -144,6 +146,7 @@ impl<'a> Interpreter<'a> {
             _sema: sema,
             fns,
             globals: HashMap::new(),
+            in_global_scope: true,
         }
     }
 
@@ -221,7 +224,11 @@ impl<'a> Interpreter<'a> {
             // ── Let binding ──────────────────
             AstNodeKind::Let { name, value, .. } => {
                 let v = self.exec(value, frame)?.into_value();
-                frame.insert(name, v);
+                if self.in_global_scope {
+                    self.globals.insert(name, v);
+                } else {
+                    frame.insert(name, v);
+                }
                 Ok(Signal::Value(Value::Unit))
             }
 
@@ -365,7 +372,11 @@ impl<'a> Interpreter<'a> {
                     _ => return Err(ExecError::TypeError("range end must be i64".into())),
                 };
                 for i in start..end {
-                    frame.insert(var.clone(), Value::Int(i));
+                    if self.in_global_scope {
+                        self.globals.insert(var.clone(), Value::Int(i));
+                    } else {
+                        frame.insert(var.clone(), Value::Int(i));
+                    }
                     match self.exec(body, frame)? {
                         Signal::Break    => break,
                         Signal::Continue => continue,
@@ -373,7 +384,11 @@ impl<'a> Interpreter<'a> {
                         _ => {}
                     }
                 }
-                frame.remove(&var);
+                if self.in_global_scope {
+                    self.globals.remove(&var);
+                } else {
+                    frame.remove(&var);
+                }
                 Ok(Signal::Value(Value::Unit))
             }
 
@@ -616,10 +631,16 @@ impl<'a> Interpreter<'a> {
             .zip(args.into_iter())
             .collect();
 
-        match self.exec(body, &mut new_frame)? {
-            Signal::Return(v) | Signal::Value(v) => Ok(v),
-            Signal::Break | Signal::Continue => Ok(Value::Unit),
-        }
+        let prev_global_scope = self.in_global_scope;
+        self.in_global_scope = false;
+
+        let res = match self.exec(body, &mut new_frame)? {
+            Signal::Return(v) | Signal::Value(v) => v,
+            Signal::Break | Signal::Continue => Value::Unit,
+        };
+
+        self.in_global_scope = prev_global_scope;
+        Ok(res)
     }
 }
 
