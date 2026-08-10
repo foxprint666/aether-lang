@@ -3,9 +3,14 @@ name    = "ae-codegen"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+crate-type = ["rlib", "cdylib"]
+
 [dependencies]
 ae-ast    = { workspace = true }
 ae-sema   = { workspace = true }
+ae-syntax = { workspace = true }
+serde_json = { workspace = true }
 thiserror = { workspace = true }
 
 # Phase 4: Cranelift JIT Compilation

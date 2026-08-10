@@ -1,4 +1,42 @@
+# Rust build artifacts
 /target
 **/*.rs.bk
 Cargo.lock
+
+# Aether test files
 test.ae
+
+# Node.js
+node_modules/
+sdk/node/node_modules/
+sdk/node/build/
+sdk/node/.nyc_output/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.env
+sdk/python/.venv/
+
+# AI runtime cache (user-local)
+.ai_runtime/cache/
+.ai_runtime/audit.jsonl
+
+# Compiled native addon
+*.node
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

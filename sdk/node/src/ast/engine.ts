@@ -68,7 +68,7 @@ function applyModifyFunction(ast: any, target: any, changes: any): void {
         throw new Error("modify_function requires target.symbol");
     }
     
-    if (operation === "replace_body") {
+    if (operation === "replace_body" || operation === "update_logic") {
         // We wrap payload in a dummy function to parse its body
         const dummyCode = `function dummy() {\n${payload}\n}`;
         let newBody: any;
@@ -109,6 +109,86 @@ function applyModifyFunction(ast: any, target: any, changes: any): void {
                 if (path.node.key?.type === 'Identifier' && path.node.key.name === symbol) {
                     found = true;
                     path.node.body = newBody;
+                    return false;
+                }
+                this.traverse(path);
+            }
+        });
+        
+        if (!found) {
+            throw new Error(`Function ${symbol} not found in target file`);
+        }
+    } else if (operation === "insert_before" || operation === "insert_after") {
+        let newNodes: any[];
+        try {
+            const parsed = recast.parse(payload, { parser: getParser() });
+            newNodes = parsed.program.body;
+        } catch (e: any) {
+            throw new Error(`Failed to parse payload for insert: ${e.message}`);
+        }
+        
+        let found = false;
+        recast.visit(ast, {
+            visitFunctionDeclaration(path) {
+                if (path.node.id?.type === 'Identifier' && path.node.id.name === symbol) {
+                    found = true;
+                    if (operation === "insert_before") {
+                        path.insertBefore(...newNodes);
+                    } else {
+                        path.insertAfter(...newNodes);
+                    }
+                    return false;
+                }
+                this.traverse(path);
+            },
+            visitFunctionExpression(path) {
+                if (path.node.id?.type === 'Identifier' && path.node.id.name === symbol) {
+                    found = true;
+                    let targetPath: any = path;
+                    while (targetPath && targetPath.node.type !== 'VariableDeclaration') {
+                        targetPath = targetPath.parentPath;
+                    }
+                    if (targetPath && targetPath.node.type === 'VariableDeclaration') {
+                        if (operation === "insert_before") {
+                            targetPath.insertBefore(...newNodes);
+                        } else {
+                            targetPath.insertAfter(...newNodes);
+                        }
+                    } else {
+                        throw new Error("Cannot insert_before/after a FunctionExpression without a parent variable declaration");
+                    }
+                    return false;
+                }
+                this.traverse(path);
+            },
+            visitArrowFunctionExpression(path) {
+                if (path.parentPath?.node?.type === 'VariableDeclarator' && path.parentPath.node.id?.type === 'Identifier' && path.parentPath.node.id.name === symbol) {
+                    found = true;
+                    let targetPath: any = path;
+                    while (targetPath && targetPath.node.type !== 'VariableDeclaration') {
+                        targetPath = targetPath.parentPath;
+                    }
+                    if (targetPath && targetPath.node.type === 'VariableDeclaration') {
+                        if (operation === "insert_before") {
+                            targetPath.insertBefore(...newNodes);
+                        } else {
+                            targetPath.insertAfter(...newNodes);
+                        }
+                    } else {
+                        throw new Error("Cannot insert_before/after an ArrowFunction without a parent variable declaration");
+                    }
+                    return false;
+                }
+                this.traverse(path);
+            },
+            visitClassMethod(path) {
+                if (path.node.key?.type === 'Identifier' && path.node.key.name === symbol) {
+                    found = true;
+                    if (operation === "insert_before") {
+                        path.insertBefore(...newNodes);
+                    } else {
+                        path.insertAfter(...newNodes);
+                    }
                     return false;
                 }
                 this.traverse(path);
@@ -219,7 +299,18 @@ function applyUpdateImport(ast: any, changes: any): void {
         
         body.splice(insertIdx, 0, ...parsedImports);
     } else if (operation === "remove_import") {
-        throw new Error("remove_import not implemented");
+        const targetStrings = new Set(imports.map((i: string) => i.trim()));
+        recast.visit(ast, {
+            visitImportDeclaration(path) {
+                const code = recast.print(path.node).code.trim();
+                // Simple matching or check if any of the target strings matches
+                if (targetStrings.has(code) || targetStrings.has(code + ';')) {
+                    path.prune();
+                    return false;
+                }
+                this.traverse(path);
+            }
+        });
     } else {
         throw new Error(`Unsupported operation for update_import: ${operation}`);
     }
@@ -234,7 +325,7 @@ function applyModifyClass(ast: any, target: any, changes: any): void {
         throw new Error("modify_class requires target.symbol");
     }
 
-    if (operation === "replace_body") {
+    if (operation === "replace_body" || operation === "update_logic") {
         const dummyCode = `class Dummy {\n${payload}\n}`;
         let newBody: any;
         try {
@@ -264,6 +355,54 @@ function applyModifyClass(ast: any, target: any, changes: any): void {
             }
         });
 
+        if (!found) {
+            throw new Error(`Class ${symbol} not found in target file`);
+        }
+    } else if (operation === "insert_before" || operation === "insert_after") {
+        let newNodes: any[];
+        try {
+            const parsed = recast.parse(payload, { parser: getParser() });
+            newNodes = parsed.program.body;
+        } catch (e: any) {
+            throw new Error(`Failed to parse payload for insert: ${e.message}`);
+        }
+        
+        let found = false;
+        recast.visit(ast, {
+            visitClassDeclaration(path) {
+                if (path.node.id?.name === symbol) {
+                    found = true;
+                    if (operation === "insert_before") {
+                        path.insertBefore(...newNodes);
+                    } else {
+                        path.insertAfter(...newNodes);
+                    }
+                    return false;
+                }
+                this.traverse(path);
+            },
+            visitClassExpression(path) {
+                if (path.node.id?.name === symbol) {
+                    found = true;
+                    let targetPath: any = path;
+                    while (targetPath && targetPath.node.type !== 'VariableDeclaration') {
+                        targetPath = targetPath.parentPath;
+                    }
+                    if (targetPath && targetPath.node.type === 'VariableDeclaration') {
+                        if (operation === "insert_before") {
+                            targetPath.insertBefore(...newNodes);
+                        } else {
+                            targetPath.insertAfter(...newNodes);
+                        }
+                    } else {
+                        throw new Error("Cannot insert_before/after a ClassExpression without a parent variable declaration");
+                    }
+                    return false;
+                }
+                this.traverse(path);
+            }
+        });
+        
         if (!found) {
             throw new Error(`Class ${symbol} not found in target file`);
         }

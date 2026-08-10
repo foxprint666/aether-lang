@@ -29,17 +29,24 @@ AI coding agents (LLMs, Copilots, AutoGPT, etc.) currently modify codebases by g
 graph TD
     A[aether-lang/] --> B[sdk/python/ <br> AI-Safe Runtime v1.0]
     A --> C[sdk/node/ <br> AI-Safe Runtime Node.js]
-    A --> D[crates/ <br> Legacy Cranelift Compiler]
+    A --> D[crates/ <br> Cranelift Compiler + T1 FFI]
     
     B --> B1[Validation Layer]
     B --> B2[Snapshot System]
-    B --> B3[Sandbox T3]
-    B --> B4[AST Engine LibCST]
+    B --> B3[Sandbox T3 Subprocess]
+    B --> B4[Sandbox T2 Wasmtime]
+    B --> B5[Sandbox T1 Cranelift JIT]
+    B --> B6[AST Engine LibCST]
+    B --> B7[Observability Audit Log]
     
     C --> C1[Validation Layer]
     C --> C2[Snapshot System]
     C --> C3[Sandbox T3 Node20]
     C --> C4[AST Engine Recast]
+
+    D --> D1[ae-codegen - JIT + C FFI]
+    D --> D2[ae-sema - Semantic Analysis]
+    D --> D3[ae-syntax - Parser/AST]
 ```
 
 ```
@@ -49,6 +56,8 @@ aether-lang/
 │   ├── ai_runtime/
 │   │   ├── patch_engine.py      ← PatchEngine: validate() + apply() orchestrator
 │   │   ├── sandbox.py           ← Sandbox: T1/T2/T3 tier dispatcher
+│   │   ├── sandbox_t1.py        ← T1: Cranelift JIT via ctypes FFI
+│   │   ├── sandbox_t2.py        ← T2: Wasmtime/WASI WASM sandbox
 │   │   ├── sandbox_t3.py        ← T3: subprocess + OS resource limits
 │   │   ├── sandbox_runner.py    ← Worker script (runs inside child process)
 │   │   ├── _types.py            ← Shared dataclasses
@@ -56,15 +65,32 @@ aether-lang/
 │   │   │   ├── patch_schema.json  ← JSON Schema Draft 2020-12 contract
 │   │   │   ├── schema.py          ← Gate 1: schema validation
 │   │   │   └── rules.py           ← Gate 2: security allow-list
-│   │   └── snapshot/
-│   │       ├── store.py           ← SnapshotStore: capture/restore/commit/prune
-│   │       ├── gitignore.py       ← .gitignore-aware file collector
-│   │       └── lock.py            ← Cross-platform write lock
-│   └── tests/                   ← 94 tests, all passing
+│   │   ├── snapshot/
+│   │   │   ├── store.py           ← SnapshotStore: capture/restore/commit/prune
+│   │   │   ├── gitignore.py       ← .gitignore-aware file collector
+│   │   │   └── lock.py            ← Cross-platform write lock
+│   │   ├── ast/                   ← AST Apply Engine (LibCST)
+│   │   └── observability/         ← Audit log, diff, events
+│   └── tests/                   ← 165 tests (all passing)
 │
-├── crates/                      ← Legacy: Aether language compiler (Rust/Cranelift)
+├── sdk/node/                    ← AI-Safe Runtime (Node.js SDK)
+│   ├── src/
+│   │   ├── validation/          ← Ajv JSON Schema + security rules
+│   │   ├── snapshot/            ← tar.gz snapshots
+│   │   ├── sandbox/
+│   │   │   ├── ae_sandbox_napi.cpp  ← N-API C++ wrapper for Rust FFI
+│   │   │   └── sandbox.js           ← T3 subprocess sandbox
+│   │   └── ast/                 ← Recast AST engine (JS/TS)
+│   └── binding.gyp              ← node-gyp build config for T1 N-API addon
+│
+├── crates/                      ← Aether language compiler (Rust/Cranelift)
 │   ├── ae/                      ← CLI binary (ae run, ae build)
-│   ├── ae-codegen/              ← Cranelift JIT + AOT backend (future T1 sandbox)
+│   ├── ae-codegen/
+│   │   ├── src/
+│   │   │   ├── lib.rs           ← Tree-walking interpreter (T1 fast path)
+│   │   │   ├── jit.rs           ← Cranelift JIT compiler
+│   │   │   └── ffi.rs           ← C-ABI guard ring (ae_sandbox_execute/free)
+│   │   └── Cargo.toml           ← cdylib + rlib dual output
 │   ├── ae-sema/                 ← Semantic analysis
 │   └── ae-syntax/               ← Parser / AST
 │
@@ -93,15 +119,21 @@ flowchart TD
         Lock --> Tar --> DB
     end
     
-    subgraph Sandbox["⚙️ SANDBOX EXECUTION"]
-        T1["Tier 1: Cranelift JIT (Zero-syscall)"]
-        T2["Tier 2: Wasmtime/WASM (WASI)"]
-        T3["Tier 3: Subprocess (OS Limits)"]
+    subgraph Sandbox["⚙️ SANDBOX EXECUTION (3-Tier)"]
+        T1["Tier 1: Cranelift JIT (Zero-syscall, native speed)"]
+        T2["Tier 2: Wasmtime/WASM (WASI, epoch timeout)"]
+        T3["Tier 3: Subprocess (OS Limits, universal)"]
+        T1 -.->|fallback| T2
+        T2 -.->|fallback| T3
     end
     
     subgraph AST["🌳 AST ENGINE"]
         PyAST["Python LibCST"]
         NodeAST["Node.js Recast"]
+    end
+
+    subgraph Observability["📊 OBSERVABILITY"]
+        AuditLog["Append-only JSONL Audit Log"]
     end
     
     Validation -->|Valid| Snapshot
@@ -113,6 +145,9 @@ flowchart TD
     
     AST -->|Success| Commit["✅ Commit"]
     AST -->|Failure| Rollback
+
+    Sandbox --> Observability
+    AST --> Observability
 ```
 
 ---
@@ -163,6 +198,17 @@ else:
     print(f"Rejected: {report.first_error}")
 ```
 
+### Tier Selection
+
+```python
+# Explicit tier selection
+from ai_runtime import Sandbox
+
+sb = Sandbox(preferred_tier="t1_cranelift")  # Fastest — Cranelift JIT native
+sb = Sandbox(preferred_tier="t2_wasm")       # Isolated — Wasmtime WASI sandbox
+sb = Sandbox(preferred_tier="t3_subprocess") # Universal — OS-level subprocess
+```
+
 **Full SDK documentation:** [`sdk/python/README.md`](sdk/python/README.md)
 
 ---
@@ -185,6 +231,93 @@ All patches must conform to the JSON Schema at [`sdk/python/ai_runtime/validatio
 
 ---
 
+## Phase 8: T1 Cranelift JIT FFI Integration
+
+Phase 8 bridges the Rust Cranelift compiler into the Python/Node SDKs via a **panic-safe C-ABI guard ring**.
+
+### Architecture
+
+```
+[Python / Node.js SDK]
+         │
+         │  ctypes / N-API
+         ▼
+┌─────────────────────────────────────┐
+│  Panic-Safe ABI Guard Ring          │
+│  extern "C" ae_sandbox_execute()    │  ← std::panic::catch_unwind
+│  extern "C" ae_sandbox_free()       │  ← deterministic heap dealloc
+└─────────────────────────────────────┘
+         │
+         ▼
+  [ae-syntax::parse]  →  [ae-sema::analyze]  →  [Interpreter::run]
+                                                      ↑
+                                              (JIT via cranelift-jit)
+```
+
+### Build
+
+```bash
+# Compile the Rust shared library
+cargo build --release -p ae-codegen
+
+# The output is:
+# Windows: target/release/ae_codegen.dll
+# Linux:   target/release/libae_codegen.so
+# macOS:   target/release/libae_codegen.dylib
+```
+
+### Python Usage
+
+```python
+from ai_runtime.sandbox_t1 import T1CraneliftSandbox
+
+# Library is auto-discovered from target/release/ or AE_CODEGEN_LIB env var
+sb = T1CraneliftSandbox()
+result = sb.run("let x = 1 + 2;")
+print(result.success, result.elapsed_ms)
+# True  0.12
+```
+
+### Node.js Usage
+
+```javascript
+// After building with node-gyp
+const { aeLoadLibrary, aeSandboxExecute } = require('./build/Release/ae_sandbox_napi');
+aeLoadLibrary('ae_codegen.dll');  // or libae_codegen.so
+
+const { _raw } = aeSandboxExecute('let x = 1 + 2;');
+const result = JSON.parse(_raw);
+console.log(result.success, result.elapsed_ms);
+```
+
+### Safety Contract
+
+| Property | Implementation |
+|:---------|:---------------|
+| **No Rust panics cross FFI boundary** | `std::panic::catch_unwind` wraps all execution |
+| **No memory leaks** | `ae_sandbox_free` reclaims every `ae_sandbox_execute` result |
+| **NULL safety** | NULL input returns JSON error; NULL free is a no-op |
+| **Deterministic dealloc** | Python uses `c_void_p` + explicit free in `finally` block |
+
+---
+
+## T2 Sandbox: Wasmtime/WASI
+
+Phase 7 implemented epoch-based timeout control (not instruction-fuel) for accurate wall-clock enforcement:
+
+```python
+from ai_runtime.sandbox_t2 import T2WasmSandbox
+
+sb = T2WasmSandbox()
+result = sb.run(python_script, timeout_ms=5000)
+```
+
+- **Epoch ticking** via background thread — accurate wall-clock timeouts
+- **WASI exit code detection** — `sys.exit(N)` maps correctly to `exit_code`
+- **`python.wasm`** fetched lazily and cached in `.ai_runtime/cache/`
+
+---
+
 ## Why Cranelift?
 
 The original goal of this repo was to build **Aether** — a compiled systems language using Cranelift as the backend. That work proved that:
@@ -193,26 +326,48 @@ The original goal of this repo was to build **Aether** — a compiled systems la
 2. JIT compilation via `cranelift-jit` produces native code with zero syscall overhead
 3. The `JITModule` and `ObjectModule` share the same `Module` trait — one lowering pass serves both JIT and AOT
 
-These properties make the existing `crates/ae-codegen` the ideal **T1 sandbox backend** — a Cranelift JIT that executes AI-generated code with no syscall surface whatsoever, accessible from the Python SDK via FFI.
-
-The T1 tier is planned for v1.2 and will reuse the Cranelift infrastructure already built here.
+These properties make `crates/ae-codegen` the ideal **T1 sandbox backend** — a Cranelift JIT that executes AI-generated Aether code with no syscall surface, accessible from the Python SDK via a stable C-ABI FFI.
 
 ---
 
 ## Test Suite
 
 ```bash
+# Rust tests (FFI guard ring + JIT)
+cargo test -p ae-codegen
+
+# Python tests
 cd sdk/python
 pip install -e ".[dev]"
 pytest tests/ -v
 ```
 
+### Rust (ae-codegen)
+
 ```
-94 passed in 4.92s
-├── test_validation.py        34 tests  (Phase 1: Validation Layer)
-├── test_sandbox.py           26 tests  (Phase 2: Sandbox T3)
-├── test_sandbox_t3_windows.py 3 tests  (Phase 2: Windows Job Objects)
-└── test_snapshot.py          31 tests  (Phase 3: Snapshot System)
+running 6 tests
+test ffi::tests::ffi_free_null_is_noop         ... ok
+test ffi::tests::ffi_null_pointer_returns_error ... ok
+test ffi::tests::ffi_parse_error_returns_failure ... ok
+test ffi::tests::ffi_valid_source_returns_success ... ok
+test jit::tests::test_jit_basic_math           ... ok
+test jit::tests::test_jit_let_and_if           ... ok
+
+test result: ok. 6 passed; 0 failed
+```
+
+### Python SDK
+
+```
+165 tests collected
+├── test_validation.py         34 tests  (Phase 1: Validation Layer)
+├── test_sandbox.py            26 tests  (Phase 2: Sandbox T3)
+├── test_sandbox_t3_windows.py  3 tests  (Phase 2: Windows Job Objects)
+├── test_snapshot.py           31 tests  (Phase 3: Snapshot System)
+├── test_observability.py       8 tests  (Phase 4: Audit Log)
+├── test_ast_engine.py          7 tests  (Phase 5: LibCST AST Engine)
+├── test_sandbox_t2.py          5 tests  (Phase 7: Wasmtime WASI)
+└── test_ffi_fuzz.py           51 tests  (Phase 8: T1 FFI Fuzz Suite)
 ```
 
 ---
@@ -225,17 +380,18 @@ pytest tests/ -v
 | 2 | T3 Sandbox (subprocess + OS limits) | ✅ Complete |
 | 3 | Snapshot System (tar.gz + SQLite + locks) | ✅ Complete |
 | 4 | Observability (audit log, diffs, CLI status) | ✅ Complete |
-| 5 | AST Apply Engine (`modify_function` via `ast`/`libcst`) | ✅ Complete |
+| 5 | AST Apply Engine (`modify_function` via LibCST) | ✅ Complete |
 | 6 | Node.js SDK (`sdk/node/`) | ✅ Complete |
-| 7 | T2 Sandbox (Wasmtime/WASI) | 🔜 Planned |
-| 8 | T1 Sandbox (Cranelift JIT FFI) | 🔜 Planned |
+| 7 | T2 Sandbox (Wasmtime/WASI + epoch timeout) | ✅ Complete |
+| 8 | T1 Sandbox (Cranelift JIT C-ABI FFI) | ✅ Complete |
+| 8.5 | Node.js T1 N-API addon (`ae_sandbox_napi.cpp`) | ✅ Scaffolded |
 
 ---
 
 ## Requirements
 
 - **Python SDK**: Python ≥ 3.11, no Docker, no root
-- **Rust compiler**: Required only to rebuild `crates/` (`rustup target add x86_64-pc-windows-gnu`)
+- **Rust compiler**: Required to build `crates/ae-codegen` for T1 (`rustup target add x86_64-pc-windows-msvc`)
 - **Platforms**: Windows 10+, Linux, macOS
 
 ---

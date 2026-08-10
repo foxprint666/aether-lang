@@ -26,6 +26,7 @@ use ae_sema::SemaResult;
 
 pub mod jit;
 pub mod aot;
+pub mod ffi;
 
 // ─────────────────────────────────────────────
 //  Runtime value

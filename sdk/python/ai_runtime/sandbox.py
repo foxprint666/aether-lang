@@ -61,7 +61,9 @@ class Sandbox:
     ) -> None:
         self.project_root   = Path(project_root).resolve()
         self.preferred_tier = preferred_tier
+        self._t1 = None
         self._t3: Optional[T3SubprocessSandbox] = None
+        self._t2 = None
         self._store = None  # SnapshotStore — lazily initialized
         self._audit_log = None
 
@@ -176,8 +178,25 @@ class Sandbox:
                 allow_filesystem=allow_filesystem,
                 cwd=cwd,
             )
+        elif tier == "t2_wasm":
+            result = self._execute_t2(
+                payload=payload,
+                timeout_ms=timeout_ms,
+                memory_limit_mb=memory_limit_mb,
+                allow_network=allow_network,
+                allow_filesystem=allow_filesystem,
+                cwd=cwd,
+            )
+        elif tier == "t1_cranelift":
+            result = self._execute_t1(
+                payload=payload,
+                timeout_ms=timeout_ms,
+                memory_limit_mb=memory_limit_mb,
+                allow_network=allow_network,
+                allow_filesystem=allow_filesystem,
+                cwd=cwd,
+            )
         else:
-            # T2/T1 — stubs, fall through to T3 for now
             result = self._execute_t3(
                 payload=payload,
                 timeout_ms=timeout_ms,
@@ -254,6 +273,50 @@ class Sandbox:
             self._t3 = T3SubprocessSandbox()
 
         return self._t3.run(
+            payload=payload,
+            timeout_ms=timeout_ms,
+            memory_limit_mb=memory_limit_mb,
+            allow_network=allow_network,
+            allow_filesystem=allow_filesystem,
+            cwd=cwd,
+        )
+
+    def _execute_t1(
+        self,
+        payload: str,
+        timeout_ms: int,
+        memory_limit_mb: int,
+        allow_network: bool,
+        allow_filesystem: bool,
+        cwd: Path,
+    ) -> ExecutionResult:
+        if self._t1 is None:
+            from .sandbox_t1 import T1CraneliftSandbox
+            self._t1 = T1CraneliftSandbox()
+
+        return self._t1.run(
+            payload=payload,
+            timeout_ms=timeout_ms,
+            memory_limit_mb=memory_limit_mb,
+            allow_network=allow_network,
+            allow_filesystem=allow_filesystem,
+            cwd=cwd,
+        )
+
+    def _execute_t2(
+        self,
+        payload: str,
+        timeout_ms: int,
+        memory_limit_mb: int,
+        allow_network: bool,
+        allow_filesystem: bool,
+        cwd: Path,
+    ) -> ExecutionResult:
+        if self._t2 is None:
+            from .sandbox_t2 import T2WasmSandbox
+            self._t2 = T2WasmSandbox(working_dir=self.project_root)
+
+        return self._t2.run(
             payload=payload,
             timeout_ms=timeout_ms,
             memory_limit_mb=memory_limit_mb,
