@@ -13,13 +13,72 @@ Rule layers (in order):
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 
 # ---------------------------------------------------------------------------
-# Allow-list: (action, operation) pairs that are permitted in v1
+# Load shared security rules from sdk/security_rules.json
+# ---------------------------------------------------------------------------
+
+def _load_security_rules() -> dict:
+    """
+    Locate and load sdk/security_rules.json.
+    Searches upward from this file's location.
+    Falls back to built-in defaults if not found (e.g. installed package).
+    """
+    here = Path(__file__).resolve()
+    for parent in [here.parent, here.parent.parent, here.parent.parent.parent,
+                   here.parent.parent.parent.parent]:
+        candidate = parent / "security_rules.json"
+        if candidate.exists():
+            with open(candidate, "r", encoding="utf-8") as f:
+                return json.load(f)
+    return {}  # built-in fallback defined below
+
+
+_RULES = _load_security_rules()
+
+# Built-in fallback (also used when rules dict is incomplete)
+_BUILTIN_BLOCKED = [
+    re.compile(r"import\s+os\s*;?\s*os\s*\.\s*system", re.IGNORECASE),
+    re.compile(r"__import__\s*\(", re.IGNORECASE),
+    re.compile(r"subprocess\s*\.\s*(?:call|run|Popen|check_output)", re.IGNORECASE),
+    re.compile(r"eval\s*\(", re.IGNORECASE),
+    re.compile(r"exec\s*\(", re.IGNORECASE),
+    re.compile(r"\bopen\s*\([^)]*['\"](?:/|\.\./)", re.IGNORECASE),
+    re.compile(r"ctypes\s*\.\s*CDLL", re.IGNORECASE),
+]
+
+# Compile patterns from JSON (with fallback)
+_raw_patterns = _RULES.get("blocked_payload_patterns", [])
+if _raw_patterns:
+    _BLOCKED_PAYLOAD_PATTERNS: list[re.Pattern] = [
+        re.compile(entry["pattern"], re.IGNORECASE)
+        for entry in _raw_patterns
+        if isinstance(entry, dict) and "pattern" in entry
+    ]
+else:
+    _BLOCKED_PAYLOAD_PATTERNS = _BUILTIN_BLOCKED
+
+_SENSITIVE_PATH_PATTERNS: list[re.Pattern] = [
+    re.compile(p, re.IGNORECASE)
+    for p in _RULES.get("sensitive_path_patterns", [
+        r"\.env", r"\.git", r"node_modules", r"secrets",
+    ])
+]
+
+_MAX_PAYLOAD_BYTES: int = _RULES.get("max_payload_size_bytes", 65536)
+
+# run_script is high-risk; requires explicit trust elevation in metadata
+_RUN_SCRIPT_REQUIRES_TRUST: bool = _RULES.get("run_script_requires_trust", True)
+
+# ---------------------------------------------------------------------------
+# Allow-list: (action, operation) pairs permitted in v1
+# (Python-specific; not in shared JSON because it maps to AST engine ops)
 # ---------------------------------------------------------------------------
 
 ALLOWED_OPERATIONS: dict[str, set[str]] = {
@@ -31,20 +90,6 @@ ALLOWED_OPERATIONS: dict[str, set[str]] = {
     "replace_block":    {"context_replace"},
     "run_script":       {"run"},
 }
-
-# Patterns that are NEVER allowed in payload content regardless of action.
-# These are defense-in-depth; the sandbox provides the primary containment.
-_BLOCKED_PAYLOAD_PATTERNS: list[re.Pattern] = [
-    re.compile(r"import\s+os\s*;?\s*os\s*\.\s*system", re.IGNORECASE),
-    re.compile(r"__import__\s*\(", re.IGNORECASE),
-    re.compile(r"subprocess\s*\.\s*(?:call|run|Popen|check_output)", re.IGNORECASE),
-    re.compile(r"eval\s*\(", re.IGNORECASE),
-    re.compile(r"exec\s*\(", re.IGNORECASE),
-    re.compile(r"\bopen\s*\([^)]*['\"](?:/|\.\./)", re.IGNORECASE),  # open("/..." or open("../...")
-]
-
-# run_script is high-risk; requires explicit trust elevation in metadata
-_RUN_SCRIPT_REQUIRES_TRUST = True
 
 
 @dataclass
@@ -117,15 +162,34 @@ def check_rules(patch: dict, *, trust_level: str = "standard") -> RulesResult:
             rule="target_path_traversal",
             message=f"Path traversal detected in target file: '{file_path}'",
         ))
+    # Check sensitive path patterns (loaded from security_rules.json)
+    for sp in _SENSITIVE_PATH_PATTERNS:
+        if sp.search(file_path):
+            violations.append(RuleViolation(
+                rule="target_path_sensitive",
+                message=(
+                    f"Target file '{file_path}' matches a sensitive path pattern "
+                    f"(pattern: '{sp.pattern}'). Modify this file manually."
+                ),
+            ))
+            break
 
-    # --- Rule 3: Payload safety patterns ---
+    # --- Rule 3: Payload safety patterns (from security_rules.json) ---
     if payload:
+        if len(payload.encode("utf-8")) > _MAX_PAYLOAD_BYTES:
+            violations.append(RuleViolation(
+                rule="payload_too_large",
+                message=(
+                    f"Payload exceeds maximum size of {_MAX_PAYLOAD_BYTES} bytes. "
+                    "Split into smaller patches."
+                ),
+            ))
         for pattern in _BLOCKED_PAYLOAD_PATTERNS:
             if pattern.search(payload):
                 violations.append(RuleViolation(
                     rule="payload_blocked_pattern",
                     message=(
-                        f"Payload contains a disallowed pattern: '{pattern.pattern[:60]}...'. "
+                        f"Payload contains a disallowed pattern: '{pattern.pattern[:60]}'. "
                         "Use the sandbox constraints instead of calling OS directly."
                     ),
                 ))

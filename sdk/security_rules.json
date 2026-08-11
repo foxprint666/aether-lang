@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Shared security rules loaded by both the Python and Node.js SDKs. Editing this file is the single source of truth for all path-safety and payload-safety rules.",
+  "version": "1.0.0",
+
+  "sensitive_path_patterns": [
+    "\\.env",
+    "\\.env\\.",
+    "\\.git",
+    "node_modules",
+    "package-lock\\.json",
+    "secrets",
+    "\\.ssh",
+    "\\.aws",
+    "\\.kube",
+    "credentials",
+    "id_rsa",
+    "id_ed25519"
+  ],
+
+  "blocked_payload_patterns": [
+    {
+      "id": "os_system",
+      "pattern": "import\\s+os\\s*;?\\s*os\\s*\\.\\s*system",
+      "description": "Direct os.system call — use sandbox execute instead"
+    },
+    {
+      "id": "dunder_import",
+      "pattern": "__import__\\s*\\(",
+      "description": "Dynamic import via __import__() — bypasses audit hook"
+    },
+    {
+      "id": "subprocess",
+      "pattern": "subprocess\\s*\\.\\s*(?:call|run|Popen|check_output)",
+      "description": "subprocess module use — disallowed in payloads"
+    },
+    {
+      "id": "eval",
+      "pattern": "\\beval\\s*\\(",
+      "description": "eval() — arbitrary code execution"
+    },
+    {
+      "id": "exec",
+      "pattern": "\\bexec\\s*\\(",
+      "description": "exec() — arbitrary code execution"
+    },
+    {
+      "id": "open_absolute",
+      "pattern": "\\bopen\\s*\\([^)]*['\"](?:/|\\.\\./)",
+      "description": "File open with absolute or parent-traversal path"
+    },
+    {
+      "id": "ctypes_cdll",
+      "pattern": "ctypes\\s*\\.\\s*CDLL",
+      "description": "ctypes.CDLL — can load native libraries and bypass audit hooks"
+    }
+  ],
+
+  "max_payload_size_bytes": 65536,
+
+  "run_script_requires_trust": true
+}

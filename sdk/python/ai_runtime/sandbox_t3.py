@@ -242,6 +242,7 @@ class T3SubprocessSandbox:
                     elapsed_ms=round(elapsed, 2),
                     tier="t3_subprocess",
                     error=f"Execution timed out after {timeout_ms}ms",
+                    isolation_level="audit_hook",
                 )
 
             elapsed = (time.perf_counter() - t0) * 1000
@@ -260,6 +261,7 @@ class T3SubprocessSandbox:
                 elapsed_ms=round(elapsed, 2),
                 tier="t3_subprocess",
                 error=result_data.get("error") if failed else None,
+                isolation_level="audit_hook",
             )
 
         except FileNotFoundError as e:
@@ -271,6 +273,7 @@ class T3SubprocessSandbox:
                 elapsed_ms=round(elapsed, 2),
                 tier="t3_subprocess",
                 error=f"Could not spawn subprocess: {e}",
+                isolation_level="audit_hook",
             )
         finally:
             _cleanup(result_path)

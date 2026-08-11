@@ -16,13 +16,22 @@ from typing import Optional
 @dataclass
 class ExecutionResult:
     """Result of a sandboxed code execution."""
-    failed:     bool
-    exit_code:  int
-    stdout:     str
-    stderr:     str
-    elapsed_ms: float
-    tier:       str        # "t1_cranelift" | "t2_wasm" | "t3_subprocess"
-    error:      Optional[str] = None
+    failed:          bool
+    exit_code:       int
+    stdout:          str
+    stderr:          str
+    elapsed_ms:      float
+    tier:            str        # "t1_cranelift" | "t2_wasm" | "t3_subprocess"
+    error:           Optional[str] = None
+    isolation_level: str = "unknown"
+    """
+    Isolation mechanism actually applied:
+      "audit_hook"    — Python sys.addaudithook (T3). Bypassable by indirect imports.
+                        See SECURITY.md for the full threat model.
+      "wasm_sandbox"  — Wasmtime WASI sandbox (T2). Hardware-level memory isolation.
+      "cranelift_jit" — Cranelift JIT inside process via catch_unwind guard (T1).
+                        No OS-level isolation; only safe for trusted Aether payloads.
+    """
 
     @property
     def succeeded(self) -> bool:

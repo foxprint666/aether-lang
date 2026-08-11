@@ -153,11 +153,14 @@ class T2WasmSandbox:
             start = instance.exports(store)["_start"]
         except Exception as e:
             return ExecutionResult(
-                success=False,
+                failed=True,
+                exit_code=1,
                 stdout="",
                 stderr=str(e),
                 error=f"Instantiation error: {e}",
                 elapsed_ms=0,
+                tier="t2_wasm",
+                isolation_level="wasm_sandbox",
             )
 
         t0 = time.time()
@@ -220,4 +223,5 @@ class T2WasmSandbox:
             error=error_msg,
             elapsed_ms=elapsed_ms,
             tier="t2_wasm",
+            isolation_level="wasm_sandbox",
         )

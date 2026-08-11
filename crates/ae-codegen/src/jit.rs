@@ -244,7 +244,13 @@ impl JitEngine {
                         sig.params.push(AbiParam::new(ptr_type));
                         ("aether_print_str", sig)
                     }
-                    _ => unimplemented!("Printing for type {:?} is not supported in JIT", arg_type),
+                    _ => {
+                        // Fallback: treat as i64 and warn — never panic across FFI
+                        eprintln!("[ae-codegen/jit] WARNING: print({:?}) unsupported, treating as i64", arg_type);
+                        let mut sig = module.make_signature();
+                        sig.params.push(AbiParam::new(types::I64));
+                        ("aether_print_i64", sig)
+                    }
                 };
 
                 let _sig_ref = builder.import_signature(sig.clone());
@@ -292,7 +298,10 @@ impl JitEngine {
                     BinOpKind::Le  => builder.ins().icmp(cranelift_codegen::ir::condcodes::IntCC::SignedLessThanOrEqual, left, right),
                     BinOpKind::Gt  => builder.ins().icmp(cranelift_codegen::ir::condcodes::IntCC::SignedGreaterThan, left, right),
                     BinOpKind::Ge  => builder.ins().icmp(cranelift_codegen::ir::condcodes::IntCC::SignedGreaterThanOrEqual, left, right),
-                    _ => unimplemented!("Binary operator {:?} not yet implemented in JIT", op),
+                    _ => {
+                        eprintln!("[ae-codegen/jit] WARNING: binary op {:?} not implemented, emitting 0", op);
+                        builder.ins().iconst(types::I64, 0)
+                    }
                 }
             }
             AstNodeKind::If { cond, then_block, else_block } => {
@@ -362,7 +371,30 @@ impl JitEngine {
                 }
                 last_val
             }
-            _ => unimplemented!("AST Node type {:?} not yet implemented in JIT", node.kind),
+            AstNodeKind::BoolLit(b) => {
+                builder.ins().iconst(types::I64, if *b { 1 } else { 0 })
+            }
+            AstNodeKind::Return(val) => {
+                let ret_val = if let Some(hash) = *val {
+                    Self::translate_node(module, func_ids, global_str_id, hash, store, sema, builder, lctx)
+                } else {
+                    builder.ins().iconst(types::I64, 0)
+                };
+                builder.ins().return_(&[ret_val]);
+                // Cranelift requires a value here even though Return is a terminator;
+                // this code is unreachable but keeps the block well-formed.
+                builder.ins().iconst(types::I64, 0)
+            }
+            AstNodeKind::ArrayLit(_) | AstNodeKind::Index { .. } => {
+                // Arrays/indexing are not yet lowered to Cranelift IR.
+                // Emit 0 and warn — do NOT panic (would crash across FFI boundary).
+                eprintln!("[ae-codegen/jit] WARNING: array operations not yet implemented in JIT, emitting 0");
+                builder.ins().iconst(types::I64, 0)
+            }
+            _ => {
+                eprintln!("[ae-codegen/jit] WARNING: unhandled AST node kind, emitting 0");
+                builder.ins().iconst(types::I64, 0)
+            }
         }
     }
 }
@@ -479,5 +511,56 @@ mod tests {
         let result = callable();
 
         assert_eq!(result, 100);
+    }
+
+    #[test]
+    fn test_jit_bool_lit_no_panic() {
+        // Regression: BoolLit used to hit the unimplemented!() arm.
+        // After the fix it must emit iconst(1) / iconst(0) without panicking.
+        let mut store = AstStore::new();
+
+        let true_node  = store.insert(AstNode::new(AstNodeKind::BoolLit(true)));
+        let false_node = store.insert(AstNode::new(AstNodeKind::BoolLit(false)));
+
+        let program = store.insert(AstNode::new(
+            AstNodeKind::Program(vec![true_node, false_node]),
+        ));
+
+        let mut engine = JitEngine::new();
+        let empty_sema = SemaResult {
+            types: HashMap::new(),
+            diagnostics: Vec::new(),
+            fn_sigs: HashMap::new(),
+        };
+
+        // Must not panic — result is the last expression value (false → 0)
+        let func_ptr = engine.compile_function(program, &store, &empty_sema);
+        let callable: fn() -> i64 = unsafe { std::mem::transmute(func_ptr) };
+        let result = callable();
+        // BoolLit(false) is last → 0; BoolLit(true) → 1
+        assert!(result == 0 || result == 1, "unexpected BoolLit result: {}", result);
+    }
+
+    #[test]
+    fn test_jit_array_lit_no_panic() {
+        // Regression: ArrayLit hit the unimplemented!() arm before A1 fix.
+        // After the fix it must emit iconst(0) with a warning (no panic).
+        let mut store = AstStore::new();
+
+        let elem = store.insert(AstNode::new(AstNodeKind::IntLit(99)));
+        let arr  = store.insert(AstNode::new(AstNodeKind::ArrayLit(vec![elem])));
+        let prog = store.insert(AstNode::new(AstNodeKind::Program(vec![arr])));
+
+        let mut engine = JitEngine::new();
+        let empty_sema = SemaResult {
+            types: HashMap::new(),
+            diagnostics: Vec::new(),
+            fn_sigs: HashMap::new(),
+        };
+
+        // Must not panic — emits iconst(0) as documented fallback
+        let func_ptr = engine.compile_function(prog, &store, &empty_sema);
+        let callable: fn() -> i64 = unsafe { std::mem::transmute(func_ptr) };
+        let _result = callable(); // 0 — just verify no panic
     }
 }

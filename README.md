@@ -43,6 +43,7 @@ graph TD
     C --> C2[Snapshot System]
     C --> C3[Sandbox T3 Node20]
     C --> C4[AST Engine Recast]
+    C --> C5[Security Rules JSON]
 
     D --> D1[ae-codegen - JIT + C FFI]
     D --> D2[ae-sema - Semantic Analysis]
@@ -52,50 +53,56 @@ graph TD
 ```
 aether-lang/
 │
-├── sdk/python/                  ← AI-Safe Runtime (Python SDK, v1.0)
-│   ├── ai_runtime/
-│   │   ├── patch_engine.py      ← PatchEngine: validate() + apply() orchestrator
-│   │   ├── sandbox.py           ← Sandbox: T1/T2/T3 tier dispatcher
-│   │   ├── sandbox_t1.py        ← T1: Cranelift JIT via ctypes FFI
-│   │   ├── sandbox_t2.py        ← T2: Wasmtime/WASI WASM sandbox
-│   │   ├── sandbox_t3.py        ← T3: subprocess + OS resource limits
-│   │   ├── sandbox_runner.py    ← Worker script (runs inside child process)
-│   │   ├── _types.py            ← Shared dataclasses
-│   │   ├── validation/
-│   │   │   ├── patch_schema.json  ← JSON Schema Draft 2020-12 contract
-│   │   │   ├── schema.py          ← Gate 1: schema validation
-│   │   │   └── rules.py           ← Gate 2: security allow-list
-│   │   ├── snapshot/
-│   │   │   ├── store.py           ← SnapshotStore: capture/restore/commit/prune
-│   │   │   ├── gitignore.py       ← .gitignore-aware file collector
-│   │   │   └── lock.py            ← Cross-platform write lock
-│   │   ├── ast/                   ← AST Apply Engine (LibCST)
-│   │   └── observability/         ← Audit log, diff, events
-│   └── tests/                   ← 165 tests (all passing)
-│
-├── sdk/node/                    ← AI-Safe Runtime (Node.js SDK)
-│   ├── src/
-│   │   ├── validation/          ← Ajv JSON Schema + security rules
-│   │   ├── snapshot/            ← tar.gz snapshots
-│   │   ├── sandbox/
-│   │   │   ├── ae_sandbox_napi.cpp  ← N-API C++ wrapper for Rust FFI
-│   │   │   └── sandbox.js           ← T3 subprocess sandbox
-│   │   └── ast/                 ← Recast AST engine (JS/TS)
-│   └── binding.gyp              ← node-gyp build config for T1 N-API addon
+├── sdk/
+│   ├── python/                  ← AI-Safe Runtime (Python SDK)
+│   │   ├── ai_runtime/
+│   │   │   ├── patch_engine.py      ← PatchEngine: validate() + apply() orchestrator
+│   │   │   ├── sandbox.py           ← Sandbox: T1/T2/T3 tier dispatcher
+│   │   │   ├── sandbox_t1.py        ← T1: Cranelift JIT via ctypes FFI
+│   │   │   ├── sandbox_t2.py        ← T2: Wasmtime/WASI WASM sandbox
+│   │   │   ├── sandbox_t3.py        ← T3: subprocess + OS resource limits
+│   │   │   ├── sandbox_runner.py    ← Worker script (runs inside child process)
+│   │   │   ├── _types.py            ← Shared dataclasses (ExecutionResult w/ isolation_level)
+│   │   │   ├── validation/
+│   │   │   │   ├── patch_schema.json  ← JSON Schema Draft 2020-12 contract
+│   │   │   │   ├── schema.py          ← Gate 1: schema validation
+│   │   │   │   └── rules.py           ← Gate 2: loads patterns from security_rules.json
+│   │   │   ├── snapshot/
+│   │   │   │   ├── store.py           ← SnapshotStore: capture/restore/commit/prune
+│   │   │   │   ├── gitignore.py       ← .gitignore-aware file collector
+│   │   │   │   └── lock.py            ← Cross-platform write lock
+│   │   │   ├── ast/                   ← AST Apply Engine (LibCST)
+│   │   │   └── observability/         ← Audit log (JSONL), diff, structured events
+│   │   └── tests/                   ← 174 tests (all passing, 1 xfailed)
+│   │
+│   ├── node/                    ← AI-Safe Runtime (Node.js SDK)
+│   │   ├── src/
+│   │   │   ├── security.ts          ← Loads rules from shared security_rules.json
+│   │   │   ├── validation/          ← Ajv JSON Schema + security rules
+│   │   │   ├── snapshot/            ← tar.gz snapshots
+│   │   │   ├── sandbox/
+│   │   │   │   ├── ae_sandbox_napi.cpp  ← N-API C++ wrapper for Rust FFI
+│   │   │   │   └── sandbox.js           ← T3 subprocess sandbox
+│   │   │   └── ast/                 ← Recast AST engine (JS/TS)
+│   │   ├── tests/                   ← Jest tests incl. rollback-fault.test.ts
+│   │   └── binding.gyp              ← node-gyp build config for T1 N-API addon
+│   │
+│   └── security_rules.json      ← Shared security patterns (both SDKs load from here)
 │
 ├── crates/                      ← Aether language compiler (Rust/Cranelift)
-│   ├── ae/                      ← CLI binary (ae run, ae build)
+│   ├── ae/                      ← CLI binary (ae run, ae build, ae check)
 │   ├── ae-codegen/
 │   │   ├── src/
 │   │   │   ├── lib.rs           ← Tree-walking interpreter (T1 fast path)
-│   │   │   ├── jit.rs           ← Cranelift JIT compiler
+│   │   │   ├── jit.rs           ← Cranelift JIT (BoolLit/ArrayLit/Return hardened)
+│   │   │   ├── aot.rs           ← Cranelift AOT (same hardening)
 │   │   │   └── ffi.rs           ← C-ABI guard ring (ae_sandbox_execute/free)
 │   │   └── Cargo.toml           ← cdylib + rlib dual output
-│   ├── ae-sema/                 ← Semantic analysis
-│   └── ae-syntax/               ← Parser / AST
+│   ├── ae-sema/                 ← Semantic analysis + stability levels
+│   └── ae-syntax/               ← Parser / AST (ContentHash via BLAKE3)
 │
-└── architecture doc/
-    └── AI-Safe-Execution-Infrastructure-Documentation.md
+├── SECURITY.md                  ← Honest threat model for all 3 sandbox tiers
+└── README.md                    ← This file
 ```
 
 ---
@@ -108,14 +115,14 @@ flowchart TD
     
     subgraph Validation["🛡️ VALIDATION LAYER"]
         G1{"Gate 1: JSON Schema"} 
-        G2{"Gate 2: Security Rules"}
+        G2{"Gate 2: Security Rules\n(loaded from security_rules.json)"}
         G1 -->|Valid| G2
     end
     
     subgraph Snapshot["📸 SNAPSHOT SYSTEM"]
         Lock["Acquire Write Lock"]
         Tar["Create .tar.gz Archive"]
-        DB["Log to SQLite"]
+        DB["Log to SQLite (WAL)"]
         Lock --> Tar --> DB
     end
     
@@ -133,7 +140,7 @@ flowchart TD
     end
 
     subgraph Observability["📊 OBSERVABILITY"]
-        AuditLog["Append-only JSONL Audit Log"]
+        AuditLog["Append-only JSONL Audit Log\n(7 event kinds, query by patch_id)"]
     end
     
     Validation -->|Valid| Snapshot
@@ -141,9 +148,9 @@ flowchart TD
     
     Snapshot --> Sandbox
     Sandbox -->|Success| AST
-    Sandbox -->|Failure| Rollback["⏪ Rollback"]
+    Sandbox -->|Failure| Rollback["⏪ Rollback + ROLLBACK audit event"]
     
-    AST -->|Success| Commit["✅ Commit"]
+    AST -->|Success| Commit["✅ Commit + COMMITTED audit event"]
     AST -->|Failure| Rollback
 
     Sandbox --> Observability
@@ -183,7 +190,7 @@ engine = PatchEngine()
 report = engine.validate(patch)
 
 if report.ok:
-    # 3. Snapshot — capture project state
+    # 3. Snapshot — capture project state (tar.gz + SQLite)
     sb     = Sandbox(project_root=".")
     handle = sb.snapshot(patch_id=patch["patch_id"])
 
@@ -191,9 +198,9 @@ if report.ok:
     result = engine.apply(patch)
 
     if result and result.failed:
-        sb.restore(handle)           # 5a. Rollback on failure
+        sb.restore(handle)           # 5a. Rollback on failure → audit log records ROLLBACK
     else:
-        sb.commit_snapshot(handle)   # 5b. Commit on success
+        sb.commit_snapshot(handle)   # 5b. Commit on success → audit log records COMMITTED
 else:
     print(f"Rejected: {report.first_error}")
 ```
@@ -201,7 +208,6 @@ else:
 ### Tier Selection
 
 ```python
-# Explicit tier selection
 from ai_runtime import Sandbox
 
 sb = Sandbox(preferred_tier="t1_cranelift")  # Fastest — Cranelift JIT native
@@ -231,6 +237,20 @@ All patches must conform to the JSON Schema at [`sdk/python/ai_runtime/validatio
 
 ---
 
+## Security Model
+
+Threat model and limitations are documented in [`SECURITY.md`](SECURITY.md). In summary:
+
+| Sandbox Tier | Isolation | When to Use |
+|:-------------|:----------|:------------|
+| **T1 — Cranelift JIT** | Process-local, zero-syscall | Trusted compiler-verified Aether code only |
+| **T2 — Wasmtime/WASI** | WASM capability sandbox, epoch timeout | Untrusted scripts needing strong isolation |
+| **T3 — Subprocess** | OS resource limits + audit hook | Universal fallback, widest compatibility |
+
+All results carry an `isolation_level` field for observability and audit.
+
+---
+
 ## Phase 8: T1 Cranelift JIT FFI Integration
 
 Phase 8 bridges the Rust Cranelift compiler into the Python/Node SDKs via a **panic-safe C-ABI guard ring**.
@@ -250,8 +270,8 @@ Phase 8 bridges the Rust Cranelift compiler into the Python/Node SDKs via a **pa
          │
          ▼
   [ae-syntax::parse]  →  [ae-sema::analyze]  →  [Interpreter::run]
-                                                      ↑
-                                              (JIT via cranelift-jit)
+                                                       ↑
+                                               (JIT via cranelift-jit)
 ```
 
 ### Build
@@ -260,7 +280,7 @@ Phase 8 bridges the Rust Cranelift compiler into the Python/Node SDKs via a **pa
 # Compile the Rust shared library
 cargo build --release -p ae-codegen
 
-# The output is:
+# Output:
 # Windows: target/release/ae_codegen.dll
 # Linux:   target/release/libae_codegen.so
 # macOS:   target/release/libae_codegen.dylib
@@ -274,20 +294,8 @@ from ai_runtime.sandbox_t1 import T1CraneliftSandbox
 # Library is auto-discovered from target/release/ or AE_CODEGEN_LIB env var
 sb = T1CraneliftSandbox()
 result = sb.run("let x = 1 + 2;")
-print(result.success, result.elapsed_ms)
-# True  0.12
-```
-
-### Node.js Usage
-
-```javascript
-// After building with node-gyp
-const { aeLoadLibrary, aeSandboxExecute } = require('./build/Release/ae_sandbox_napi');
-aeLoadLibrary('ae_codegen.dll');  // or libae_codegen.so
-
-const { _raw } = aeSandboxExecute('let x = 1 + 2;');
-const result = JSON.parse(_raw);
-console.log(result.success, result.elapsed_ms);
+print(result.success, result.isolation_level, result.elapsed_ms)
+# True  cranelift_jit  0.12
 ```
 
 ### Safety Contract
@@ -298,6 +306,7 @@ console.log(result.success, result.elapsed_ms);
 | **No memory leaks** | `ae_sandbox_free` reclaims every `ae_sandbox_execute` result |
 | **NULL safety** | NULL input returns JSON error; NULL free is a no-op |
 | **Deterministic dealloc** | Python uses `c_void_p` + explicit free in `finally` block |
+| **BoolLit / ArrayLit / Return** | Hardened: no more `unimplemented!()` panics in JIT/AOT |
 
 ---
 
@@ -318,56 +327,70 @@ result = sb.run(python_script, timeout_ms=5000)
 
 ---
 
-## Why Cranelift?
+## Shared Security Rules
 
-The original goal of this repo was to build **Aether** — a compiled systems language using Cranelift as the backend. That work proved that:
+Both the Python and Node.js SDKs load security patterns from a single canonical file:
 
-1. Cranelift can be embedded in Rust and driven purely from safe Rust code
-2. JIT compilation via `cranelift-jit` produces native code with zero syscall overhead
-3. The `JITModule` and `ObjectModule` share the same `Module` trait — one lowering pass serves both JIT and AOT
+```
+sdk/security_rules.json
+```
 
-These properties make `crates/ae-codegen` the ideal **T1 sandbox backend** — a Cranelift JIT that executes AI-generated Aether code with no syscall surface, accessible from the Python SDK via a stable C-ABI FFI.
+This file controls:
+- `sensitive_path_patterns` — regex list of paths that are always blocked (`.env`, `.git`, etc.)
+- `blocked_payload_patterns` — code patterns rejected at Gate 2 (exec, eval, etc.)
+- `max_payload_size_bytes` — maximum patch payload size (default: 64 KB)
+- `run_script_requires_trust` — whether `run_script` actions require explicit trust elevation
+
+To add or update a security rule, edit `security_rules.json` once — both SDKs pick it up automatically.
 
 ---
 
 ## Test Suite
 
 ```bash
-# Rust tests (FFI guard ring + JIT)
+# Rust tests (FFI guard ring + JIT — 8 tests)
 cargo test -p ae-codegen
 
-# Python tests
+# Python tests (174 tests)
 cd sdk/python
 pip install -e ".[dev]"
 pytest tests/ -v
+
+# Node.js tests
+cd sdk/node
+npm test
 ```
 
 ### Rust (ae-codegen)
 
 ```
-running 6 tests
-test ffi::tests::ffi_free_null_is_noop         ... ok
-test ffi::tests::ffi_null_pointer_returns_error ... ok
-test ffi::tests::ffi_parse_error_returns_failure ... ok
-test ffi::tests::ffi_valid_source_returns_success ... ok
-test jit::tests::test_jit_basic_math           ... ok
-test jit::tests::test_jit_let_and_if           ... ok
+running 8 tests
+test ffi::tests::ffi_free_null_is_noop              ... ok
+test ffi::tests::ffi_null_pointer_returns_error     ... ok
+test ffi::tests::ffi_parse_error_returns_failure    ... ok
+test ffi::tests::ffi_valid_source_returns_success   ... ok
+test jit::tests::test_jit_basic_math                ... ok
+test jit::tests::test_jit_let_and_if               ... ok
+test jit::tests::test_jit_bool_lit_no_panic         ... ok  ← A1 regression guard
+test jit::tests::test_jit_array_lit_no_panic        ... ok  ← A1 regression guard
 
-test result: ok. 6 passed; 0 failed
+test result: ok. 8 passed; 0 failed
 ```
 
 ### Python SDK
 
 ```
-165 tests collected
-├── test_validation.py         34 tests  (Phase 1: Validation Layer)
-├── test_sandbox.py            26 tests  (Phase 2: Sandbox T3)
-├── test_sandbox_t3_windows.py  3 tests  (Phase 2: Windows Job Objects)
-├── test_snapshot.py           31 tests  (Phase 3: Snapshot System)
-├── test_observability.py       8 tests  (Phase 4: Audit Log)
-├── test_ast_engine.py          7 tests  (Phase 5: LibCST AST Engine)
-├── test_sandbox_t2.py          5 tests  (Phase 7: Wasmtime WASI)
-└── test_ffi_fuzz.py           51 tests  (Phase 8: T1 FFI Fuzz Suite)
+174 tests collected (8 passed, 1 xfailed)
+├── test_validation.py            34 tests  (Phase 1: Validation Layer)
+├── test_sandbox.py               26 tests  (Phase 2: Sandbox T3)
+├── test_sandbox_t3_windows.py     3 tests  (Phase 2: Windows Job Objects)
+├── test_snapshot.py              31 tests  (Phase 3: Snapshot System)
+├── test_observability.py          8 tests  (Phase 4: Audit Log)
+├── test_ast_engine.py             7 tests  (Phase 5: LibCST AST Engine)
+├── test_sandbox_t2.py             5 tests  (Phase 7: Wasmtime WASI)
+├── test_ffi_fuzz.py              51 tests  (Phase 8: T1 FFI Fuzz Suite)
+└── test_rollback_fault.py         9 tests  (Phase A3: Fault-Injection Rollback)
+     └─ 1 xfail: new-file removal on rollback (Phase B: manifest diffing)
 ```
 
 ---
@@ -385,6 +408,11 @@ test result: ok. 6 passed; 0 failed
 | 7 | T2 Sandbox (Wasmtime/WASI + epoch timeout) | ✅ Complete |
 | 8 | T1 Sandbox (Cranelift JIT C-ABI FFI) | ✅ Complete |
 | 8.5 | Node.js T1 N-API addon (`ae_sandbox_napi.cpp`) | ✅ Scaffolded |
+| **A — Harden** | **JIT panics fixed, security_rules.json, isolation_level, SECURITY.md** | **✅ Complete** |
+| **A3** | **Fault-injection rollback tests (9 tests, 1 xfail documented)** | **✅ Complete** |
+| B | Semantic Bridge (content-hash patch targeting, `ae check --diff-impact`) | 🔲 Planned |
+| C2 | Node.js SDK: SemanticGate + PatchOrchestrator parity | 🔲 Planned |
+| D | Docker-based T4 Sandbox (production isolation) | 🔲 Future |
 
 ---
 
