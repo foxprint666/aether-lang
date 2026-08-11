@@ -156,6 +156,29 @@
           "description": "ISO 8601 timestamp of patch generation."
         }
       }
+    },
+    "ae_target": {
+      "type": "object",
+      "description": "Optional Semantic Bridge block. When present, Gate 3 (SemanticGate) verifies stability before applying the patch. Omit for legacy string-based patching.",
+      "additionalProperties": false,
+      "required": ["node_hash"],
+      "properties": {
+        "node_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$",
+          "description": "BLAKE3 hex digest of the target AST node's ContentHash. Identifies the precise subtree to verify."
+        },
+        "replacement_src": {
+          "type": "string",
+          "maxLength": 65536,
+          "description": "Aether source for the replacement node. Used by ae check --diff-impact to verify stability is not broken."
+        },
+        "stability_required": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, Gate 3 will reject the patch if the replacement introduces a Union type (instability)."
+        }
+      }
     }
   },
   "if": {

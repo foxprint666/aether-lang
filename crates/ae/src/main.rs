@@ -48,6 +48,11 @@ enum Command {
         /// Emit diagnostics as machine-readable JSON (for AI agents)
         #[arg(long)]
         json: bool,
+        /// Verify stability impact on a specific AST node hash.
+        /// Provide the 64-char BLAKE3 hex of the target ContentHash.
+        /// JSON output will include a 'diff_impact' block with stability verdict.
+        #[arg(long, value_name = "NODE_HASH")]
+        diff_impact: Option<String>,
     },
     /// Print the content-addressable AST store as JSON
     #[command(name = "dump-ast")]
@@ -76,7 +81,7 @@ fn main() {
 
     match cli.command {
         Command::Run { file, jit }    => cmd_run(&file, jit),
-        Command::Check { file, json } => cmd_check(&file, json),
+        Command::Check { file, json, diff_impact } => cmd_check(&file, json, diff_impact.as_deref()),
         Command::DumpAst { file }     => cmd_dump_ast(&file),
         Command::Build { file, output } => cmd_build(&file, output),
         Command::Lsp                  => ae_lsp::run_lsp(),
@@ -140,13 +145,34 @@ fn cmd_run(path: &str, jit: bool) {
 //  ae check <file> [--json]
 // ─────────────────────────────────────────────
 
-fn cmd_check(path: &str, json_mode: bool) {
+fn cmd_check(path: &str, json_mode: bool, diff_impact: Option<&str>) {
     let src = read_file(path);
 
     if json_mode {
         // Machine-readable output via LSP server's check_json
         let server = ae_lsp::LspServer::new();
-        let diag_json = server.check_json(&src, path);
+        let mut diag_json = server.check_json(&src, path);
+
+        // Augment with diff_impact section if requested
+        if let Some(target_hash) = diff_impact {
+            let result = parse(&src, path);
+            if result.ok() {
+                let sema = analyze(result.root, &result.store, &result.spans);
+                let has_errors  = sema.has_errors();
+                let has_union   = sema.diagnostics.iter().any(|d| {
+                    d.stability_level >= 1 || d.message.to_lowercase().contains("union")
+                });
+                let stable = !has_errors && !has_union;
+                diag_json["diff_impact"] = serde_json::json!({
+                    "target_hash":        target_hash,
+                    "stable":             stable,
+                    "has_union":          has_union,
+                    "has_sema_errors":    has_errors,
+                    "stability_verdict":  if stable { "PASS" } else { "REJECT" },
+                });
+            }
+        }
+
         println!("{}", serde_json::to_string_pretty(&diag_json).unwrap());
         let status = diag_json["status"].as_str().unwrap_or("error");
         if status == "error" { process::exit(1); }
@@ -171,6 +197,16 @@ fn cmd_check(path: &str, json_mode: bool) {
                 DiagSeverity::Warning => eprintln!("warning: {}", d.message),
                 DiagSeverity::Info    => {}
             }
+        }
+        // Show diff_impact verdict in human mode too
+        if let Some(target_hash) = diff_impact {
+            let has_union = sema.diagnostics.iter().any(|d| d.stability_level >= 1);
+            let stable = !sema.has_errors() && !has_union;
+            eprintln!(
+                "diff-impact [{}]: {}",
+                &target_hash[..8.min(target_hash.len())],
+                if stable { "STABLE" } else { "UNSTABLE" }
+            );
         }
         eprintln!("check: {} nodes in AstStore", result.store.len());
     }

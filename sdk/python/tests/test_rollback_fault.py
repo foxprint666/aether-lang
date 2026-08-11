@@ -156,21 +156,12 @@ class TestRestoreOnException:
         assert _read(project, "src/main.py") == original_main
         assert _read(project, "src/utils.py") == original_utils
 
-    @pytest.mark.xfail(
-        reason=(
-            "Phase B feature: SnapshotStore.restore() only overwrites files that existed "
-            "at snapshot time. Removing *new* files added by a patch requires post-apply "
-            "file-set diffing (tracked in implementation_plan.md Phase B)."
-        ),
-        strict=True,
-    )
     def test_new_file_removed_on_rollback(self, project: Path, store: SnapshotStore, patch_id: str):
         """
         A file that was CREATED by the patch (not in the snapshot) should be
         removed when the snapshot is restored.
 
-        Currently xfail: SnapshotStore restore() does not delete new files.
-        This will be addressed in Phase B (post-apply manifest diffing).
+        Phase B: Now implemented via file_manifest in SnapshotStore.
         """
         handle = store.capture(patch_id=patch_id)
 

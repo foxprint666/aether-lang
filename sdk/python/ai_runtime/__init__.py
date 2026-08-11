@@ -21,6 +21,11 @@ Quick start:
 from .patch_engine import PatchEngine, ValidationReport
 from .sandbox import Sandbox
 from ._types import ExecutionResult, SnapshotHandle
+from .orchestrator import PatchOrchestrator, OrchestratorResult
 
 __version__ = "0.1.0"
-__all__ = ["PatchEngine", "ValidationReport", "Sandbox", "ExecutionResult", "SnapshotHandle"]
+__all__ = [
+    "PatchEngine", "ValidationReport", "Sandbox",
+    "ExecutionResult", "SnapshotHandle",
+    "PatchOrchestrator", "OrchestratorResult",
+]

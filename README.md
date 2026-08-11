@@ -6,20 +6,30 @@
 
 ## What is this?
 
-AI coding agents (LLMs, Copilots, AutoGPT, etc.) currently modify codebases by generating raw text diffs or source code and applying them directly. This is fundamentally unsafe:
+AI coding agents (LLMs, Copilots, AutoGPT, etc.) currently modify codebases by generating raw text diffs or source code and applying them directly. This approach—relying entirely on **token generation**—is fundamentally expensive, brittle, and unsafe:
 
-- No schema — the change is freeform text with no verifiable structure
-- No isolation — the change executes in the live process with full filesystem access
-- No rollback — recovery depends on `git reset` or manual intervention
-- No contract — ambiguity about what the agent intended vs. what it wrote
+- **Expensive Token Generation:** Agents waste context window and compute re-generating entire files or large chunks of code just to change a few lines.
+- **No Schema:** The change is freeform text with no verifiable structure.
+- **No Isolation:** The change executes in the live process with full filesystem access.
+- **No Rollback:** Recovery depends on `git reset` or manual intervention.
+- **No Contract:** Ambiguity about what the agent intended vs. what it wrote.
 
-**AI-Safe Execution Infrastructure** fixes this by treating AI code modification as a **controlled state transition problem** rather than a text generation problem.
+**Aether's AI-Safe Execution Infrastructure** introduces a massive architectural shift: **moving from token generation to AST-based state transitions.**
+
+Instead of asking an LLM to "write code", you ask it to output a compact JSON patch describing the *logical* changes (e.g., "replace the body of function X"). The infrastructure parses the target code into an Abstract Syntax Tree (AST), applies the exact transformations requested, and serialises it back. 
+
+This fixes the fundamental flaws of token-based generation by treating code modification as a **controlled state transition**:
 
 ```
-❌ Before:  AI agent ──(raw diff)──▶ git apply ──▶ hope it works
+❌ Before (Token Generation):  AI agent ──(raw text/diff)──▶ git apply ──▶ hope it works
 
-✅ After:   AI agent ──(Patch JSON)──▶ Validate ──▶ Snapshot ──▶ Sandbox ──▶ Commit/Rollback
+✅ After (AST State Transition): AI agent ──(JSON AST Patch)──▶ Validate ──▶ Snapshot ──▶ Sandbox ──▶ Commit/Rollback
 ```
+
+**Why this matters for your Agents:**
+- **Massive Cost Efficiency:** You only pay to generate the exact AST instructions needed in a compact JSON payload, not entire files. 
+- **Deterministic and Verifiable:** Changes are applied via exact AST transformations (using tools like `libcst`), ensuring syntax is always perfectly valid.
+- **Atomic & Reversible:** Because patches are structured state transitions, they can be flawlessly snapshotted and rolled back if sandbox execution fails.
 
 ---
 

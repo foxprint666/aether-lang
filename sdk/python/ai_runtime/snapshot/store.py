@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS snapshots (
     created_at          REAL NOT NULL,
     status              TEXT NOT NULL DEFAULT 'pending',
     archive_size_bytes  INTEGER NOT NULL DEFAULT 0,
-    file_count          INTEGER NOT NULL DEFAULT 0
+    file_count          INTEGER NOT NULL DEFAULT 0,
+    file_manifest       TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE INDEX IF NOT EXISTS idx_snapshots_patch_id
@@ -72,6 +73,10 @@ CREATE INDEX IF NOT EXISTS idx_snapshots_patch_id
 
 CREATE INDEX IF NOT EXISTS idx_snapshots_created_at
     ON snapshots (created_at DESC);
+"""
+
+_MIGRATE_FILE_MANIFEST = """
+ALTER TABLE snapshots ADD COLUMN file_manifest TEXT NOT NULL DEFAULT '[]';
 """
 
 
@@ -130,7 +135,7 @@ class SnapshotStore:
         archive_path = self._archive_dir / f"{snap_id}.tar.gz"
 
         with project_write_lock(self.project_root):
-            file_count, size_bytes = self._write_archive(archive_path)
+            file_count, size_bytes, rel_files = self._write_archive(archive_path)
             self._db_insert(
                 snap_id=snap_id,
                 patch_id=patch_id,
@@ -139,6 +144,7 @@ class SnapshotStore:
                 status="pending",
                 size_bytes=size_bytes,
                 file_count=file_count,
+                file_manifest=rel_files,
             )
 
         return SnapshotHandle(
@@ -175,7 +181,21 @@ class SnapshotStore:
             )
 
         with project_write_lock(self.project_root):
+            # Load manifest of files that were in the snapshot
+            manifest_files: set[Path] = self._db_load_manifest(handle.snapshot_id)
+
+            # Restore original file contents
             self._extract_archive(Path(handle.path))
+
+            # Delete files that exist now but were NOT in the snapshot
+            if manifest_files:
+                for current in collect_source_files(self.project_root):
+                    if current not in manifest_files:
+                        try:
+                            current.unlink(missing_ok=True)
+                        except OSError:
+                            pass  # best-effort
+
             self._db_update_status(handle.snapshot_id, "rolled_back")
 
         handle.status = "rolled_back"
@@ -270,14 +290,14 @@ class SnapshotStore:
 
     # ── Private helpers ────────────────────────────────────────────────────
 
-    def _write_archive(self, dest: Path) -> tuple[int, int]:
+    def _write_archive(self, dest: Path) -> tuple[int, int, list[str]]:
         """
         Write a compressed tar archive of source files to `dest`.
         Uses a temp file + atomic rename so a partial write never leaves a
         corrupt archive at the final path.
 
         Returns:
-            (file_count, compressed_size_bytes)
+            (file_count, compressed_size_bytes, rel_file_paths)
         """
         tmp_fd, tmp_path = tempfile.mkstemp(
             suffix=".tar.gz.tmp",
@@ -286,11 +306,13 @@ class SnapshotStore:
         os.close(tmp_fd)
 
         file_count = 0
+        rel_files: list[str] = []
         try:
             with tarfile.open(tmp_path, "w:gz", compresslevel=6) as tar:
                 for src in collect_source_files(self.project_root):
                     arcname = src.relative_to(self.project_root).as_posix()
                     tar.add(str(src), arcname=arcname)
+                    rel_files.append(arcname)
                     file_count += 1
 
             # Atomic rename — safe on both Windows (Python 3.3+) and Unix
@@ -303,7 +325,7 @@ class SnapshotStore:
             raise
 
         size_bytes = dest.stat().st_size if dest.exists() else 0
-        return file_count, size_bytes
+        return file_count, size_bytes, rel_files
 
     def _extract_archive(self, archive: Path) -> None:
         """
@@ -332,6 +354,11 @@ class SnapshotStore:
     def _init_db(self) -> None:
         with self._connect() as con:
             con.executescript(_DDL)
+            # Migration: add file_manifest column if it was created by an older schema
+            try:
+                con.execute("SELECT file_manifest FROM snapshots LIMIT 0")
+            except sqlite3.OperationalError:
+                con.executescript(_MIGRATE_FILE_MANIFEST)
 
     def _connect(self) -> sqlite3.Connection:
         """Open a connection with WAL mode and sensible defaults."""
@@ -350,17 +377,36 @@ class SnapshotStore:
         status: str,
         size_bytes: int,
         file_count: int,
+        file_manifest: list[str] | None = None,
     ) -> None:
+        import json
+        manifest_json = json.dumps(file_manifest or [])
         with self._connect() as con:
             con.execute(
                 "INSERT INTO snapshots "
                 "(id, patch_id, project_root, archive_path, created_at, "
-                " status, archive_size_bytes, file_count) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                " status, archive_size_bytes, file_count, file_manifest) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (snap_id, patch_id, str(self.project_root),
-                 archive_path, created_at, status, size_bytes, file_count),
+                 archive_path, created_at, status, size_bytes, file_count, manifest_json),
             )
             con.commit()
+
+    def _db_load_manifest(self, snapshot_id: str) -> set[Path]:
+        """Return the set of absolute Paths captured in this snapshot's manifest."""
+        import json
+        with self._connect() as con:
+            row = con.execute(
+                "SELECT file_manifest FROM snapshots WHERE id=?",
+                (snapshot_id,),
+            ).fetchone()
+        if not row or not row[0]:
+            return set()
+        try:
+            rel_files: list[str] = json.loads(row[0])
+        except (ValueError, TypeError):
+            return set()
+        return {self.project_root / f for f in rel_files}
 
     def _db_update_status(self, snapshot_id: str, status: str) -> None:
         with self._connect() as con:

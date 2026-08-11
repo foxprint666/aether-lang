@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS snapshots (
     created_at          REAL NOT NULL,
     status              TEXT NOT NULL DEFAULT 'pending',
     archive_size_bytes  INTEGER NOT NULL DEFAULT 0,
-    file_count          INTEGER NOT NULL DEFAULT 0
+    file_count          INTEGER NOT NULL DEFAULT 0,
+    file_manifest       TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE INDEX IF NOT EXISTS idx_snapshots_patch_id
@@ -100,7 +101,7 @@ export class SnapshotStore {
         };
 
         await this.withLock(async () => {
-            const { fileCount, sizeBytes } = await this.writeArchive(archivePath);
+            const { fileCount, sizeBytes, relFiles } = await this.writeArchive(archivePath);
             handle.file_count = fileCount;
             handle.archive_size_bytes = sizeBytes;
 
@@ -108,11 +109,11 @@ export class SnapshotStore {
             try {
                 db.prepare(`
                     INSERT INTO snapshots 
-                    (id, patch_id, project_root, archive_path, created_at, status, archive_size_bytes, file_count)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, patch_id, project_root, archive_path, created_at, status, archive_size_bytes, file_count, file_manifest)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `).run(
                     snapId, patchId, this.projectRoot, archivePath, handle.created_at,
-                    'pending', sizeBytes, fileCount
+                    'pending', sizeBytes, fileCount, JSON.stringify(relFiles)
                 );
             } finally {
                 db.close();
@@ -122,13 +123,12 @@ export class SnapshotStore {
         return handle;
     }
 
-    private async writeArchive(dest: string): Promise<{ fileCount: number, sizeBytes: number }> {
+    private async writeArchive(dest: string): Promise<{ fileCount: number, sizeBytes: number, relFiles: string[] }> {
         const tmpPath = `${dest}.tmp`;
         const files = collectSourceFiles(this.projectRoot);
+        const relFiles = files.map(f => path.relative(this.projectRoot, f));
         
         try {
-            const relFiles = files.map(f => path.relative(this.projectRoot, f));
-            
             if (relFiles.length === 0) {
                 await tar.c({
                     gzip: { level: 6 },
@@ -153,7 +153,7 @@ export class SnapshotStore {
         }
 
         const sizeBytes = fs.existsSync(dest) ? fs.statSync(dest).size : 0;
-        return { fileCount: files.length, sizeBytes };
+        return { fileCount: files.length, sizeBytes, relFiles };
     }
 
     public async restore(handle: SnapshotHandle): Promise<void> {
@@ -162,13 +162,42 @@ export class SnapshotStore {
         }
 
         await this.withLock(async () => {
-            await this.extractArchive(handle.path);
-            
+            // Load the file manifest so we know what was in the snapshot
             const db = this.connect();
+            let manifestFiles: Set<string> = new Set();
             try {
-                db.prepare(`UPDATE snapshots SET status=? WHERE id=?`).run('rolled_back', handle.snapshot_id);
+                const row = db.prepare(
+                    `SELECT file_manifest FROM snapshots WHERE id=?`
+                ).get(handle.snapshot_id) as any;
+                if (row?.file_manifest) {
+                    const parsed: string[] = JSON.parse(row.file_manifest);
+                    for (const f of parsed) {
+                        // Normalise to absolute paths for comparison
+                        manifestFiles.add(path.resolve(this.projectRoot, f));
+                    }
+                }
             } finally {
                 db.close();
+            }
+
+            // Extract the archive (restores original file contents)
+            await this.extractArchive(handle.path);
+
+            // Delete files that exist NOW but were NOT in the snapshot
+            if (manifestFiles.size > 0) {
+                const currentFiles = collectSourceFiles(this.projectRoot);
+                for (const absFile of currentFiles) {
+                    if (!manifestFiles.has(absFile)) {
+                        try { fs.unlinkSync(absFile); } catch { /* best-effort */ }
+                    }
+                }
+            }
+
+            const db2 = this.connect();
+            try {
+                db2.prepare(`UPDATE snapshots SET status=? WHERE id=?`).run('rolled_back', handle.snapshot_id);
+            } finally {
+                db2.close();
             }
         });
 
