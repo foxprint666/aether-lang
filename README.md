@@ -436,4 +436,8 @@ test result: ok. 8 passed; 0 failed
 
 ## License
 
-MIT
+Aether is provided under a **Dual License** model:
+- **Open Source:** [GNU AGPLv3](LICENSE) for open-source, personal, educational, or internal non-networked use.
+- **Commercial:** A commercial license is required for proprietary applications, SaaS products, or AI tooling platforms where AGPLv3 obligations cannot be met.
+
+See the [LICENSE](LICENSE) file for full details.
