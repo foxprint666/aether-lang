@@ -82,11 +82,11 @@ Even when writing a complete codebase from scratch, LLMs do it *iteratively* acr
 **Size:** 392 lines, 13,718 bytes
 **Token counting:** `tiktoken` (cl100k_base)
 
-To validate the efficiency of Aether on real-world enterprise codebase modifications, we measured the exact token output required for an LLM to update a single method in our largest python module compared to full-file generation.
+To validate the efficiency of Aether on real-world enterprise codebase modifications, we ran a live end-to-end test. We tasked our autonomous AI agent with generating a live patch to inject a metrics function into our largest python module, and measured the exact token output compared to full-file generation.
 
-| Metric | Traditional (Full Rewrite) | Aether AST Patch | Savings |
+| Metric | Traditional (Full Rewrite) | Aether AST Patch (Live AI Generation) | Savings |
 |---|---|---|---|
-| Tokens per Operation | 2,837 | 84 | **97.04%** |
-| Cost for 10 Iterations | $0.4255 | $0.0126 | - |
+| Tokens per Operation | 2,837 | 92 | **96.76%** |
+| Cost for 10 Iterations | $0.4255 | $0.0138 | - |
 
 **Conclusion:** On a moderate ~400+ line enterprise file, the LLM consumes >95% fewer output tokens per change using Aether's AST manipulation. Over an autonomous task requiring 10 iterative steps, the compounded savings are substantial, practically eliminating the latency and context-limit issues of generating thousands of redundant tokens.

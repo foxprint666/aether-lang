@@ -1,0 +1,9 @@
+{
+  "patch_id": "live-test-456",
+  "action": "add_function",
+  "target": {
+    "file": "sdk/python/ai_runtime/sandbox_t3.py",
+    "class_name": "SandboxT3"
+  },
+  "content": "def get_sandbox_metrics(self) -> dict:\n    return {\"cpu_usage\": self.cpu_usage, \"mem_usage\": self.mem_usage}\n"
+}
