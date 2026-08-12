@@ -56,3 +56,21 @@ Aether adds a sophisticated layer of safety (JSON Schema Validation → Security
 
 > [!IMPORTANT]
 > **Summary for Programmers:** To set this up, a programmer simply configures their agent's system prompt to output Aether's JSON Patch format, and passes that output to `PatchOrchestrator.apply(patch)`. The framework handles the rest, turning a brittle text-generation process into a robust, deterministic state machine.
+
+## Phase 3: Building a Whole Module (Incremental Construction)
+
+When an AI agent builds an entire module incrementally (e.g., adding functions one by one), traditional approaches require the agent to constantly re-generate the entire file context to avoid corrupting the file structure. Aether allows the agent to build the file by stacking structured `add_function` AST patches.
+
+**Scenario:** An agent builds a new module by adding 3 functions sequentially.
+
+| Metric | Traditional Method (Re-generate full file) | Aether Method (Sequential `add_function` patches) | Improvement |
+| :--- | :--- | :--- | :--- |
+| **Step 1 Tokens** | 18 tokens | 60 tokens | |
+| **Step 2 Tokens** | 42 tokens (includes func1) | 66 tokens (only func2 payload) | |
+| **Step 3 Tokens** | 62 tokens (includes func1+2)| 60 tokens (only func3 payload) | |
+| **Total Tokens Generated** | **122 tokens** | **186 tokens** | **-52% Reduction** |
+
+### Why this matters for "Building Whole Code"
+Even when writing a complete codebase from scratch, LLMs do it *iteratively* across multiple turns.
+1. **Compounding Cost:** Traditional methods cause O(N^2) token generation costs as the file grows, because the entire file must be reprinted.
+2. **Safety:** Aether ensures that each new block of code is a valid AST node before appending it, preventing a syntax error in Step 3 from destroying the work done in Steps 1 and 2.

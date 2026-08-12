@@ -440,4 +440,6 @@ Aether is provided under a **Dual License** model:
 - **Open Source:** [GNU AGPLv3](LICENSE) for open-source, personal, educational, or internal non-networked use.
 - **Commercial:** A commercial license is required for proprietary applications, SaaS products, or AI tooling platforms where AGPLv3 obligations cannot be met.
 
+For commercial licensing and other inquiries, please contact: **ashallt232005@gmail.com**
+
 See the [LICENSE](LICENSE) file for full details.
