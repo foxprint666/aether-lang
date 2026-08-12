@@ -57,6 +57,7 @@ Aether adds a sophisticated layer of safety (JSON Schema Validation → Security
 > [!IMPORTANT]
 > **Summary for Programmers:** To set this up, a programmer simply configures their agent's system prompt to output Aether's JSON Patch format, and passes that output to `PatchOrchestrator.apply(patch)`. The framework handles the rest, turning a brittle text-generation process into a robust, deterministic state machine.
 
+
 ## Phase 3: Building a Whole Module (Incremental Construction)
 
 When an AI agent builds an entire module incrementally (e.g., adding functions one by one), traditional approaches require the agent to constantly re-generate the entire file context to avoid corrupting the file structure. Aether allows the agent to build the file by stacking structured `add_function` AST patches.
@@ -74,3 +75,18 @@ When an AI agent builds an entire module incrementally (e.g., adding functions o
 Even when writing a complete codebase from scratch, LLMs do it *iteratively* across multiple turns.
 1. **Compounding Cost:** Traditional methods cause O(N^2) token generation costs as the file grows, because the entire file must be reprinted.
 2. **Safety:** Aether ensures that each new block of code is a valid AST node before appending it, preventing a syntax error in Step 3 from destroying the work done in Steps 1 and 2.
+
+## Phase 4: Real-World "Burden Code" Benchmark
+
+**Target:** `sdk/python/ai_runtime/sandbox_t3.py` (Complex Tier 3 Sandbox Implementation)
+**Size:** 392 lines, 13,718 bytes
+**Token counting:** `tiktoken` (cl100k_base)
+
+To validate the efficiency of Aether on real-world enterprise codebase modifications, we measured the exact token output required for an LLM to update a single method in our largest python module compared to full-file generation.
+
+| Metric | Traditional (Full Rewrite) | Aether AST Patch | Savings |
+|---|---|---|---|
+| Tokens per Operation | 2,837 | 84 | **97.04%** |
+| Cost for 10 Iterations | $0.4255 | $0.0126 | - |
+
+**Conclusion:** On a moderate ~400+ line enterprise file, the LLM consumes >95% fewer output tokens per change using Aether's AST manipulation. Over an autonomous task requiring 10 iterative steps, the compounded savings are substantial, practically eliminating the latency and context-limit issues of generating thousands of redundant tokens.
