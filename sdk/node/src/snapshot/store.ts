@@ -2,64 +2,32 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import * as tar from 'tar';
-import Database from 'better-sqlite3';
 import properLockfile from 'proper-lockfile';
 import { collectSourceFiles } from './gitignore';
 import { SnapshotHandle } from '../types';
 
-const DDL = `
-CREATE TABLE IF NOT EXISTS snapshots (
-    id                  TEXT PRIMARY KEY,
-    patch_id            TEXT NOT NULL,
-    project_root        TEXT NOT NULL,
-    archive_path        TEXT NOT NULL,
-    created_at          REAL NOT NULL,
-    status              TEXT NOT NULL DEFAULT 'pending',
-    archive_size_bytes  INTEGER NOT NULL DEFAULT 0,
-    file_count          INTEGER NOT NULL DEFAULT 0,
-    file_manifest       TEXT NOT NULL DEFAULT '[]'
-);
-
-CREATE INDEX IF NOT EXISTS idx_snapshots_patch_id
-    ON snapshots (patch_id);
-
-CREATE INDEX IF NOT EXISTS idx_snapshots_created_at
-    ON snapshots (created_at DESC);
-`;
+interface SnapshotRecord extends SnapshotHandle {
+    file_manifest: string[];
+}
 
 export class SnapshotStore {
     private projectRoot: string;
     private storeDir: string;
     private archiveDir: string;
-    private dbPath: string;
+    private indexPath: string;
     private lockDir: string;
 
     constructor(projectRoot: string, storeSubdir = '.ai_runtime') {
         this.projectRoot = path.resolve(projectRoot);
         this.storeDir = path.join(this.projectRoot, storeSubdir);
         this.archiveDir = path.join(this.storeDir, 'snapshots');
-        this.dbPath = path.join(this.storeDir, 'snapshots.db');
+        this.indexPath = path.join(this.storeDir, 'snapshots.json');
         this.lockDir = this.storeDir; 
 
         fs.mkdirSync(this.archiveDir, { recursive: true });
-        this.initDb();
-    }
-
-    private initDb() {
-        const db = this.connect();
-        try {
-            db.exec(DDL);
-        } finally {
-            db.close();
+        if (!fs.existsSync(this.indexPath)) {
+            fs.writeFileSync(this.indexPath, '[]\n');
         }
-    }
-
-    private connect(): Database.Database {
-        const db = new Database(this.dbPath, { timeout: 15000 });
-        db.pragma('journal_mode = WAL');
-        db.pragma('foreign_keys = ON');
-        db.pragma('synchronous = NORMAL');
-        return db;
     }
 
     private async withLock<T>(fn: () => Promise<T>): Promise<T> {
@@ -85,6 +53,27 @@ export class SnapshotStore {
         }
     }
 
+    private readIndex(): SnapshotRecord[] {
+        if (!fs.existsSync(this.indexPath)) {
+            return [];
+        }
+        const raw = fs.readFileSync(this.indexPath, 'utf8').trim();
+        if (!raw) {
+            return [];
+        }
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+            throw new Error(`Snapshot index is corrupt: ${this.indexPath}`);
+        }
+        return parsed as SnapshotRecord[];
+    }
+
+    private writeIndex(records: SnapshotRecord[]): void {
+        const tmpPath = `${this.indexPath}.tmp`;
+        fs.writeFileSync(tmpPath, `${JSON.stringify(records, null, 2)}\n`);
+        fs.renameSync(tmpPath, this.indexPath);
+    }
+
     public async capture(patchId = ''): Promise<SnapshotHandle> {
         const snapId = crypto.randomUUID();
         const archivePath = path.join(this.archiveDir, `${snapId}.tar.gz`);
@@ -105,19 +94,12 @@ export class SnapshotStore {
             handle.file_count = fileCount;
             handle.archive_size_bytes = sizeBytes;
 
-            const db = this.connect();
-            try {
-                db.prepare(`
-                    INSERT INTO snapshots 
-                    (id, patch_id, project_root, archive_path, created_at, status, archive_size_bytes, file_count, file_manifest)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `).run(
-                    snapId, patchId, this.projectRoot, archivePath, handle.created_at,
-                    'pending', sizeBytes, fileCount, JSON.stringify(relFiles)
-                );
-            } finally {
-                db.close();
-            }
+            const records = this.readIndex();
+            records.push({
+                ...handle,
+                file_manifest: relFiles
+            });
+            this.writeIndex(records);
         });
 
         return handle;
@@ -163,21 +145,14 @@ export class SnapshotStore {
 
         await this.withLock(async () => {
             // Load the file manifest so we know what was in the snapshot
-            const db = this.connect();
             let manifestFiles: Set<string> = new Set();
-            try {
-                const row = db.prepare(
-                    `SELECT file_manifest FROM snapshots WHERE id=?`
-                ).get(handle.snapshot_id) as any;
-                if (row?.file_manifest) {
-                    const parsed: string[] = JSON.parse(row.file_manifest);
-                    for (const f of parsed) {
-                        // Normalise to absolute paths for comparison
-                        manifestFiles.add(path.resolve(this.projectRoot, f));
-                    }
+            const records = this.readIndex();
+            const record = records.find(r => r.snapshot_id === handle.snapshot_id);
+            if (record?.file_manifest) {
+                for (const f of record.file_manifest) {
+                    // Normalise to absolute paths for comparison
+                    manifestFiles.add(path.resolve(this.projectRoot, f));
                 }
-            } finally {
-                db.close();
             }
 
             // Extract the archive (restores original file contents)
@@ -193,12 +168,13 @@ export class SnapshotStore {
                 }
             }
 
-            const db2 = this.connect();
-            try {
-                db2.prepare(`UPDATE snapshots SET status=? WHERE id=?`).run('rolled_back', handle.snapshot_id);
-            } finally {
-                db2.close();
+            for (const item of records) {
+                if (item.snapshot_id === handle.snapshot_id) {
+                    item.status = 'rolled_back';
+                    break;
+                }
             }
+            this.writeIndex(records);
         });
 
         handle.status = 'rolled_back';
@@ -212,88 +188,54 @@ export class SnapshotStore {
     }
 
     public commit(handle: SnapshotHandle): void {
-        const db = this.connect();
-        try {
-            db.prepare(`UPDATE snapshots SET status=? WHERE id=?`).run('committed', handle.snapshot_id);
-        } finally {
-            db.close();
+        const records = this.readIndex();
+        for (const item of records) {
+            if (item.snapshot_id === handle.snapshot_id) {
+                item.status = 'committed';
+                break;
+            }
         }
+        this.writeIndex(records);
         handle.status = 'committed';
     }
 
     public listSnapshots(limit = 50): SnapshotHandle[] {
-        const db = this.connect();
-        try {
-            const rows = db.prepare(`
-                SELECT id, patch_id, status, created_at, archive_size_bytes, file_count, archive_path
-                FROM snapshots ORDER BY created_at DESC LIMIT ?
-            `).all(limit) as any[];
-
-            return rows.map(r => ({
-                snapshot_id: r.id,
-                patch_id: r.patch_id,
-                project_root: this.projectRoot,
-                path: r.archive_path,
-                status: r.status,
-                created_at: r.created_at,
-                archive_size_bytes: r.archive_size_bytes,
-                file_count: r.file_count
-            }));
-        } finally {
-            db.close();
-        }
+        return this.readIndex()
+            .sort((a, b) => b.created_at - a.created_at)
+            .slice(0, limit)
+            .map(({ file_manifest: _fileManifest, ...handle }) => handle);
     }
 
     public async prune(keep = 10): Promise<number> {
         return this.withLock(async () => {
-            const db = this.connect();
-            try {
-                const rows = db.prepare(`
-                    SELECT id, archive_path FROM snapshots 
-                    WHERE status IN ('committed', 'rolled_back') 
-                    ORDER BY created_at DESC LIMIT -1 OFFSET ?
-                `).all(keep) as any[];
+            const records = this.readIndex();
+            const pruneable = records
+                .filter(item => item.status === 'committed' || item.status === 'rolled_back')
+                .sort((a, b) => b.created_at - a.created_at);
+            const toDelete = new Set(pruneable.slice(keep).map(item => item.snapshot_id));
 
-                let deleted = 0;
-                for (const row of rows) {
-                    try {
-                        if (fs.existsSync(row.archive_path)) {
-                            fs.unlinkSync(row.archive_path);
-                        }
-                    } catch (e) {}
-
-                    db.prepare(`DELETE FROM snapshots WHERE id=?`).run(row.id);
-                    deleted++;
+            let deleted = 0;
+            for (const item of records) {
+                if (!toDelete.has(item.snapshot_id)) {
+                    continue;
                 }
-                return deleted;
-            } finally {
-                db.close();
+                try {
+                    if (fs.existsSync(item.path)) {
+                        fs.unlinkSync(item.path);
+                    }
+                } catch (e) {}
+                deleted++;
             }
+
+            this.writeIndex(records.filter(item => !toDelete.has(item.snapshot_id)));
+            return deleted;
         });
     }
 
     public load(snapshotId: string): SnapshotHandle | null {
-        const db = this.connect();
-        try {
-            const row = db.prepare(`
-                SELECT id, patch_id, project_root, archive_path, created_at, status, archive_size_bytes, file_count
-                FROM snapshots WHERE id = ?
-            `).get(snapshotId) as any;
-
-            if (!row) return null;
-
-            return {
-                snapshot_id: row.id,
-                patch_id: row.patch_id,
-                project_root: row.project_root,
-                path: row.archive_path,
-                status: row.status,
-                created_at: row.created_at,
-                archive_size_bytes: row.archive_size_bytes,
-                file_count: row.file_count
-            };
-        } finally {
-            db.close();
-        }
+        const row = this.readIndex().find(item => item.snapshot_id === snapshotId);
+        if (!row) return null;
+        const { file_manifest: _fileManifest, ...handle } = row;
+        return handle;
     }
 }
