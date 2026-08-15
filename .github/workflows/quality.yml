@@ -57,7 +57,21 @@ jobs:
 
       - name: Install Node SDK dependencies
         working-directory: sdk/node
-        run: npm ci
+        run: |
+          npm ci
+          if ($LASTEXITCODE -ne 0) {
+            $logRoot = Join-Path $env:npm_config_cache "_logs"
+            if (Test-Path $logRoot) {
+              Get-ChildItem $logRoot -Filter "*debug*.log" |
+                Sort-Object LastWriteTime -Descending |
+                Select-Object -First 3 |
+                ForEach-Object {
+                  Write-Host "----- npm debug log: $($_.FullName) -----"
+                  Get-Content $_.FullName -Tail 200
+                }
+            }
+            exit $LASTEXITCODE
+          }
 
       - name: Build Node SDK
         working-directory: sdk/node
