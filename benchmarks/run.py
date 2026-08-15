@@ -524,7 +524,9 @@ def apply_aether_patch(workdir: Path, patch: dict[str, Any]) -> Any:
 def apply_state_patch(workdir: Path, patch: dict[str, Any]) -> None:
     target_file = str(patch.get("target", {}).get("file", ""))
     if target_file.endswith(".js"):
-        apply_node_patch(workdir, patch, unchecked=True)
+        result = apply_node_patch(workdir, patch, unchecked=True)
+        if not result["ok"]:
+            raise RuntimeError("; ".join(stringify_error(item) for item in result["errors"]))
         return
     apply_python_state_patch(workdir, patch)
 
@@ -532,7 +534,9 @@ def apply_state_patch(workdir: Path, patch: dict[str, Any]) -> None:
 def apply_unchecked_patch(workdir: Path, patch: dict[str, Any]) -> None:
     target_file = str(patch.get("target", {}).get("file", ""))
     if target_file.endswith(".js"):
-        apply_node_patch(workdir, patch, unchecked=True)
+        result = apply_node_patch(workdir, patch, unchecked=True)
+        if not result["ok"]:
+            raise RuntimeError("; ".join(stringify_error(item) for item in result["errors"]))
         return
     apply_python_unchecked_patch(workdir, patch)
 

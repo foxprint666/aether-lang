@@ -54,6 +54,10 @@ jobs:
         working-directory: sdk/node
         run: npm ci
 
+      - name: Build Node SDK
+        working-directory: sdk/node
+        run: npm run build
+
       - name: Run focused Node tests
         working-directory: sdk/node
-        run: .\node_modules\.bin\jest.cmd tests\ast.test.ts tests\rollback-fault.test.ts --runInBand
+        run: npm run test:focused
