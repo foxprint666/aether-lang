@@ -60,7 +60,8 @@ jobs:
         run: |
           npm ci
           if ($LASTEXITCODE -ne 0) {
-            $logRoot = Join-Path $env:npm_config_cache "_logs"
+            $npmCache = if ($env:npm_config_cache) { $env:npm_config_cache } else { npm config get cache }
+            $logRoot = Join-Path $npmCache "_logs"
             if (Test-Path $logRoot) {
               Get-ChildItem $logRoot -Filter "*debug*.log" |
                 Sort-Object LastWriteTime -Descending |
