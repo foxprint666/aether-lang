@@ -25,10 +25,14 @@ build/
 venv/
 .env
 sdk/python/.venv/
+.bench-venv/
+.pytest-cache-bench/
+.pytest-tmp/
+.tmp/
+.uv-cache/
 
-# AI runtime cache (user-local)
-.ai_runtime/cache/
-.ai_runtime/audit.jsonl
+# AI runtime cache and local benchmark snapshots
+.ai_runtime/
 
 # Compiled native addon
 *.node

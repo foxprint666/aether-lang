@@ -1,0 +1,42 @@
+{
+  "suite": "external-repository",
+  "version": "0.1.0",
+  "description": "Pinned external GitHub repository benchmark tasks. These require --allow-network-repos.",
+  "tasks": [
+    {
+      "task_id": "external-markupsafe-add-import",
+      "language": "python",
+      "repository": "pallets-markupsafe",
+      "repository_manifest": "benchmarks/repositories/markupsafe_pinned.json",
+      "fixture": "repo:git:pallets-markupsafe",
+      "source_file": "src/markupsafe/_native.py",
+      "category": "external_repository",
+      "description": "Clone a pinned external MarkupSafe commit, apply a structured import update, and verify a standalone Python module.",
+      "test_command": "python -m py_compile src/markupsafe/_native.py",
+      "timeout_ms": 30000,
+      "supported_modes": [
+        "state",
+        "aether",
+        "hybrid"
+      ],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": [
+        "import json"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": "src/markupsafe/_native.py"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import json"
+          ]
+        }
+      }
+    }
+  ]
+}

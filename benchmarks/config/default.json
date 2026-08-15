@@ -1,0 +1,20 @@
+{
+  "benchmark_version": "0.1.0",
+  "default_suite": "correctness",
+  "default_mode": "both",
+  "default_trials": 1,
+  "results": {
+    "raw_dir": "benchmarks/results/raw",
+    "processed_dir": "benchmarks/results/processed"
+  },
+  "implemented_suites": [
+    "correctness",
+    "failure-injection",
+    "agent",
+    "real-repository",
+    "external-repository",
+    "all",
+    "smoke"
+  ],
+  "planned_suites": []
+}

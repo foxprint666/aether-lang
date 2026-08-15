@@ -1,0 +1,14 @@
+{
+  "repository_id": "external-git-example",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/example/project.git",
+    "commit": "0123456789abcdef0123456789abcdef01234567"
+  },
+  "description": "Template for external pinned git repository benchmarks. Replace url and commit before using in executable tasks.",
+  "default_timeout_ms": 30000,
+  "notes": [
+    "External git tasks require benchmarks/run.py --allow-network-repos.",
+    "Use immutable commit SHAs, not moving branches."
+  ]
+}

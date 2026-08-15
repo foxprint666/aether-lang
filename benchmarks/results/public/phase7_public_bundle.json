@@ -1,0 +1,825 @@
+{
+  "bundle_version": "phase7-public-bundle-v1",
+  "commands": [
+    "python benchmarks/run.py --suite smoke --mode all-modes --trials 1 --experiment-id ci-smoke-local",
+    "python benchmarks/run.py --suite all --mode hybrid --trials 1 --experiment-id hybrid-threshold-all-smoke",
+    "python benchmarks/analysis/phase_gates.py --phase4 benchmarks/results/raw/phase4-realrepo-done-trials3.json --phase5 benchmarks/results/raw/phase5-crosslang-done-trials3.json --phase6 benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json",
+    "python benchmarks/analysis/phase7_readiness.py --phase4 benchmarks/results/raw/phase4-realrepo-done-trials3.json --phase5 benchmarks/results/raw/phase5-crosslang-done-trials3.json --phase6 benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json --state-results benchmarks/results/raw/state-fastpath-correctness.json benchmarks/results/raw/state-fastpath-agent-trials3.json benchmarks/results/raw/state-fastpath-realrepo-trials3.json benchmarks/results/raw/state-fastpath-all-smoke.json --hybrid-results benchmarks/results/raw/hybrid-threshold-all-smoke.json benchmarks/results/raw/hybrid-threshold-smoke-v2.json --external-results benchmarks/results/raw/external-markupsafe-allmodes-trials3-v2.json --proof-results benchmarks/results/raw/live-openrouter-smoke-v3.json benchmarks/results/raw/phase6-expanded-all.json benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json benchmarks/results/raw/phase4-realrepo-done-trials3.json benchmarks/results/raw/phase5-crosslang-done-trials3.json",
+    "python benchmarks/analysis/phase7_bundle.py --phase4 benchmarks/results/raw/phase4-realrepo-done-trials3.json --phase5 benchmarks/results/raw/phase5-crosslang-done-trials3.json --phase6 benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json --state-results benchmarks/results/raw/state-fastpath-correctness.json benchmarks/results/raw/state-fastpath-agent-trials3.json benchmarks/results/raw/state-fastpath-realrepo-trials3.json benchmarks/results/raw/state-fastpath-all-smoke.json --hybrid-results benchmarks/results/raw/hybrid-threshold-all-smoke.json benchmarks/results/raw/hybrid-threshold-smoke-v2.json --external-results benchmarks/results/raw/external-markupsafe-allmodes-trials3-v2.json --token-results benchmarks/results/raw/token-estimate-all-smoke.json --proof-results benchmarks/results/raw/live-openrouter-smoke-v3.json benchmarks/results/raw/phase6-expanded-all.json benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json benchmarks/results/raw/phase4-realrepo-done-trials3.json benchmarks/results/raw/phase5-crosslang-done-trials3.json"
+  ],
+  "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.13",
+    "system": "Windows"
+  },
+  "generated_at": "2026-08-15T16:48:49.405Z",
+  "limitations": [
+    "The local reproducible scope is not a universal claim about all repositories or all agents.",
+    "Live token/cost telemetry is limited to small provider smoke evidence; offline token estimates are reported separately.",
+    "State mode measures raw transition efficiency without validation, snapshots, or rollback.",
+    "Hybrid mode is a threshold policy for product routing, not an externally validated universal optimum.",
+    "External pinned repository coverage currently includes a small MarkupSafe smoke task; broader external datasets remain future work."
+  ],
+  "phase7_ready": true,
+  "reports": {
+    "hybrid_policy": {
+      "by_language": {
+        "javascript": {
+          "records": 29,
+          "selected_modes": {
+            "aether": 14,
+            "control": 13,
+            "state": 2
+          },
+          "success_rate": 1.0,
+          "token_savings_pct": {
+            "max": 68.143101,
+            "mean": -292.186872,
+            "median": -297.435897,
+            "min": -473.333333,
+            "n": 29
+          }
+        },
+        "python": {
+          "records": 30,
+          "selected_modes": {
+            "aether": 14,
+            "control": 12,
+            "state": 4
+          },
+          "success_rate": 1.0,
+          "token_savings_pct": {
+            "max": 86.618705,
+            "mean": -233.412019,
+            "median": -272.960527,
+            "min": -382.352941,
+            "n": 30
+          }
+        }
+      },
+      "by_selected_mode": {
+        "aether": {
+          "records": 28,
+          "selected_modes": {
+            "aether": 28
+          },
+          "success_rate": 1.0,
+          "token_savings_pct": {
+            "max": -230.0,
+            "mean": -274.322344,
+            "median": -280.993589,
+            "min": -310.25641,
+            "n": 28
+          }
+        },
+        "control": {
+          "records": 25,
+          "selected_modes": {
+            "control": 25
+          },
+          "success_rate": 1.0,
+          "token_savings_pct": {
+            "max": -243.589744,
+            "mean": -330.288227,
+            "median": -308.823529,
+            "min": -473.333333,
+            "n": 25
+          }
+        },
+        "state": {
+          "records": 6,
+          "selected_modes": {
+            "state": 6
+          },
+          "success_rate": 1.0,
+          "token_savings_pct": {
+            "max": 86.618705,
+            "mean": 77.075244,
+            "median": 77.492839,
+            "min": 67.291312,
+            "n": 6
+          }
+        }
+      },
+      "hybrid_records": 59,
+      "reasons": {
+        "full_rewrite_or_direct_edit_below_token_savings_threshold": 25,
+        "safety_task_uses_guarded_aether": 28,
+        "structured_patch_meets_token_savings_threshold": 6
+      },
+      "record_count": 59,
+      "selected_modes": {
+        "aether": 28,
+        "control": 25,
+        "state": 6
+      },
+      "success_rate": 1.0,
+      "token_savings_pct": {
+        "max": 86.618705,
+        "mean": -262.301354,
+        "median": -287.5,
+        "min": -473.333333,
+        "n": 59
+      }
+    },
+    "phase7_readiness": {
+      "checks": {
+        "benchmark_readme_documents_state_mode": true,
+        "ci_runs_all_modes_smoke": true,
+        "evidence_report_documents_limits": true,
+        "external_pinned_git_manifest": true,
+        "external_records_at_least_9": true,
+        "external_success_100_pct": true,
+        "hybrid_records_at_least_40": true,
+        "hybrid_routes_to_control_state_aether": true,
+        "hybrid_success_100_pct": true,
+        "phase456_done": true,
+        "state_faster_than_aether": true,
+        "state_records_at_least_80": true,
+        "state_success_100_pct": true,
+        "task_manifests_parse": true,
+        "tested_scope_pass_100_pct": true
+      },
+      "external_repository": {
+        "manifests": [
+          "benchmarks/repositories/markupsafe_pinned.json"
+        ],
+        "modes": [
+          "aether",
+          "hybrid",
+          "state"
+        ],
+        "pinned_git_manifest": true,
+        "records": 9,
+        "repositories": [
+          "pallets-markupsafe"
+        ],
+        "success_rate": 1.0
+      },
+      "hybrid_policy": {
+        "by_language": {
+          "javascript": {
+            "records": 29,
+            "selected_modes": {
+              "aether": 14,
+              "control": 13,
+              "state": 2
+            },
+            "success_rate": 1.0,
+            "token_savings_pct": {
+              "max": 68.143101,
+              "mean": -292.186872,
+              "median": -297.435897,
+              "min": -473.333333,
+              "n": 29
+            }
+          },
+          "python": {
+            "records": 30,
+            "selected_modes": {
+              "aether": 14,
+              "control": 12,
+              "state": 4
+            },
+            "success_rate": 1.0,
+            "token_savings_pct": {
+              "max": 86.618705,
+              "mean": -233.412019,
+              "median": -272.960527,
+              "min": -382.352941,
+              "n": 30
+            }
+          }
+        },
+        "by_selected_mode": {
+          "aether": {
+            "records": 28,
+            "selected_modes": {
+              "aether": 28
+            },
+            "success_rate": 1.0,
+            "token_savings_pct": {
+              "max": -230.0,
+              "mean": -274.322344,
+              "median": -280.993589,
+              "min": -310.25641,
+              "n": 28
+            }
+          },
+          "control": {
+            "records": 25,
+            "selected_modes": {
+              "control": 25
+            },
+            "success_rate": 1.0,
+            "token_savings_pct": {
+              "max": -243.589744,
+              "mean": -330.288227,
+              "median": -308.823529,
+              "min": -473.333333,
+              "n": 25
+            }
+          },
+          "state": {
+            "records": 6,
+            "selected_modes": {
+              "state": 6
+            },
+            "success_rate": 1.0,
+            "token_savings_pct": {
+              "max": 86.618705,
+              "mean": 77.075244,
+              "median": 77.492839,
+              "min": 67.291312,
+              "n": 6
+            }
+          }
+        },
+        "hybrid_records": 59,
+        "reasons": {
+          "full_rewrite_or_direct_edit_below_token_savings_threshold": 25,
+          "safety_task_uses_guarded_aether": 28,
+          "structured_patch_meets_token_savings_threshold": 6
+        },
+        "record_count": 59,
+        "selected_modes": {
+          "aether": 28,
+          "control": 25,
+          "state": 6
+        },
+        "success_rate": 1.0,
+        "token_savings_pct": {
+          "max": 86.618705,
+          "mean": -262.301354,
+          "median": -287.5,
+          "min": -473.333333,
+          "n": 59
+        }
+      },
+      "next_blockers": [],
+      "phase7_ready": true,
+      "phase_gates": {
+        "all_done": true,
+        "phase4_real_repositories": {
+          "checks": {
+            "all_aether_mode": true,
+            "all_success": true,
+            "python_and_javascript": true,
+            "records_at_least_18": true,
+            "three_trials": true
+          },
+          "done": true,
+          "languages": [
+            "javascript",
+            "python"
+          ],
+          "records": 18,
+          "success_rate_pct": 100.0,
+          "trials": [
+            1,
+            2,
+            3
+          ]
+        },
+        "phase5_cross_language": {
+          "checks": {
+            "all_detected": true,
+            "all_success": true,
+            "javascript_failure_classes": true,
+            "python_failure_classes": true,
+            "records_at_least_48": true,
+            "rollback_success_when_triggered": true,
+            "three_trials": true
+          },
+          "done": true,
+          "failure_classes": {
+            "javascript": [
+              "broken_import",
+              "runtime_error",
+              "sensitive_path",
+              "syntax_error",
+              "timeout"
+            ],
+            "python": [
+              "broken_import",
+              "runtime_error",
+              "sensitive_path",
+              "syntax_error",
+              "timeout"
+            ]
+          },
+          "records": 54,
+          "success_rate_pct": 100.0,
+          "trials": [
+            1,
+            2,
+            3
+          ]
+        },
+        "phase6_ab_agent": {
+          "checks": {
+            "all_success": true,
+            "command_agent_adapter": true,
+            "false_acceptance_0_pct": true,
+            "invalid_detection_100_pct": true,
+            "matched_pairs_at_least_21": true,
+            "python_and_javascript": true,
+            "records_at_least_48": true,
+            "seven_matched_programming_tasks": true,
+            "three_trials": true
+          },
+          "done": true,
+          "invalid_records": 6,
+          "matched_pairs": 21,
+          "records": 48,
+          "success_rate_pct": 100.0,
+          "trials": [
+            1,
+            2,
+            3
+          ],
+          "valid_tasks": [
+            "agent-js-add-function",
+            "agent-js-modify-function",
+            "agent-js-remove-function",
+            "agent-js-replace-block",
+            "agent-py-add-import",
+            "agent-py-modify-function",
+            "agent-py-replace-block"
+          ]
+        }
+      },
+      "proof_gaps": {
+        "blockers_to_100_pct": {
+          "time_efficiency": 82.977,
+          "token_efficiency": 91.995
+        },
+        "conservative_proof_score_pct": 75.004,
+        "interpretation": "promising evidence, still limited",
+        "metrics": {
+          "aether_success_rate": 1.0,
+          "control_success_rate": 1.0,
+          "false_acceptance_rate": 0.0,
+          "local_execution_savings_pct": -65.95447,
+          "output_token_savings_pct": 83.258595,
+          "provider_availability_rate": 1.0,
+          "safety_detection_rate": 1.0,
+          "total_token_savings_pct": 60.100869
+        },
+        "note": "A 100% tested-scope pass rate means every executed record passed. A 100% conservative proof score additionally requires full marks for token efficiency, time efficiency, correctness, safety, repeatability, provider quality, and real-repository coverage.",
+        "tested_scope": {
+          "pass_rate_pct": 100.0,
+          "passed_records": 189,
+          "tested_records": 189
+        }
+      },
+      "state_efficiency": {
+        "experiments": [
+          "state-fastpath-correctness",
+          "state-fastpath-agent-trials3",
+          "state-fastpath-realrepo-trials3",
+          "state-fastpath-all-smoke"
+        ],
+        "pairs": {
+          "control_vs_aether": {
+            "left_execution_mean_ms": 96.746414,
+            "left_success_rate": 1.0,
+            "n": 29,
+            "right_efficiency_pct": 49.751786,
+            "right_execution_mean_ms": 194.458172,
+            "right_overhead_pct": 100.997809,
+            "right_savings_pct": -100.997809,
+            "right_success_rate": 1.0
+          },
+          "control_vs_state": {
+            "left_execution_mean_ms": 96.746414,
+            "left_success_rate": 1.0,
+            "n": 29,
+            "right_efficiency_pct": 72.458425,
+            "right_execution_mean_ms": 133.519897,
+            "right_overhead_pct": 38.010177,
+            "right_savings_pct": -38.010177,
+            "right_success_rate": 1.0
+          },
+          "state_vs_aether": {
+            "left_execution_mean_ms": 117.932596,
+            "left_success_rate": 1.0,
+            "n": 47,
+            "right_efficiency_pct": 66.554143,
+            "right_execution_mean_ms": 177.197979,
+            "right_overhead_pct": 50.253607,
+            "right_savings_pct": -50.253607,
+            "right_success_rate": 1.0
+          }
+        },
+        "record_count": 222,
+        "triples": {
+          "execution_time_ms": {
+            "aether": 194.458172,
+            "control": 96.746414,
+            "state": 133.519897
+          },
+          "n": 29,
+          "success": {
+            "aether": 1.0,
+            "control": 1.0,
+            "state": 1.0
+          }
+        }
+      }
+    },
+    "proof_gaps": {
+      "blockers_to_100_pct": {
+        "time_efficiency": 82.977,
+        "token_efficiency": 91.995
+      },
+      "conservative_proof_score_pct": 75.004,
+      "interpretation": "promising evidence, still limited",
+      "metrics": {
+        "aether_success_rate": 1.0,
+        "control_success_rate": 1.0,
+        "false_acceptance_rate": 0.0,
+        "local_execution_savings_pct": -65.95447,
+        "output_token_savings_pct": 83.258595,
+        "provider_availability_rate": 1.0,
+        "safety_detection_rate": 1.0,
+        "total_token_savings_pct": 60.100869
+      },
+      "note": "A 100% tested-scope pass rate means every executed record passed. A 100% conservative proof score additionally requires full marks for token efficiency, time efficiency, correctness, safety, repeatability, provider quality, and real-repository coverage.",
+      "tested_scope": {
+        "pass_rate_pct": 100.0,
+        "passed_records": 189,
+        "tested_records": 189
+      }
+    },
+    "proof_score": {
+      "category_scores_pct": {
+        "correctness": 100.0,
+        "provider_quality": 100.0,
+        "real_repository_coverage": 100.0,
+        "repeatability": 100.0,
+        "safety": 100.0,
+        "time_efficiency": 17.023,
+        "token_efficiency": 8.005
+      },
+      "evaluable_pairs": 38,
+      "experiments": [
+        "live-openrouter-smoke-v3",
+        "phase6-expanded-all",
+        "phase6-agent-ab-expanded-command-mock-trials3",
+        "phase4-realrepo-done-trials3",
+        "phase5-crosslang-done-trials3"
+      ],
+      "interpretation": "promising evidence, still limited",
+      "live_token_pairs": 2,
+      "matched_pairs": 38,
+      "metrics": {
+        "aether_success_rate": 1.0,
+        "control_success_rate": 1.0,
+        "false_acceptance_rate": 0.0,
+        "local_execution_savings_pct": -65.95447,
+        "output_token_savings_pct": 83.258595,
+        "provider_availability_rate": 1.0,
+        "safety_detection_rate": 1.0,
+        "total_token_savings_pct": 60.100869
+      },
+      "overall_proof_score_pct": 75.004,
+      "real_repository_records": 24,
+      "record_count": 189,
+      "tested_invalid_records": 13
+    },
+    "state_efficiency": {
+      "experiments": [
+        "state-fastpath-correctness",
+        "state-fastpath-agent-trials3",
+        "state-fastpath-realrepo-trials3",
+        "state-fastpath-all-smoke"
+      ],
+      "pairs": {
+        "control_vs_aether": {
+          "left_execution_mean_ms": 96.746414,
+          "left_success_rate": 1.0,
+          "n": 29,
+          "right_efficiency_pct": 49.751786,
+          "right_execution_mean_ms": 194.458172,
+          "right_overhead_pct": 100.997809,
+          "right_savings_pct": -100.997809,
+          "right_success_rate": 1.0
+        },
+        "control_vs_state": {
+          "left_execution_mean_ms": 96.746414,
+          "left_success_rate": 1.0,
+          "n": 29,
+          "right_efficiency_pct": 72.458425,
+          "right_execution_mean_ms": 133.519897,
+          "right_overhead_pct": 38.010177,
+          "right_savings_pct": -38.010177,
+          "right_success_rate": 1.0
+        },
+        "state_vs_aether": {
+          "left_execution_mean_ms": 117.932596,
+          "left_success_rate": 1.0,
+          "n": 47,
+          "right_efficiency_pct": 66.554143,
+          "right_execution_mean_ms": 177.197979,
+          "right_overhead_pct": 50.253607,
+          "right_savings_pct": -50.253607,
+          "right_success_rate": 1.0
+        }
+      },
+      "record_count": 222,
+      "triples": {
+        "execution_time_ms": {
+          "aether": 194.458172,
+          "control": 96.746414,
+          "state": 133.519897
+        },
+        "n": 29,
+        "success": {
+          "aether": 1.0,
+          "control": 1.0,
+          "state": 1.0
+        }
+      }
+    },
+    "token_estimates": {
+      "by_language": {
+        "javascript": {
+          "estimated_input_tokens": {
+            "max": 955,
+            "mean": 325.088235,
+            "median": 248.5,
+            "min": 182,
+            "n": 34
+          },
+          "estimated_patch_output_tokens": {
+            "max": 192,
+            "mean": 159.970588,
+            "median": 160.5,
+            "min": 138,
+            "n": 34
+          },
+          "estimated_traditional_output_tokens": {
+            "max": 587,
+            "mean": 100.676471,
+            "median": 39.0,
+            "min": 30,
+            "n": 34
+          },
+          "patch_output_efficiency_pct": 62.934363,
+          "patch_output_total": 5439,
+          "patch_vs_traditional_output_savings_pct": -58.895706,
+          "records": 34,
+          "traditional_output_total": 3423
+        },
+        "python": {
+          "estimated_input_tokens": {
+            "max": 2276,
+            "mean": 538.742857,
+            "median": 292,
+            "min": 190,
+            "n": 35
+          },
+          "estimated_patch_output_tokens": {
+            "max": 186,
+            "mean": 154.2,
+            "median": 155,
+            "min": 132,
+            "n": 35
+          },
+          "estimated_traditional_output_tokens": {
+            "max": 1390,
+            "mean": 258.342857,
+            "median": 40,
+            "min": 34,
+            "n": 35
+          },
+          "patch_output_efficiency_pct": 167.537521,
+          "patch_output_total": 5397,
+          "patch_vs_traditional_output_savings_pct": 40.311878,
+          "records": 35,
+          "traditional_output_total": 9042
+        }
+      },
+      "by_mode": {
+        "aether": {
+          "estimated_input_tokens": {
+            "max": 2276,
+            "mean": 390.365854,
+            "median": 203,
+            "min": 182,
+            "n": 41
+          },
+          "estimated_patch_output_tokens": {
+            "max": 192,
+            "mean": 154.609756,
+            "median": 155,
+            "min": 132,
+            "n": 41
+          },
+          "estimated_traditional_output_tokens": {
+            "max": 1390,
+            "mean": 158.609756,
+            "median": 39,
+            "min": 30,
+            "n": 41
+          },
+          "patch_output_efficiency_pct": 102.587159,
+          "patch_output_total": 6339,
+          "patch_vs_traditional_output_savings_pct": 2.521913,
+          "records": 41,
+          "traditional_output_total": 6503
+        },
+        "control": {
+          "estimated_input_tokens": {
+            "max": 313,
+            "mean": 300.714286,
+            "median": 299,
+            "min": 293,
+            "n": 7
+          },
+          "estimated_patch_output_tokens": {
+            "max": 172,
+            "mean": 160.428571,
+            "median": 163,
+            "min": 147,
+            "n": 7
+          },
+          "estimated_traditional_output_tokens": {
+            "max": 40,
+            "mean": 35.571429,
+            "median": 34,
+            "min": 30,
+            "n": 7
+          },
+          "patch_output_efficiency_pct": 22.172752,
+          "patch_output_total": 1123,
+          "patch_vs_traditional_output_savings_pct": -351.004016,
+          "records": 7,
+          "traditional_output_total": 249
+        },
+        "state": {
+          "estimated_input_tokens": {
+            "max": 2276,
+            "mean": 561.857143,
+            "median": 296,
+            "min": 182,
+            "n": 21
+          },
+          "estimated_patch_output_tokens": {
+            "max": 192,
+            "mean": 160.666667,
+            "median": 161,
+            "min": 134,
+            "n": 21
+          },
+          "estimated_traditional_output_tokens": {
+            "max": 1390,
+            "mean": 272.047619,
+            "median": 39,
+            "min": 30,
+            "n": 21
+          },
+          "patch_output_efficiency_pct": 169.324244,
+          "patch_output_total": 3374,
+          "patch_vs_traditional_output_savings_pct": 40.941712,
+          "records": 21,
+          "traditional_output_total": 5713
+        }
+      },
+      "estimated_records": 69,
+      "estimators": [
+        "heuristic:regex-v1"
+      ],
+      "note": "estimated_output_tokens counts structured patch JSON. estimated_traditional_output_tokens counts the full target source file as a rewrite baseline. Use provider input_tokens/output_tokens for live billing evidence.",
+      "overall": {
+        "estimated_input_tokens": {
+          "max": 2276,
+          "mean": 433.463768,
+          "median": 292,
+          "min": 182,
+          "n": 69
+        },
+        "estimated_patch_output_tokens": {
+          "max": 192,
+          "mean": 157.043478,
+          "median": 156,
+          "min": 132,
+          "n": 69
+        },
+        "estimated_traditional_output_tokens": {
+          "max": 1390,
+          "mean": 180.652174,
+          "median": 39,
+          "min": 30,
+          "n": 69
+        },
+        "patch_output_efficiency_pct": 115.033223,
+        "patch_output_total": 10836,
+        "patch_vs_traditional_output_savings_pct": 13.068592,
+        "records": 69,
+        "traditional_output_total": 12465
+      },
+      "record_count": 85
+    }
+  },
+  "source_files": {
+    "external_results": [
+      {
+        "bytes": 25053,
+        "path": "benchmarks/results/raw/external-markupsafe-allmodes-trials3-v2.json",
+        "sha256": "adaff0b327ebdb98b62efc31ebd1ee2aacf60c1c1a27cb39af4a0b3a483b7a95"
+      }
+    ],
+    "hybrid_results": [
+      {
+        "bytes": 114083,
+        "path": "benchmarks/results/raw/hybrid-threshold-all-smoke.json",
+        "sha256": "74ada52b4402cd6bdeaa7661bfa33ca6a3f4d9874910bae3340b20098f67c052"
+      },
+      {
+        "bytes": 42369,
+        "path": "benchmarks/results/raw/hybrid-threshold-smoke-v2.json",
+        "sha256": "1ad56fb6123659645b37fbae9b0ee933ed138ebffafd46ad39ca8b5572d29081"
+      }
+    ],
+    "phase4": [
+      {
+        "bytes": 38791,
+        "path": "benchmarks/results/raw/phase4-realrepo-done-trials3.json",
+        "sha256": "71cad4ffd7b970febc643f29871516d3d45219f3c45072b991683131d3a04a38"
+      }
+    ],
+    "phase5": [
+      {
+        "bytes": 135833,
+        "path": "benchmarks/results/raw/phase5-crosslang-done-trials3.json",
+        "sha256": "ac2409a33373f227a67119b6eaaaaa835331dee81d497d2d8d494b4e353d5918"
+      }
+    ],
+    "phase6": [
+      {
+        "bytes": 119434,
+        "path": "benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json",
+        "sha256": "b32afa54e96614c1f9a48ab8ac4bbcc28dd7ef0c274ea68d6161e4464263cbe1"
+      }
+    ],
+    "proof_results": [
+      {
+        "bytes": 20539,
+        "path": "benchmarks/results/raw/live-openrouter-smoke-v3.json",
+        "sha256": "cbb76292904b13eac745712b1791865b1c9d6b18dc9474b55bda12c870d31981"
+      },
+      {
+        "bytes": 142175,
+        "path": "benchmarks/results/raw/phase6-expanded-all.json",
+        "sha256": "ae2f6ea745c24de9dd092f8534a4d755231cef8003c898302e90b7b4dab90ed5"
+      },
+      {
+        "bytes": 119434,
+        "path": "benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json",
+        "sha256": "b32afa54e96614c1f9a48ab8ac4bbcc28dd7ef0c274ea68d6161e4464263cbe1"
+      },
+      {
+        "bytes": 38791,
+        "path": "benchmarks/results/raw/phase4-realrepo-done-trials3.json",
+        "sha256": "71cad4ffd7b970febc643f29871516d3d45219f3c45072b991683131d3a04a38"
+      },
+      {
+        "bytes": 135833,
+        "path": "benchmarks/results/raw/phase5-crosslang-done-trials3.json",
+        "sha256": "ac2409a33373f227a67119b6eaaaaa835331dee81d497d2d8d494b4e353d5918"
+      }
+    ],
+    "state_results": [
+      {
+        "bytes": 74017,
+        "path": "benchmarks/results/raw/state-fastpath-correctness.json",
+        "sha256": "dcb876948e71da5b6a0c76031e75d9adab59645c0e84057ce32520ab4253c844"
+      },
+      {
+        "bytes": 152040,
+        "path": "benchmarks/results/raw/state-fastpath-agent-trials3.json",
+        "sha256": "fe4ef9b3d66699c935f21dfa41205810d901fae0a9d35e37ce07010bd7eb50c7"
+      },
+      {
+        "bytes": 80967,
+        "path": "benchmarks/results/raw/state-fastpath-realrepo-trials3.json",
+        "sha256": "5aa80becc51326588cfe9f492fbf1b89d44e154205d17495558e738864b7171d"
+      },
+      {
+        "bytes": 187137,
+        "path": "benchmarks/results/raw/state-fastpath-all-smoke.json",
+        "sha256": "0464431293174e48d8e63ec0733909bd2c600c14bf0713e6c9d41759c8c49126"
+      }
+    ],
+    "token_results": [
+      {
+        "bytes": 201844,
+        "path": "benchmarks/results/raw/token-estimate-all-smoke.json",
+        "sha256": "f07d384656959563eb17ef0869de8475344e2e06514aef0542a4533f52374620"
+      }
+    ]
+  }
+}

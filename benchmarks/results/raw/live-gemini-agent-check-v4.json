@@ -1,0 +1,561 @@
+{
+  "benchmark_version": "0.1.0",
+  "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+  "completed_at": "2026-08-15T11:54:14.921Z",
+  "effective_suite": "agent",
+  "environment": {
+    "cwd": "C:\\Users\\ASHLEY ALLEN\\Downloads\\aether-lang",
+    "env": {
+      "AETHER_BENCHMARK_VERSION": null,
+      "CI": null
+    },
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 191 Stepping 2, GenuineIntel",
+    "python": "3.12.13",
+    "python_executable": "C:\\Users\\ASHLEY ALLEN\\Downloads\\aether-lang\\.bench-venv\\Scripts\\python.exe"
+  },
+  "experiment_id": "live-gemini-agent-check-v4",
+  "mode": "both",
+  "records": [
+    {
+      "agent": "command-agent",
+      "agent_attempts": 1,
+      "agent_cost_usd": null,
+      "agent_latency_ms": 3170.39,
+      "category": "agent_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "1fdf4fb73e0b9b616f4f9d0e05454acd2331f6a613076e161c888993873dbd38",
+        "agent": {
+          "adapter": "command_agent",
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "elapsed_ms": 3170.351,
+              "ok": true,
+              "returncode": 0,
+              "stderr": ""
+            }
+          ],
+          "elapsed_ms": 3170.39
+        },
+        "agent_adapter": "command_agent",
+        "before_hash": "a2c9dab40d2995791f058b1e1ba56be3de51aa0ad4fd4db247d718a5eada6b8d",
+        "category": "agent_patch",
+        "error_detail": null,
+        "expected_success": true,
+        "failure_type": null,
+        "mode": "control",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "python -m py_compile app.py; python app.py",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": null,
+      "execution_time_ms": 3951.255,
+      "experiment_id": "live-gemini-agent-check-v4",
+      "failure_detected": false,
+      "failure_type": null,
+      "input_tokens": 467,
+      "language": "python",
+      "model": "gemini-3.5-flash",
+      "output_tokens": 50,
+      "patch_generated": true,
+      "patch_size": 476,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-py-modify-function",
+      "task_success": true,
+      "tests_failed": 0,
+      "tests_passed": 1,
+      "timestamp": "2026-08-15T11:53:48.827Z",
+      "tool_calls": 0,
+      "validation_failed": false,
+      "validation_time_ms": null
+    },
+    {
+      "agent": "command-agent",
+      "agent_attempts": 1,
+      "agent_cost_usd": null,
+      "agent_latency_ms": 5206.711,
+      "category": "agent_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "1fdf4fb73e0b9b616f4f9d0e05454acd2331f6a613076e161c888993873dbd38",
+        "agent": {
+          "adapter": "command_agent",
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "elapsed_ms": 5206.628,
+              "ok": true,
+              "returncode": 0,
+              "stderr": ""
+            }
+          ],
+          "elapsed_ms": 5206.711
+        },
+        "agent_adapter": "command_agent",
+        "before_hash": "a2c9dab40d2995791f058b1e1ba56be3de51aa0ad4fd4db247d718a5eada6b8d",
+        "category": "agent_patch",
+        "error_detail": null,
+        "expected_success": true,
+        "failure_type": null,
+        "mode": "aether",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "python -m py_compile app.py; python app.py",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": null,
+      "execution_time_ms": 74.077,
+      "experiment_id": "live-gemini-agent-check-v4",
+      "failure_detected": false,
+      "failure_type": null,
+      "input_tokens": 467,
+      "language": "python",
+      "model": "gemini-3.5-flash",
+      "output_tokens": 51,
+      "patch_generated": true,
+      "patch_size": 476,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-py-modify-function",
+      "task_success": true,
+      "tests_failed": 0,
+      "tests_passed": 1,
+      "timestamp": "2026-08-15T11:53:54.236Z",
+      "tool_calls": 0,
+      "validation_failed": false,
+      "validation_time_ms": 0.689
+    },
+    {
+      "agent": "command-agent",
+      "agent_attempts": 1,
+      "agent_cost_usd": null,
+      "agent_latency_ms": 4996.622,
+      "category": "agent_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "d7bd3a70c75ecdbf3d83af72356ea768c34ab3a5a68c7eab131f7abce6d70649",
+        "agent": {
+          "adapter": "command_agent",
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "elapsed_ms": 4996.567,
+              "ok": true,
+              "returncode": 0,
+              "stderr": ""
+            }
+          ],
+          "elapsed_ms": 4996.622
+        },
+        "agent_adapter": "command_agent",
+        "before_hash": "097f1547af0f88b94af1799005e4d71bc361cd66e1bb55915301acbe7288a8df",
+        "category": "agent_patch",
+        "error_detail": null,
+        "expected_success": true,
+        "failure_type": null,
+        "mode": "control",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "node --check app.js; node app.js",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": null,
+      "execution_time_ms": 5793.607,
+      "experiment_id": "live-gemini-agent-check-v4",
+      "failure_detected": false,
+      "failure_type": null,
+      "input_tokens": 460,
+      "language": "javascript",
+      "model": "gemini-3.5-flash",
+      "output_tokens": 55,
+      "patch_generated": true,
+      "patch_size": 476,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-js-modify-function",
+      "task_success": true,
+      "tests_failed": 0,
+      "tests_passed": 1,
+      "timestamp": "2026-08-15T11:54:00.121Z",
+      "tool_calls": 0,
+      "validation_failed": false,
+      "validation_time_ms": null
+    },
+    {
+      "agent": "command-agent",
+      "agent_attempts": 2,
+      "agent_cost_usd": null,
+      "agent_latency_ms": 7901.227,
+      "category": "agent_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "a30fd80ea3bbfc79edc56af22b9b00f09438f0126bdebc59ff45fcaf643576f1",
+        "agent": {
+          "adapter": "command_agent",
+          "attempt_count": 2,
+          "attempts": [
+            {
+              "attempt": 1,
+              "elapsed_ms": 3803.442,
+              "ok": false,
+              "returncode": 1,
+              "stderr": "Gemini API error 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n\n"
+            },
+            {
+              "attempt": 2,
+              "elapsed_ms": 4097.692,
+              "ok": true,
+              "returncode": 0,
+              "stderr": ""
+            }
+          ],
+          "elapsed_ms": 7901.227
+        },
+        "agent_adapter": "command_agent",
+        "before_hash": "097f1547af0f88b94af1799005e4d71bc361cd66e1bb55915301acbe7288a8df",
+        "category": "agent_patch",
+        "error_detail": null,
+        "expected_success": true,
+        "failure_type": null,
+        "mode": "aether",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "node --check app.js; node app.js",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": null,
+      "execution_time_ms": 587.467,
+      "experiment_id": "live-gemini-agent-check-v4",
+      "failure_detected": false,
+      "failure_type": null,
+      "input_tokens": 460,
+      "language": "javascript",
+      "model": "gemini-3.5-flash",
+      "output_tokens": 54,
+      "patch_generated": true,
+      "patch_size": 482,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-js-modify-function",
+      "task_success": true,
+      "tests_failed": 0,
+      "tests_passed": 1,
+      "timestamp": "2026-08-15T11:54:08.786Z",
+      "tool_calls": 0,
+      "validation_failed": false,
+      "validation_time_ms": 35.278
+    },
+    {
+      "agent": "command-agent",
+      "agent_attempts": 1,
+      "agent_cost_usd": null,
+      "agent_latency_ms": 5952.505,
+      "category": "invalid_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "a2c9dab40d2995791f058b1e1ba56be3de51aa0ad4fd4db247d718a5eada6b8d",
+        "agent": {
+          "adapter": "command_agent",
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "elapsed_ms": 5952.464,
+              "ok": true,
+              "returncode": 0,
+              "stderr": ""
+            }
+          ],
+          "elapsed_ms": 5952.505
+        },
+        "agent_adapter": "command_agent",
+        "before_hash": "a2c9dab40d2995791f058b1e1ba56be3de51aa0ad4fd4db247d718a5eada6b8d",
+        "category": "invalid_patch",
+        "error_detail": "operation_allow_list: Operation 'replace_body' is not permitted for action 'update_import'. Allowed: ['add_import', 'remove_import']; target_path_sensitive: Target file '.env' matches a sensitive path pattern (pattern: '\\.env'). Modify this file manually.",
+        "expected_success": false,
+        "failure_type": "sensitive_path",
+        "mode": "aether",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "python -m py_compile app.py; python app.py",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": "validation_failed",
+      "execution_time_ms": 12.546,
+      "experiment_id": "live-gemini-agent-check-v4",
+      "failure_detected": true,
+      "failure_type": "sensitive_path",
+      "input_tokens": 450,
+      "language": "python",
+      "model": "gemini-3.5-flash",
+      "output_tokens": 46,
+      "patch_generated": true,
+      "patch_size": 480,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-py-invalid-sensitive-path",
+      "task_success": true,
+      "tests_failed": 0,
+      "tests_passed": 1,
+      "timestamp": "2026-08-15T11:54:14.921Z",
+      "tool_calls": 0,
+      "validation_failed": true,
+      "validation_time_ms": 0.225
+    }
+  ],
+  "started_at": "2026-08-15T11:53:44.829Z",
+  "suite": "agent",
+  "summary": {
+    "by_language": {
+      "javascript": {
+        "by_language": {},
+        "by_mode": {
+          "aether": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          },
+          "control": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          }
+        },
+        "metrics": {
+          "expected_rollback_detection_rate": null,
+          "failure_detection_rate": null,
+          "false_acceptance_rate": null,
+          "invalid_patch_detection_rate": null,
+          "rollback_success_rate": null,
+          "transformation_success_rate": null
+        },
+        "records": 2,
+        "success_rate": 1.0,
+        "task_failures": 0,
+        "task_successes": 2
+      },
+      "python": {
+        "by_language": {},
+        "by_mode": {
+          "aether": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": 0.0,
+              "invalid_patch_detection_rate": 1.0,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 2,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 2
+          },
+          "control": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          }
+        },
+        "metrics": {
+          "expected_rollback_detection_rate": null,
+          "failure_detection_rate": null,
+          "false_acceptance_rate": 0.0,
+          "invalid_patch_detection_rate": 1.0,
+          "rollback_success_rate": null,
+          "transformation_success_rate": null
+        },
+        "records": 3,
+        "success_rate": 1.0,
+        "task_failures": 0,
+        "task_successes": 3
+      }
+    },
+    "by_mode": {
+      "aether": {
+        "by_language": {
+          "javascript": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          },
+          "python": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": 0.0,
+              "invalid_patch_detection_rate": 1.0,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 2,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 2
+          }
+        },
+        "by_mode": {},
+        "metrics": {
+          "expected_rollback_detection_rate": null,
+          "failure_detection_rate": null,
+          "false_acceptance_rate": 0.0,
+          "invalid_patch_detection_rate": 1.0,
+          "rollback_success_rate": null,
+          "transformation_success_rate": null
+        },
+        "records": 3,
+        "success_rate": 1.0,
+        "task_failures": 0,
+        "task_successes": 3
+      },
+      "control": {
+        "by_language": {
+          "javascript": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          },
+          "python": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          }
+        },
+        "by_mode": {},
+        "metrics": {
+          "expected_rollback_detection_rate": null,
+          "failure_detection_rate": null,
+          "false_acceptance_rate": null,
+          "invalid_patch_detection_rate": null,
+          "rollback_success_rate": null,
+          "transformation_success_rate": null
+        },
+        "records": 2,
+        "success_rate": 1.0,
+        "task_failures": 0,
+        "task_successes": 2
+      }
+    },
+    "metrics": {
+      "expected_rollback_detection_rate": null,
+      "failure_detection_rate": null,
+      "false_acceptance_rate": 0.0,
+      "invalid_patch_detection_rate": 1.0,
+      "rollback_success_rate": null,
+      "transformation_success_rate": null
+    },
+    "records": 5,
+    "success_rate": 1.0,
+    "task_failures": 0,
+    "task_successes": 5
+  },
+  "trials": 1
+}

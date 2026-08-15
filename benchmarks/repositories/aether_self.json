@@ -1,0 +1,14 @@
+{
+  "repository_id": "aether-self",
+  "source": {
+    "type": "local",
+    "path": ".",
+    "pinned_commit": "current-worktree"
+  },
+  "description": "Local Aether repository fixture used for real-repository benchmark scaffolding without network checkout.",
+  "default_timeout_ms": 30000,
+  "notes": [
+    "The runner copies selected files into an isolated temp project.",
+    "Pinned external repository checkout support is planned after the local manifest path is stable."
+  ]
+}

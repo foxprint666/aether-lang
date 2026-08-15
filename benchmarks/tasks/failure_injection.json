@@ -1,0 +1,373 @@
+{
+  "suite": "failure-injection",
+  "version": "0.2.0",
+  "description": "Controlled failure-injection tasks. These cases measure observed detection and rollback behavior for known failure classes; they are not a comprehensive safety proof.",
+  "tasks": [
+    {
+      "task_id": "py-fi-control-syntax-error",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "failure_injection",
+      "failure_type": "syntax_error",
+      "description": "Direct control edit introduces invalid Python syntax.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control"
+      ],
+      "expected_success": false,
+      "expected_error_type": "syntax_error",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.py",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return (1 +\n"
+        }
+      }
+    },
+    {
+      "task_id": "py-fi-aether-syntax-payload",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "failure_injection",
+      "failure_type": "syntax_error",
+      "description": "Aether receives a schema-valid Python patch with syntactically invalid payload.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "aether_apply_failed",
+      "expected_rollback": true,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.py",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return (1 +\n"
+        }
+      }
+    },
+    {
+      "task_id": "py-fi-runtime-error",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "failure_injection",
+      "failure_type": "runtime_error",
+      "description": "Patch introduces a Python runtime exception detected by the benchmark test command.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "runtime_error",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.py",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "raise RuntimeError('injected failure')\n"
+        }
+      }
+    },
+    {
+      "task_id": "py-fi-broken-import",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "failure_injection",
+      "failure_type": "broken_import",
+      "description": "Patch introduces a missing Python import detected during execution.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "runtime_error",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": "app.py"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import definitely_missing_aether_dependency"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "py-fi-timeout",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "failure_injection",
+      "failure_type": "timeout",
+      "description": "Patch introduces a Python timeout detected by the benchmark test command.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 500,
+      "supported_modes": [
+        "control",
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "runtime_error",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.py",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "import time\ntime.sleep(2)\nreturn 0\n"
+        }
+      }
+    },
+    {
+      "task_id": "py-fi-sensitive-path",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "failure_injection",
+      "failure_type": "sensitive_path",
+      "description": "Aether rejects a patch targeting a sensitive file path.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "validation_failed",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": ".env"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import os"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "js-fi-control-syntax-error",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "failure_injection",
+      "failure_type": "syntax_error",
+      "description": "Direct control edit introduces invalid JavaScript syntax.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control"
+      ],
+      "expected_success": false,
+      "expected_error_type": "syntax_error",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return (1 +;"
+        }
+      }
+    },
+    {
+      "task_id": "js-fi-aether-syntax-payload",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "failure_injection",
+      "failure_type": "syntax_error",
+      "description": "Node AST adapter receives a JavaScript patch with syntactically invalid payload.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "aether_apply_failed",
+      "expected_rollback": true,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return (1 +;"
+        }
+      }
+    },
+    {
+      "task_id": "js-fi-runtime-error",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "failure_injection",
+      "failure_type": "runtime_error",
+      "description": "Patch introduces a JavaScript runtime exception detected by the benchmark test command.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "runtime_error",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "throw new Error('injected failure');"
+        }
+      }
+    },
+    {
+      "task_id": "js-fi-broken-import",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "failure_injection",
+      "failure_type": "broken_import",
+      "description": "Patch introduces a missing JavaScript dependency detected during execution.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "runtime_error",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": "app.js"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "const definitelyMissingAetherDependency = require('definitely_missing_aether_dependency');"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "js-fi-timeout",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "failure_injection",
+      "failure_type": "timeout",
+      "description": "Patch introduces a JavaScript timeout detected by the benchmark test command.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 500,
+      "supported_modes": [
+        "control",
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "runtime_error",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "while (true) {}"
+        }
+      }
+    },
+    {
+      "task_id": "js-fi-sensitive-path",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "failure_injection",
+      "failure_type": "sensitive_path",
+      "description": "Aether rejects a JavaScript patch targeting a sensitive file path.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "validation_failed",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": ".env"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "const fs = require('fs');"
+          ]
+        }
+      }
+    }
+  ]
+}

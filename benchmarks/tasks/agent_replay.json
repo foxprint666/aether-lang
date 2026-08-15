@@ -1,0 +1,312 @@
+{
+  "suite": "agent",
+  "version": "0.1.0",
+  "description": "Deterministic replay-agent tasks that exercise the agent patch-ingestion path without an external LLM provider.",
+  "tasks": [
+    {
+      "task_id": "agent-py-modify-function",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "agent_patch",
+      "description": "Replay agent emits a Python function modification patch for Aether to validate and apply.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "total=42",
+      "expected_content": [
+        "def total()",
+        "return add(20, 22)"
+      ],
+      "expected_absent_content": [
+        "return 0"
+      ],
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.py",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return add(20, 22)\n"
+        }
+      }
+    },
+    {
+      "task_id": "agent-py-add-import",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "imports",
+      "category": "agent_patch",
+      "description": "Agent emits a Python import update patch for matched control and Aether application.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "name=ADA",
+      "expected_content": [
+        "from pathlib import Path",
+        "import json"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": "app.py"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import json",
+            "from pathlib import Path"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "agent-py-replace-block",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "block",
+      "category": "agent_patch",
+      "description": "Agent emits a Python context block replacement patch for matched control and Aether application.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "value=42",
+      "expected_content": [
+        "value = 42"
+      ],
+      "expected_absent_content": [
+        "value = 2"
+      ],
+      "patch": {
+        "action": "replace_block",
+        "target": {
+          "file": "app.py"
+        },
+        "changes": {
+          "operation": "context_replace",
+          "context_before": "    value = 1\n",
+          "context_after": "    return value\n",
+          "payload": "    value = 42"
+        }
+      }
+    },
+    {
+      "task_id": "agent-js-modify-function",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "agent_patch",
+      "description": "Replay agent emits a JavaScript function modification patch for the Aether benchmark path.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "total=42",
+      "expected_content": [
+        "function total()",
+        "return add(20, 22);"
+      ],
+      "expected_absent_content": [
+        "return 0;"
+      ],
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return add(20, 22);"
+        }
+      }
+    },
+    {
+      "task_id": "agent-js-add-function",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_add_function",
+      "category": "agent_patch",
+      "description": "Agent emits a JavaScript function-addition patch for matched control and Aether application.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "total=42",
+      "expected_content": [
+        "function total()",
+        "return add(20, 22);"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "add_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "function total() {\n  return add(20, 22);\n}"
+        }
+      }
+    },
+    {
+      "task_id": "agent-js-remove-function",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_unused_function",
+      "category": "agent_patch",
+      "description": "Agent emits a JavaScript function-removal patch for matched control and Aether application.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "value=3",
+      "expected_content": [
+        "function keep()"
+      ],
+      "expected_absent_content": [
+        "function unused()"
+      ],
+      "patch": {
+        "action": "remove_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "unused",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body"
+        }
+      }
+    },
+    {
+      "task_id": "agent-js-replace-block",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_block",
+      "category": "agent_patch",
+      "description": "Agent emits a JavaScript context block replacement patch for matched control and Aether application.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "value=42",
+      "expected_content": [
+        "value = 42;"
+      ],
+      "expected_absent_content": [
+        "value = 2;"
+      ],
+      "patch": {
+        "action": "replace_block",
+        "target": {
+          "file": "app.js"
+        },
+        "changes": {
+          "operation": "context_replace",
+          "context_before": "  let value = 1;\n",
+          "context_after": "  return value;\n",
+          "payload": "  value = 42;"
+        }
+      }
+    },
+    {
+      "task_id": "agent-py-invalid-sensitive-path",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "invalid_patch",
+      "failure_type": "sensitive_path",
+      "description": "Replay agent emits an unsafe target path so Aether validation should reject it.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "validation_failed",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": ".env"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import os"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "agent-js-invalid-sensitive-path",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "invalid_patch",
+      "failure_type": "sensitive_path",
+      "description": "Agent emits an unsafe JavaScript target path so Aether validation should reject it.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "validation_failed",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": ".env"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "const fs = require('fs');"
+          ]
+        }
+      }
+    }
+  ]
+}

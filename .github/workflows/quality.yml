@@ -1,0 +1,59 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  rust:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run Rust tests
+        run: cargo test -p ae-codegen
+
+  python:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python SDK
+        run: python -m pip install -e sdk/python pytest
+
+      - name: Run focused Python tests
+        run: python -m pytest sdk/python/tests/test_ast_engine.py sdk/python/tests/test_rollback_fault.py -q
+
+  node:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: sdk/node/package-lock.json
+
+      - name: Install Node SDK dependencies
+        working-directory: sdk/node
+        run: npm ci
+
+      - name: Run focused Node tests
+        working-directory: sdk/node
+        run: .\node_modules\.bin\jest.cmd tests\ast.test.ts tests\rollback-fault.test.ts --runInBand

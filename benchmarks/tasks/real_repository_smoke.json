@@ -1,0 +1,213 @@
+{
+  "suite": "real-repository",
+  "version": "0.1.0",
+  "description": "Repository-derived benchmark tasks copied from the local Aether worktree into isolated temp directories.",
+  "tasks": [
+    {
+      "task_id": "real-py-sandbox-runner-add-import",
+      "language": "python",
+      "repository": "aether-self",
+      "repository_manifest": "benchmarks/repositories/aether_self.json",
+      "fixture": "repo:aether-self",
+      "source_file": "sdk/python/ai_runtime/sandbox_runner.py",
+      "category": "real_repository",
+      "description": "Apply a structured import update to a real Aether Python module copy and verify syntax with a future import present.",
+      "test_command": "python -m py_compile sdk/python/ai_runtime/sandbox_runner.py",
+      "timeout_ms": 30000,
+      "supported_modes": [
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": [
+        "from __future__ import annotations",
+        "import tempfile"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": "sdk/python/ai_runtime/sandbox_runner.py"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import tempfile"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "real-py-sandbox-runner-replace-block",
+      "language": "python",
+      "repository": "aether-self",
+      "repository_manifest": "benchmarks/repositories/aether_self.json",
+      "fixture": "repo:aether-self",
+      "source_file": "sdk/python/ai_runtime/sandbox_runner.py",
+      "category": "real_repository",
+      "description": "Apply a structured block update to a real Aether Python module copy and verify syntax.",
+      "test_command": "python -m py_compile sdk/python/ai_runtime/sandbox_runner.py",
+      "timeout_ms": 30000,
+      "supported_modes": [
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": [
+        "handled_exceptions = []"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "replace_block",
+        "target": {
+          "file": "sdk/python/ai_runtime/sandbox_runner.py"
+        },
+        "changes": {
+          "operation": "context_replace",
+          "context_before": "    exit_code = 0\n",
+          "context_after": "    try:\n",
+          "payload": "    error_msg = None\n    handled_exceptions = []"
+        }
+      }
+    },
+    {
+      "task_id": "real-py-observability-events-add-import",
+      "language": "python",
+      "repository": "aether-self",
+      "repository_manifest": "benchmarks/repositories/aether_self.json",
+      "fixture": "repo:aether-self",
+      "source_file": "sdk/python/ai_runtime/observability/events.py",
+      "category": "real_repository",
+      "description": "Apply a structured import update to a real Aether observability module copy and verify syntax.",
+      "test_command": "python -m py_compile sdk/python/ai_runtime/observability/events.py",
+      "timeout_ms": 30000,
+      "supported_modes": [
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": [
+        "from __future__ import annotations",
+        "import json"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": "sdk/python/ai_runtime/observability/events.py"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import json"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "real-py-snapshot-gitignore-replace-block",
+      "language": "python",
+      "repository": "aether-self",
+      "repository_manifest": "benchmarks/repositories/aether_self.json",
+      "fixture": "repo:aether-self",
+      "source_file": "sdk/python/ai_runtime/snapshot/gitignore.py",
+      "category": "real_repository",
+      "description": "Apply a structured constant insertion to a real Aether snapshot module copy and verify syntax.",
+      "test_command": "python -m py_compile sdk/python/ai_runtime/snapshot/gitignore.py",
+      "timeout_ms": 30000,
+      "supported_modes": [
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": [
+        "_REAL_REPO_BENCHMARK_MAX_FILE_BYTES = _MAX_FILE_BYTES"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "replace_block",
+        "target": {
+          "file": "sdk/python/ai_runtime/snapshot/gitignore.py"
+        },
+        "changes": {
+          "operation": "context_replace",
+          "context_before": "_MAX_FILE_BYTES = 5 * 1024 * 1024\n",
+          "context_after": "\n# Directory names to skip entirely without even checking the spec\n",
+          "payload": "_REAL_REPO_BENCHMARK_MAX_FILE_BYTES = _MAX_FILE_BYTES"
+        }
+      }
+    },
+    {
+      "task_id": "real-js-sandbox-runner-add-constant",
+      "language": "javascript",
+      "repository": "aether-self",
+      "repository_manifest": "benchmarks/repositories/aether_self.json",
+      "fixture": "repo:aether-self",
+      "source_file": "sdk/node/src/sandbox/sandbox_runner.js",
+      "category": "real_repository",
+      "description": "Apply a structured block insertion to a real Aether Node sandbox worker copy and verify syntax.",
+      "test_command": "node --check sdk/node/src/sandbox/sandbox_runner.js",
+      "timeout_ms": 30000,
+      "supported_modes": [
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": [
+        "const BENCHMARK_REAL_REPO_MODE = true;"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "replace_block",
+        "target": {
+          "file": "sdk/node/src/sandbox/sandbox_runner.js"
+        },
+        "changes": {
+          "operation": "context_replace",
+          "context_before": "const vm = require('vm');\r\n",
+          "context_after": "\r\nasync function main() {\r\n",
+          "payload": "const BENCHMARK_REAL_REPO_MODE = true;"
+        }
+      }
+    },
+    {
+      "task_id": "real-js-sandbox-runner-add-result-field",
+      "language": "javascript",
+      "repository": "aether-self",
+      "repository_manifest": "benchmarks/repositories/aether_self.json",
+      "fixture": "repo:aether-self",
+      "source_file": "sdk/node/src/sandbox/sandbox_runner.js",
+      "category": "real_repository",
+      "description": "Apply a structured object-field insertion to a real Aether Node sandbox worker copy and verify syntax.",
+      "test_command": "node --check sdk/node/src/sandbox/sandbox_runner.js",
+      "timeout_ms": 30000,
+      "supported_modes": [
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": [
+        "benchmark_mode: Boolean(process.env.AETHER_BENCHMARK_REAL_REPO)"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "replace_block",
+        "target": {
+          "file": "sdk/node/src/sandbox/sandbox_runner.js"
+        },
+        "changes": {
+          "operation": "context_replace",
+          "context_before": "        error: error_msg,\r\n",
+          "context_after": "    };\r\n",
+          "payload": "        benchmark_mode: Boolean(process.env.AETHER_BENCHMARK_REAL_REPO),"
+        }
+      }
+    }
+  ]
+}

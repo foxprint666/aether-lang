@@ -1,0 +1,586 @@
+{
+  "benchmark_version": "0.1.0",
+  "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+  "completed_at": "2026-08-15T15:02:34.977Z",
+  "effective_suite": "agent",
+  "environment": {
+    "cwd": "C:\\Users\\ASHLEY ALLEN\\Downloads\\aether-lang",
+    "env": {
+      "AETHER_BENCHMARK_VERSION": null,
+      "CI": null
+    },
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 191 Stepping 2, GenuineIntel",
+    "python": "3.12.13",
+    "python_executable": "C:\\Users\\ASHLEY ALLEN\\Downloads\\aether-lang\\.bench-venv\\Scripts\\python.exe"
+  },
+  "experiment_id": "live-openrouter-smoke-v2",
+  "mode": "both",
+  "records": [
+    {
+      "agent": "command-agent",
+      "agent_attempts": 1,
+      "agent_cost_usd": null,
+      "agent_latency_ms": 42467.234,
+      "category": "agent_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "1fdf4fb73e0b9b616f4f9d0e05454acd2331f6a613076e161c888993873dbd38",
+        "agent": {
+          "adapter": "command_agent",
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "elapsed_ms": 42467.198,
+              "ok": true,
+              "returncode": 0,
+              "stderr": ""
+            }
+          ],
+          "elapsed_ms": 42467.234,
+          "provider_normalization_changes": [
+            "patch_id"
+          ],
+          "provider_normalized": true,
+          "raw_provider": "openrouter"
+        },
+        "agent_adapter": "command_agent",
+        "agent_generation_excluded_from_execution_time": true,
+        "before_hash": "a2c9dab40d2995791f058b1e1ba56be3de51aa0ad4fd4db247d718a5eada6b8d",
+        "category": "agent_patch",
+        "error_detail": null,
+        "expected_success": true,
+        "failure_type": null,
+        "mode": "control",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "python -m py_compile app.py; python app.py",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": null,
+      "execution_time_ms": 239.929,
+      "experiment_id": "live-openrouter-smoke-v2",
+      "failure_detected": false,
+      "failure_type": null,
+      "input_tokens": 450,
+      "language": "python",
+      "model": "openrouter/free",
+      "output_tokens": 2378,
+      "patch_generated": true,
+      "patch_size": 511,
+      "provider_error_type": null,
+      "provider_quota_exhausted": false,
+      "provider_retryable": null,
+      "provider_status_code": null,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-py-modify-function",
+      "task_success": true,
+      "tests_failed": 0,
+      "tests_passed": 1,
+      "timestamp": "2026-08-15T15:02:03.531Z",
+      "tool_calls": 0,
+      "validation_failed": false,
+      "validation_time_ms": null
+    },
+    {
+      "agent": "command-agent",
+      "agent_attempts": 1,
+      "agent_cost_usd": null,
+      "agent_latency_ms": 4826.12,
+      "category": "agent_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "a2c9dab40d2995791f058b1e1ba56be3de51aa0ad4fd4db247d718a5eada6b8d",
+        "agent": {
+          "adapter": "command_agent",
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "elapsed_ms": 4826.084,
+              "ok": true,
+              "returncode": 0,
+              "stderr": ""
+            }
+          ],
+          "elapsed_ms": 4826.12,
+          "provider_normalization_changes": [
+            "patch_id"
+          ],
+          "provider_normalized": true,
+          "raw_provider": "openrouter"
+        },
+        "agent_adapter": "command_agent",
+        "agent_generation_excluded_from_execution_time": true,
+        "before_hash": "a2c9dab40d2995791f058b1e1ba56be3de51aa0ad4fd4db247d718a5eada6b8d",
+        "category": "agent_patch",
+        "error_detail": "[metadata] Additional properties are not allowed ('description' was unexpected)",
+        "expected_success": true,
+        "failure_type": null,
+        "mode": "aether",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "python -m py_compile app.py; python app.py",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": "validation_failed",
+      "execution_time_ms": 13.032,
+      "experiment_id": "live-openrouter-smoke-v2",
+      "failure_detected": true,
+      "failure_type": null,
+      "input_tokens": 429,
+      "language": "python",
+      "model": "openrouter/free",
+      "output_tokens": 607,
+      "patch_generated": true,
+      "patch_size": 539,
+      "provider_error_type": null,
+      "provider_quota_exhausted": false,
+      "provider_retryable": null,
+      "provider_status_code": null,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-py-modify-function",
+      "task_success": false,
+      "tests_failed": 0,
+      "tests_passed": 1,
+      "timestamp": "2026-08-15T15:02:08.495Z",
+      "tool_calls": 0,
+      "validation_failed": true,
+      "validation_time_ms": 0.621
+    },
+    {
+      "agent": "command-agent",
+      "agent_attempts": 1,
+      "agent_cost_usd": null,
+      "agent_latency_ms": 5960.728,
+      "category": "agent_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "77a7c8b8ea92d8b7b8949ff6c75f67ec20f9f704fa4d4f5fca0f044740579dd6",
+        "agent": {
+          "adapter": "command_agent",
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "elapsed_ms": 5960.684,
+              "ok": true,
+              "returncode": 0,
+              "stderr": ""
+            }
+          ],
+          "elapsed_ms": 5960.728,
+          "provider_normalization_changes": [
+            "patch_id"
+          ],
+          "provider_normalized": true,
+          "raw_provider": "openrouter"
+        },
+        "agent_adapter": "command_agent",
+        "agent_generation_excluded_from_execution_time": true,
+        "before_hash": "097f1547af0f88b94af1799005e4d71bc361cd66e1bb55915301acbe7288a8df",
+        "category": "agent_patch",
+        "error_detail": null,
+        "expected_success": true,
+        "failure_type": null,
+        "mode": "control",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "node --check app.js; node app.js",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": null,
+      "execution_time_ms": 490.647,
+      "experiment_id": "live-openrouter-smoke-v2",
+      "failure_detected": false,
+      "failure_type": null,
+      "input_tokens": 439,
+      "language": "javascript",
+      "model": "openrouter/free",
+      "output_tokens": 177,
+      "patch_generated": true,
+      "patch_size": 646,
+      "provider_error_type": null,
+      "provider_quota_exhausted": false,
+      "provider_retryable": null,
+      "provider_status_code": null,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-js-modify-function",
+      "task_success": true,
+      "tests_failed": 0,
+      "tests_passed": 1,
+      "timestamp": "2026-08-15T15:02:15.113Z",
+      "tool_calls": 0,
+      "validation_failed": false,
+      "validation_time_ms": null
+    },
+    {
+      "agent": "command-agent",
+      "agent_attempts": 1,
+      "agent_cost_usd": null,
+      "agent_latency_ms": 17567.158,
+      "category": "agent_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "097f1547af0f88b94af1799005e4d71bc361cd66e1bb55915301acbe7288a8df",
+        "agent": {
+          "adapter": "command_agent",
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "elapsed_ms": 17567.122,
+              "ok": true,
+              "returncode": 0,
+              "stderr": ""
+            }
+          ],
+          "elapsed_ms": 17567.158,
+          "provider_normalization_changes": [
+            "patch_id"
+          ],
+          "provider_normalized": true,
+          "raw_provider": "openrouter"
+        },
+        "agent_adapter": "command_agent",
+        "agent_generation_excluded_from_execution_time": true,
+        "before_hash": "097f1547af0f88b94af1799005e4d71bc361cd66e1bb55915301acbe7288a8df",
+        "category": "agent_patch",
+        "error_detail": "/metadata must NOT have additional properties",
+        "expected_success": true,
+        "failure_type": null,
+        "mode": "aether",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "node --check app.js; node app.js",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": "validation_failed",
+      "execution_time_ms": 483.836,
+      "experiment_id": "live-openrouter-smoke-v2",
+      "failure_detected": true,
+      "failure_type": null,
+      "input_tokens": 526,
+      "language": "javascript",
+      "model": "openrouter/free",
+      "output_tokens": 161,
+      "patch_generated": true,
+      "patch_size": 564,
+      "provider_error_type": null,
+      "provider_quota_exhausted": false,
+      "provider_retryable": null,
+      "provider_status_code": null,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-js-modify-function",
+      "task_success": false,
+      "tests_failed": 0,
+      "tests_passed": 1,
+      "timestamp": "2026-08-15T15:02:33.335Z",
+      "tool_calls": 0,
+      "validation_failed": true,
+      "validation_time_ms": 31.315
+    },
+    {
+      "agent": "command-agent",
+      "agent_attempts": null,
+      "agent_cost_usd": null,
+      "agent_latency_ms": null,
+      "category": "invalid_patch",
+      "commit_sha": "79c1a47a0af3d767fe7576bcb50814c0e1e96c64",
+      "configuration": {
+        "after_hash": "a2c9dab40d2995791f058b1e1ba56be3de51aa0ad4fd4db247d718a5eada6b8d",
+        "agent": null,
+        "agent_adapter": "command_agent",
+        "agent_generation_excluded_from_execution_time": true,
+        "before_hash": "a2c9dab40d2995791f058b1e1ba56be3de51aa0ad4fd4db247d718a5eada6b8d",
+        "category": "invalid_patch",
+        "error_detail": "{\"agent\": {\"adapter\": \"command_agent\", \"attempt_count\": 1, \"attempts\": [{\"attempt\": 1, \"elapsed_ms\": 1554.116, \"ok\": false, \"returncode\": 1, \"stderr\": \"Traceback (most recent call last):\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\Downloads\\\\aether-lang\\\\benchmarks\\\\agents\\\\openrouter_provider.py\\\", line 358, in <module>\\n    raise SystemExit(main())\\n                     ^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\Downloads\\\\aether-lang\\\\benchmarks\\\\agents\\\\openrouter_provider.py\\\", line 60, in main\\n    payload = parse_model_json(response)\\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\Downloads\\\\aether-lang\\\\benchmarks\\\\agents\\\\openrouter_provider.py\\\", line 295, in parse_model_json\\n    return json.loads(extract_json_text(\\\"\\\".join(chunks)))\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\python\\\\Lib\\\\json\\\\__init__.py\\\", line 346, in loads\\n    return _default_decoder.decode(s)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\python\\\\Lib\\\\json\\\\decoder.py\\\", line 338, in decode\\n    obj, end = self.raw_decode(s, idx=_w(s, 0).end())\\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\python\\\\Lib\\\\json\\\\decoder.py\\\", line 356, in raw_decode\\n    raise JSONDecodeError(\\\"Expecting value\\\", s, err.value) from None\\njson.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)\\n\"}], \"elapsed_ms\": 1554.129}, \"error\": \"command agent failed all attempts\"}\nTraceback (most recent call last):\n  File \"C:\\Users\\ASHLEY ALLEN\\Downloads\\aether-lang\\benchmarks\\run.py\", line 306, in run_task\n    patch, agent_info, usage = generate_patch(workdir, task, args)\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ASHLEY ALLEN\\Downloads\\aether-lang\\benchmarks\\run.py\", line 549, in generate_patch\n    return run_command_agent(descriptor_path, args)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\ASHLEY ALLEN\\Downloads\\aether-lang\\benchmarks\\run.py\", line 640, in run_command_agent\n    raise RuntimeError(result.stderr.strip() or result.stdout.strip())\nRuntimeError: {\"agent\": {\"adapter\": \"command_agent\", \"attempt_count\": 1, \"attempts\": [{\"attempt\": 1, \"elapsed_ms\": 1554.116, \"ok\": false, \"returncode\": 1, \"stderr\": \"Traceback (most recent call last):\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\Downloads\\\\aether-lang\\\\benchmarks\\\\agents\\\\openrouter_provider.py\\\", line 358, in <module>\\n    raise SystemExit(main())\\n                     ^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\Downloads\\\\aether-lang\\\\benchmarks\\\\agents\\\\openrouter_provider.py\\\", line 60, in main\\n    payload = parse_model_json(response)\\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\Downloads\\\\aether-lang\\\\benchmarks\\\\agents\\\\openrouter_provider.py\\\", line 295, in parse_model_json\\n    return json.loads(extract_json_text(\\\"\\\".join(chunks)))\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\python\\\\Lib\\\\json\\\\__init__.py\\\", line 346, in loads\\n    return _default_decoder.decode(s)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\python\\\\Lib\\\\json\\\\decoder.py\\\", line 338, in decode\\n    obj, end = self.raw_decode(s, idx=_w(s, 0).end())\\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"C:\\\\Users\\\\ASHLEY ALLEN\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\python\\\\Lib\\\\json\\\\decoder.py\\\", line 356, in raw_decode\\n    raise JSONDecodeError(\\\"Expecting value\\\", s, err.value) from None\\njson.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)\\n\"}], \"elapsed_ms\": 1554.129}, \"error\": \"command agent failed all attempts\"}\n",
+        "expected_success": false,
+        "failure_type": "sensitive_path",
+        "mode": "aether",
+        "repository_manifest": null,
+        "suite": "agent",
+        "test_command": "python -m py_compile app.py; python app.py",
+        "timeout_ms": 10000,
+        "trial": 1,
+        "workdir_kept": false
+      },
+      "error_type": "RuntimeError",
+      "execution_time_ms": null,
+      "experiment_id": "live-openrouter-smoke-v2",
+      "failure_detected": false,
+      "failure_type": "sensitive_path",
+      "input_tokens": null,
+      "language": "python",
+      "model": "replay-agent",
+      "output_tokens": null,
+      "patch_generated": true,
+      "patch_size": null,
+      "provider_error_type": null,
+      "provider_quota_exhausted": false,
+      "provider_retryable": null,
+      "provider_status_code": null,
+      "repository": "synthetic-temp-project",
+      "repository_corrupted": false,
+      "rollback_success": null,
+      "rollback_triggered": false,
+      "runtime_error": false,
+      "syntax_error": false,
+      "task_id": "agent-py-invalid-sensitive-path",
+      "task_success": false,
+      "tests_failed": 1,
+      "tests_passed": 0,
+      "timestamp": "2026-08-15T15:02:34.977Z",
+      "tool_calls": null,
+      "validation_failed": false,
+      "validation_time_ms": null
+    }
+  ],
+  "started_at": "2026-08-15T15:01:20.694Z",
+  "suite": "agent",
+  "summary": {
+    "by_language": {
+      "javascript": {
+        "by_language": {},
+        "by_mode": {
+          "aether": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 0.0,
+            "task_failures": 1,
+            "task_successes": 0
+          },
+          "control": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          }
+        },
+        "metrics": {
+          "expected_rollback_detection_rate": null,
+          "failure_detection_rate": null,
+          "false_acceptance_rate": null,
+          "invalid_patch_detection_rate": null,
+          "rollback_success_rate": null,
+          "transformation_success_rate": null
+        },
+        "records": 2,
+        "success_rate": 0.5,
+        "task_failures": 1,
+        "task_successes": 1
+      },
+      "python": {
+        "by_language": {},
+        "by_mode": {
+          "aether": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 2,
+            "success_rate": 0.0,
+            "task_failures": 2,
+            "task_successes": 0
+          },
+          "control": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          }
+        },
+        "metrics": {
+          "expected_rollback_detection_rate": null,
+          "failure_detection_rate": null,
+          "false_acceptance_rate": null,
+          "invalid_patch_detection_rate": null,
+          "rollback_success_rate": null,
+          "transformation_success_rate": null
+        },
+        "records": 3,
+        "success_rate": 0.333333,
+        "task_failures": 2,
+        "task_successes": 1
+      }
+    },
+    "by_mode": {
+      "aether": {
+        "by_language": {
+          "javascript": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 0.0,
+            "task_failures": 1,
+            "task_successes": 0
+          },
+          "python": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 2,
+            "success_rate": 0.0,
+            "task_failures": 2,
+            "task_successes": 0
+          }
+        },
+        "by_mode": {},
+        "metrics": {
+          "expected_rollback_detection_rate": null,
+          "failure_detection_rate": null,
+          "false_acceptance_rate": null,
+          "invalid_patch_detection_rate": null,
+          "rollback_success_rate": null,
+          "transformation_success_rate": null
+        },
+        "records": 3,
+        "success_rate": 0.0,
+        "task_failures": 3,
+        "task_successes": 0
+      },
+      "control": {
+        "by_language": {
+          "javascript": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          },
+          "python": {
+            "by_language": {},
+            "by_mode": {},
+            "metrics": {
+              "expected_rollback_detection_rate": null,
+              "failure_detection_rate": null,
+              "false_acceptance_rate": null,
+              "invalid_patch_detection_rate": null,
+              "rollback_success_rate": null,
+              "transformation_success_rate": null
+            },
+            "records": 1,
+            "success_rate": 1.0,
+            "task_failures": 0,
+            "task_successes": 1
+          }
+        },
+        "by_mode": {},
+        "metrics": {
+          "expected_rollback_detection_rate": null,
+          "failure_detection_rate": null,
+          "false_acceptance_rate": null,
+          "invalid_patch_detection_rate": null,
+          "rollback_success_rate": null,
+          "transformation_success_rate": null
+        },
+        "records": 2,
+        "success_rate": 1.0,
+        "task_failures": 0,
+        "task_successes": 2
+      }
+    },
+    "metrics": {
+      "expected_rollback_detection_rate": null,
+      "failure_detection_rate": null,
+      "false_acceptance_rate": null,
+      "invalid_patch_detection_rate": null,
+      "rollback_success_rate": null,
+      "transformation_success_rate": null
+    },
+    "records": 5,
+    "success_rate": 0.4,
+    "task_failures": 3,
+    "task_successes": 2
+  },
+  "trials": 1
+}

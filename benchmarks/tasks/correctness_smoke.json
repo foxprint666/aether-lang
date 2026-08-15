@@ -1,0 +1,513 @@
+{
+  "suite": "correctness",
+  "version": "0.2.0",
+  "description": "Deterministic correctness tasks for the benchmark runner. These tasks exercise implemented Python patch actions and validation behavior.",
+  "tasks": [
+    {
+      "task_id": "py-modify-function",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "valid_transformation",
+      "description": "Modify a Python function body and verify syntax plus behavior.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "total=42",
+      "expected_content": [
+        "def total()",
+        "return add(20, 22)"
+      ],
+      "expected_absent_content": [
+        "return 0"
+      ],
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.py",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return add(20, 22)\n"
+        }
+      }
+    },
+    {
+      "task_id": "py-add-import",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "imports",
+      "category": "valid_transformation",
+      "description": "Add Python imports without breaking existing behavior.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "name=ADA",
+      "expected_content": [
+        "from pathlib import Path",
+        "import json"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": "app.py"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import json",
+            "from pathlib import Path"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "py-remove-import",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "unused_import",
+      "category": "valid_transformation",
+      "description": "Remove an unused Python import while preserving behavior.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "value=3",
+      "expected_content": [
+        "import sys"
+      ],
+      "expected_absent_content": [
+        "import os"
+      ],
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": "app.py"
+        },
+        "changes": {
+          "operation": "remove_import",
+          "imports": [
+            "import os"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "py-replace-block",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "block",
+      "category": "valid_transformation",
+      "description": "Replace a context-selected block and verify behavior.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "value=42",
+      "expected_content": [
+        "value = 42"
+      ],
+      "expected_absent_content": [
+        "value = 2"
+      ],
+      "patch": {
+        "action": "replace_block",
+        "target": {
+          "file": "app.py"
+        },
+        "changes": {
+          "operation": "context_replace",
+          "context_before": "    value = 1\n",
+          "context_after": "    return value\n",
+          "payload": "    value = 42"
+        }
+      }
+    },
+    {
+      "task_id": "py-invalid-schema-missing-symbol",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "invalid_patch",
+      "description": "Reject a symbol-level patch missing target.symbol.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "validation_failed",
+      "expected_rollback": false,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.py",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return 99\n"
+        }
+      }
+    },
+    {
+      "task_id": "py-invalid-sensitive-path",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "invalid_patch",
+      "description": "Reject a patch targeting a sensitive path.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "validation_failed",
+      "expected_rollback": false,
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": ".env"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import os"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "py-invalid-syntax-payload",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "rollback",
+      "description": "Rollback when a schema-valid AST payload is syntactically invalid.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "aether_apply_failed",
+      "expected_rollback": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.py",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return (1 +\n"
+        }
+      }
+    },
+    {
+      "task_id": "py-missing-target-rollback",
+      "language": "python",
+      "repository": "synthetic-temp-project",
+      "fixture": "basic_math",
+      "category": "rollback",
+      "description": "Rollback when a schema-valid patch targets a missing function.",
+      "test_command": "python -m py_compile app.py; python app.py",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "aether_apply_failed",
+      "expected_rollback": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.py",
+          "symbol": "missing_total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return 99\n"
+        }
+      }
+    },
+    {
+      "task_id": "js-modify-function",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "valid_transformation",
+      "description": "Modify a JavaScript function body and verify syntax plus behavior.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "total=42",
+      "expected_content": [
+        "function total()",
+        "return add(20, 22);"
+      ],
+      "expected_absent_content": [
+        "return 0;"
+      ],
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return add(20, 22);"
+        }
+      }
+    },
+    {
+      "task_id": "js-add-function",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_add_function",
+      "category": "valid_transformation",
+      "description": "Add a JavaScript function declaration and verify hoisted behavior.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "total=42",
+      "expected_content": [
+        "function total()",
+        "return add(20, 22);"
+      ],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "add_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "function total() {\n  return add(20, 22);\n}"
+        }
+      }
+    },
+    {
+      "task_id": "js-remove-function",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_unused_function",
+      "category": "valid_transformation",
+      "description": "Remove an unused JavaScript function while preserving behavior.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "value=3",
+      "expected_content": [
+        "function keep()"
+      ],
+      "expected_absent_content": [
+        "function unused()"
+      ],
+      "patch": {
+        "action": "remove_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "unused",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body"
+        }
+      }
+    },
+    {
+      "task_id": "js-replace-block",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_block",
+      "category": "valid_transformation",
+      "description": "Replace a context-selected JavaScript block and verify behavior.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "control",
+        "state",
+        "aether"
+      ],
+      "expected_success": true,
+      "expected_stdout": "value=42",
+      "expected_content": [
+        "value = 42;"
+      ],
+      "expected_absent_content": [
+        "value = 2;"
+      ],
+      "patch": {
+        "action": "replace_block",
+        "target": {
+          "file": "app.js"
+        },
+        "changes": {
+          "operation": "context_replace",
+          "context_before": "  let value = 1;\n",
+          "context_after": "  return value;\n",
+          "payload": "  value = 42;"
+        }
+      }
+    },
+    {
+      "task_id": "js-invalid-schema-missing-symbol",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "invalid_patch",
+      "description": "Reject a JavaScript symbol-level patch missing target.symbol.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "validation_failed",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.js",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return 99;"
+        }
+      }
+    },
+    {
+      "task_id": "js-invalid-sensitive-path",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "invalid_patch",
+      "description": "Reject a JavaScript patch targeting a sensitive path.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "validation_failed",
+      "expected_rollback": false,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "update_import",
+        "target": {
+          "file": ".env"
+        },
+        "changes": {
+          "operation": "add_import",
+          "imports": [
+            "import fs from 'fs';"
+          ]
+        }
+      }
+    },
+    {
+      "task_id": "js-invalid-syntax-payload",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "rollback",
+      "description": "Rollback when a schema-valid JavaScript AST payload is syntactically invalid.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "aether_apply_failed",
+      "expected_rollback": true,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return (1 +;"
+        }
+      }
+    },
+    {
+      "task_id": "js-missing-target-rollback",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_math",
+      "category": "rollback",
+      "description": "Rollback when a schema-valid JavaScript patch targets a missing function.",
+      "test_command": "node --check app.js; node app.js",
+      "timeout_ms": 10000,
+      "supported_modes": [
+        "aether"
+      ],
+      "expected_success": false,
+      "expected_error_type": "aether_apply_failed",
+      "expected_rollback": true,
+      "expected_failure_detected": true,
+      "patch": {
+        "action": "modify_function",
+        "target": {
+          "file": "app.js",
+          "symbol": "missing_total",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "return 99;"
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import pytest
 import os
 import json
+import py_compile
 from pathlib import Path
 from ai_runtime.ast.engine import apply_patch
 from ai_runtime.patch_engine import PatchEngine
@@ -96,6 +97,38 @@ def test_update_import_add(tmp_path: Path):
     
     # Imports should typically appear before my_func (index checks could be more precise but this is a start)
     assert content.index("import os") < content.index("def my_func():")
+
+def test_update_import_preserves_future_import_position(tmp_path: Path):
+    target_file = tmp_path / "target.py"
+    target_file.write_text(
+        '"""Module docs."""\n'
+        "\n"
+        "from __future__ import annotations\n"
+        "\n"
+        "import sys\n"
+        "\n"
+        "def my_func() -> str:\n"
+        "    return 'ok'\n",
+        encoding="utf-8",
+    )
+
+    patch = {
+        "action": "update_import",
+        "target": {
+            "file": "target.py"
+        },
+        "changes": {
+            "operation": "add_import",
+            "imports": ["import tempfile"]
+        }
+    }
+
+    apply_patch(patch, str(tmp_path))
+    content = target_file.read_text(encoding="utf-8")
+    assert content.index('"""Module docs."""') < content.index("from __future__ import annotations")
+    assert content.index("from __future__ import annotations") < content.index("import tempfile")
+    assert content.index("import tempfile") < content.index("def my_func()")
+    py_compile.compile(str(target_file), doraise=True)
 
 def test_patch_engine_integration(tmp_path: Path):
     target_file = tmp_path / "target.py"

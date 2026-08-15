@@ -209,10 +209,7 @@ def _apply_update_import(module: cst.Module, changes: dict) -> cst.Module:
                 raise ValueError(f"Failed to parse import '{imp}': {e}")
                 
         new_body = list(module.body)
-        insert_idx = 0
-        for i, stmt in enumerate(new_body):
-            if isinstance(stmt, (cst.Import, cst.ImportFrom)):
-                insert_idx = i + 1
+        insert_idx = _import_insert_index(new_body)
                 
         new_body = new_body[:insert_idx] + parsed_imports + new_body[insert_idx:]
         return module.with_changes(body=new_body)
@@ -221,6 +218,57 @@ def _apply_update_import(module: cst.Module, changes: dict) -> cst.Module:
         return module.visit(transformer)
     else:
         raise ValueError(f"Unsupported operation for update_import: {operation}")
+
+
+def _import_insert_index(body: list[cst.CSTNode]) -> int:
+    insert_idx = 0
+    saw_import_block = False
+
+    for i, stmt in enumerate(body):
+        first = _first_small_statement(stmt)
+        if first is None:
+            if insert_idx == 0 and _is_module_docstring(stmt):
+                insert_idx = i + 1
+                continue
+            if saw_import_block:
+                break
+            continue
+
+        if _is_future_import(first):
+            insert_idx = i + 1
+            continue
+
+        if isinstance(first, (cst.Import, cst.ImportFrom)):
+            insert_idx = i + 1
+            saw_import_block = True
+            continue
+
+        if saw_import_block:
+            break
+
+    return insert_idx
+
+
+def _first_small_statement(stmt: cst.CSTNode) -> cst.CSTNode | None:
+    if not isinstance(stmt, cst.SimpleStatementLine) or not stmt.body:
+        return None
+    return stmt.body[0]
+
+
+def _is_future_import(stmt: cst.CSTNode) -> bool:
+    return (
+        isinstance(stmt, cst.ImportFrom)
+        and isinstance(stmt.module, cst.Name)
+        and stmt.module.value == "__future__"
+    )
+
+
+def _is_module_docstring(stmt: cst.CSTNode) -> bool:
+    first = _first_small_statement(stmt)
+    return (
+        isinstance(first, cst.Expr)
+        and isinstance(first.value, cst.SimpleString)
+    )
 
 def _apply_replace_block(module: cst.Module, changes: dict) -> cst.Module:
     operation = changes.get("operation")

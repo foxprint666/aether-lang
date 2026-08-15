@@ -31,6 +31,12 @@ This fixes the fundamental flaws of token-based generation by treating code modi
 - **Deterministic and Verifiable:** Changes are applied via exact AST transformations (using tools like `libcst`), ensuring syntax is always perfectly valid.
 - **Atomic & Reversible:** Because patches are structured state transitions, they can be flawlessly snapshotted and rolled back if sandbox execution fails.
 
+### Benchmark Status
+
+The repository now includes a reproducible benchmark program under [`benchmarks/`](benchmarks/). It records raw JSON and CSV results for deterministic correctness checks, failure injection, replay-agent patch ingestion, and a local real-repository smoke fixture.
+
+Current evidence supports the benchmark infrastructure, tested patch/rollback behaviors, and a small live Gemini provider smoke run. Broad LLM-agent success rates, token savings across real repositories, and latency/cost tradeoffs still require repeated provider-backed benchmarks. See [benchmark_evidence.md](benchmark_evidence.md) for the current evidence status and limitations.
+
 ---
 
 ## Repository Layout
