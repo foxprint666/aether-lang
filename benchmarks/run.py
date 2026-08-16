@@ -35,6 +35,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from agents.blind_protocol import (
+    BLIND_PROTOCOL_VERSION,
+    build_blind_descriptor,
+    descriptor_sha256 as blind_descriptor_sha256,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PYTHON_SDK = REPO_ROOT / "sdk" / "python"
@@ -51,6 +57,7 @@ TASK_MANIFESTS = {
     "agent": [REPO_ROOT / "benchmarks" / "tasks" / "agent_replay.json"],
     "real-repository": [REPO_ROOT / "benchmarks" / "tasks" / "real_repository_smoke.json"],
     "external-repository": [REPO_ROOT / "benchmarks" / "tasks" / "external_repository_smoke.json"],
+    "external-agent": [REPO_ROOT / "benchmarks" / "tasks" / "external_agent_unseen.json"],
     "all": [
         REPO_ROOT / "benchmarks" / "tasks" / "correctness_smoke.json",
         REPO_ROOT / "benchmarks" / "tasks" / "failure_injection.json",
@@ -72,6 +79,9 @@ CSV_FIELDS = [
     "failure_detected",
     "patch_generated",
     "patch_size",
+    "generated_patch_sha256",
+    "agent_prompt_blind",
+    "agent_descriptor_sha256",
     "source_size_bytes",
     "repository_size_bytes",
     "repository_file_count",
@@ -212,6 +222,7 @@ def parse_args() -> argparse.Namespace:
             "agent",
             "real-repository",
             "external-repository",
+            "external-agent",
             "all",
         ],
         help="Benchmark suite to run.",
@@ -262,6 +273,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("--hybrid-min-output-savings-pct must be >= 0")
     if args.agent_adapter == "command" and not args.agent_command:
         parser.error("--agent-adapter command requires --agent-command ...")
+    if args.suite == "external-agent" and args.agent_adapter != "command":
+        parser.error("--suite external-agent requires --agent-adapter command")
     return args
 
 
@@ -291,7 +304,7 @@ def load_tasks(suite: str) -> list[BenchmarkTask]:
             expected_error_type=item.get("expected_error_type"),
             expected_rollback=item.get("expected_rollback"),
             expected_failure_detected=item.get("expected_failure_detected"),
-            patch=dict(item["patch"]),
+            patch=dict(item.get("patch", {})),
         )
             for item in manifest["tasks"]
         )
@@ -334,6 +347,7 @@ def run_task(
     rollback_success: bool | None = None
     patch_generated = mode in {"state", "aether"} or is_agent_task(task)
     patch_size: int | None = None
+    generated_patch_sha256: str | None = None
     source_size_bytes: int | None = None
     repository_size_bytes: int | None = None
     repository_file_count: int | None = None
@@ -357,7 +371,11 @@ def run_task(
             if is_agent_task(task):
                 patch, agent_info, usage = generate_patch(workdir, task, args, trial)
                 patch_size = len(json.dumps(patch, sort_keys=True).encode("utf-8"))
-                usage.update(estimate_patch_tokens(workdir, task, patch, trial, args))
+                generated_patch_sha256 = patch_sha256(patch)
+                reference_output = reference_output_for_metrics(workdir, task, patch)
+                usage.update(estimate_patch_tokens(workdir, task, patch, trial, args, reference_output))
+                output_size_bytes = patch_size
+                traditional_output_size_bytes = encoded_size(reference_output)
                 t0 = time.perf_counter()
                 edit_started = t0
                 apply_unchecked_patch(workdir, patch)
@@ -380,6 +398,7 @@ def run_task(
         elif mode == "state":
             patch, agent_info, usage = generate_patch(workdir, task, args, trial)
             patch_size = len(json.dumps(patch, sort_keys=True).encode("utf-8"))
+            generated_patch_sha256 = patch_sha256(patch)
             reference_output = reference_output_for_metrics(workdir, task, patch)
             usage.update(estimate_patch_tokens(workdir, task, patch, trial, args, reference_output))
             output_size_bytes = patch_size
@@ -391,6 +410,7 @@ def run_task(
         elif mode == "aether":
             patch, agent_info, usage = generate_patch(workdir, task, args, trial)
             patch_size = len(json.dumps(patch, sort_keys=True).encode("utf-8"))
+            generated_patch_sha256 = patch_sha256(patch)
             reference_output = reference_output_for_metrics(workdir, task, patch)
             usage.update(estimate_patch_tokens(workdir, task, patch, trial, args, reference_output))
             output_size_bytes = patch_size
@@ -409,6 +429,7 @@ def run_task(
         else:
             patch, agent_info, usage = generate_patch(workdir, task, args, trial)
             patch_size = len(json.dumps(patch, sort_keys=True).encode("utf-8"))
+            generated_patch_sha256 = patch_sha256(patch)
             reference_output = reference_output_for_metrics(workdir, task, patch)
             usage.update(estimate_patch_tokens(workdir, task, patch, trial, args, reference_output))
             output_size_bytes = patch_size
@@ -421,7 +442,10 @@ def run_task(
                     output_size_bytes = encoded_size(reference_output)
                 t0 = time.perf_counter()
                 edit_started = t0
-                if uses_reference_rewrite_control(task) and reference_output is not None:
+                if (
+                    reference_output is not None
+                    and (uses_reference_rewrite_control(task) or is_blind_agent_task(task))
+                ):
                     apply_full_rewrite(workdir, task, reference_output)
                 elif is_agent_task(task):
                     apply_unchecked_patch(workdir, patch)
@@ -539,6 +563,10 @@ def run_task(
             "after_hash": after_hash,
             "error_detail": error_detail,
             "agent_adapter": agent_adapter_name(task, args.agent_adapter),
+            "agent_prompt_blind": is_blind_agent_task(task),
+            "agent_descriptor_sha256": agent_info.get("descriptor_sha256"),
+            "blind_protocol": agent_info.get("blind_protocol"),
+            "oracle_used_during_generation": False if is_blind_agent_task(task) else None,
             "agent": agent_info or None,
             "hybrid_selected_mode": hybrid_decision.get("selected_mode"),
             "hybrid_reason": hybrid_decision.get("reason"),
@@ -546,6 +574,9 @@ def run_task(
         },
         "patch_generated": patch_generated,
         "patch_size": patch_size,
+        "generated_patch_sha256": generated_patch_sha256,
+        "agent_prompt_blind": is_blind_agent_task(task),
+        "agent_descriptor_sha256": agent_info.get("descriptor_sha256"),
         "source_size_bytes": source_size_bytes,
         "repository_size_bytes": repository_size_bytes,
         "repository_file_count": repository_file_count,
@@ -623,7 +654,7 @@ def reference_output_for_metrics(
     task: BenchmarkTask,
     patch: dict[str, Any],
 ) -> str | None:
-    if task.category != "external_repository" or not task.expected_success:
+    if task.category not in {"external_repository", "external_agent_patch"} or not task.expected_success:
         return None
     return render_reference_output(workdir, task, patch)
 
@@ -653,6 +684,11 @@ def apply_full_rewrite(workdir: Path, task: BenchmarkTask, source: str) -> None:
 
 def encoded_size(value: str | None) -> int | None:
     return len(value.encode("utf-8")) if value is not None else None
+
+
+def patch_sha256(patch: dict[str, Any]) -> str:
+    payload = json.dumps(patch, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 def apply_python_patch(workdir: Path, patch: dict[str, Any]) -> dict[str, Any]:
@@ -778,8 +814,14 @@ def generate_patch(
     descriptor = build_agent_descriptor(workdir, task, trial=trial, include_reference_patch=args.agent_adapter == "replay")
     descriptor_path.write_text(json.dumps(descriptor, indent=2, sort_keys=True), encoding="utf-8")
     if args.agent_adapter == "command":
-        return run_command_agent(descriptor_path, args)
-    return run_replay_agent(descriptor_path)
+        patch, agent_info, usage = run_command_agent(descriptor_path, args)
+    else:
+        patch, agent_info, usage = run_replay_agent(descriptor_path)
+    agent_info = dict(agent_info)
+    agent_info["descriptor_sha256"] = descriptor_hash(descriptor)
+    agent_info["blind"] = is_blind_agent_task(task)
+    agent_info["blind_protocol"] = BLIND_PROTOCOL_VERSION if is_blind_agent_task(task) else None
+    return patch, agent_info, usage
 
 
 def estimate_patch_tokens(
@@ -961,6 +1003,17 @@ def build_agent_descriptor(
     include_reference_patch: bool,
 ) -> dict[str, Any]:
     source_path = workdir / source_file_for(task)
+    if is_blind_agent_task(task):
+        return build_blind_descriptor(
+            task=task.task_id,
+            trial=trial,
+            language=task.language,
+            repository=task.repository,
+            fixture=task.fixture,
+            source_file=source_file_for(task),
+            description=task.description,
+            source=source_path.read_text(encoding="utf-8") if source_path.exists() else "",
+        )
     descriptor: dict[str, Any] = {
         "task_id": task.task_id,
         "trial": trial,
@@ -992,6 +1045,13 @@ def build_agent_descriptor(
     if include_reference_patch:
         descriptor["patch"] = task.patch
     return descriptor
+
+
+def descriptor_hash(descriptor: dict[str, Any]) -> str:
+    if descriptor.get("protocol_version") == BLIND_PROTOCOL_VERSION:
+        return blind_descriptor_sha256(descriptor)
+    payload = json.dumps(descriptor, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 def run_replay_agent(descriptor_path: Path) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
@@ -1079,7 +1139,11 @@ def agent_adapter_name(task: BenchmarkTask, adapter: str) -> str | None:
 
 
 def is_agent_task(task: BenchmarkTask) -> bool:
-    return task.category == "agent_patch" or task.task_id.startswith("agent-")
+    return task.category in {"agent_patch", "external_agent_patch"} or task.task_id.startswith("agent-")
+
+
+def is_blind_agent_task(task: BenchmarkTask) -> bool:
+    return task.category == "external_agent_patch"
 
 
 def write_project(workdir: Path, task: BenchmarkTask) -> None:
@@ -1446,7 +1510,7 @@ def run_verification(
     source_path: Path,
     task: BenchmarkTask,
 ) -> subprocess.CompletedProcess[str]:
-    if task.category in {"real_repository", "external_repository"}:
+    if task.category in {"real_repository", "external_repository", "external_agent_patch"}:
         return run_test_command(workdir, task.test_command, task.timeout_ms)
     return run_program(source_path, task.language, task.timeout_ms)
 
@@ -1542,7 +1606,13 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def correctness_metrics(records: list[dict[str, Any]]) -> dict[str, Any]:
-    valid_categories = {"valid_transformation", "real_repository", "external_repository", "agent_patch"}
+    valid_categories = {
+        "valid_transformation",
+        "real_repository",
+        "external_repository",
+        "agent_patch",
+        "external_agent_patch",
+    }
     valid = [r for r in records if r["configuration"].get("category") in valid_categories]
     invalid = [
         r for r in records

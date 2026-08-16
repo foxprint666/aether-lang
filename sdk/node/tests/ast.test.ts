@@ -105,6 +105,30 @@ describe('AST Engine', () => {
         expect(content).not.toContain('return 0;');
     });
 
+    test('modify_function class method supports referenced private fields', () => {
+        fs.writeFileSync(
+            testFilePath,
+            'class Queue {\n    #head;\n    clear() { return 0; }\n}',
+            'utf-8',
+        );
+
+        const patch = {
+            action: 'modify_function',
+            target: { file: testFile, symbol: 'clear', symbol_type: 'method' },
+            changes: {
+                operation: 'replace_body',
+                payload: 'const value = this.#head;\nthis.#head = undefined;\nreturn value;'
+            }
+        };
+
+        applyPatch(patch, testDir);
+
+        const content = fs.readFileSync(testFilePath, 'utf-8');
+        expect(content).toContain('const value = this.#head;');
+        expect(content).toContain('this.#head = undefined;');
+        expect(content).not.toContain('clear() { return 0; }');
+    });
+
     test('remove_function with arrow function', () => {
         fs.writeFileSync(testFilePath, 'const test = () => { return 42; };\nconst other = 1;', 'utf-8');
 

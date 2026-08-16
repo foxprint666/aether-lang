@@ -1,0 +1,75 @@
+name: Blind External-Agent Benchmark
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  blind-external-agent:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: sdk/python/pyproject.toml
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: sdk/node/package-lock.json
+
+      - name: Cache pinned repository checkouts
+        uses: actions/cache@v4
+        with:
+          path: .tmp/benchmark-repositories
+          key: blind-agent-repos-${{ runner.os }}-${{ hashFiles('benchmarks/repositories/*_pinned.json') }}
+
+      - name: Install Python benchmark dependencies
+        run: python -m pip install -e sdk/python tiktoken
+
+      - name: Install and build Node SDK
+        working-directory: sdk/node
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run blind matched benchmark
+        continue-on-error: true
+        run: >-
+          python benchmarks/run.py
+          --suite external-agent
+          --mode all-modes
+          --trials 3
+          --allow-network-repos
+          --experiment-id blind-agent-${{ github.run_id }}
+          --agent-adapter command
+          --agent-command python benchmarks/agents/blind_external_provider.py
+
+      - name: Build blind-agent evidence report
+        if: always()
+        run: >-
+          python benchmarks/analysis/blind_agent_evidence.py
+          benchmarks/results/raw/blind-agent-${{ github.run_id }}.json
+          --json-output benchmarks/results/processed/blind-agent-${{ github.run_id }}-evidence.json
+          --markdown-output benchmarks/results/processed/BLIND_EXTERNAL_AGENT_REPORT.md
+
+      - name: Upload blind-agent evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blind-external-agent-${{ github.run_id }}
+          path: |
+            benchmarks/results/raw/blind-agent-${{ github.run_id }}.json
+            benchmarks/results/processed/blind-agent-${{ github.run_id }}.csv
+            benchmarks/results/processed/blind-agent-${{ github.run_id }}-evidence.json
+            benchmarks/results/processed/BLIND_EXTERNAL_AGENT_REPORT.md

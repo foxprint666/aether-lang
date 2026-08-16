@@ -63,7 +63,7 @@ class SymbolModifier(cst.CSTTransformer):
         self.symbol_name = symbol_name
         self.symbol_type = symbol_type
         self.operation = operation
-        self.payload = payload.strip()
+        self.payload = textwrap.dedent(payload).strip()
         self.found = False
 
     def _handle_node(self, original_node, updated_node):

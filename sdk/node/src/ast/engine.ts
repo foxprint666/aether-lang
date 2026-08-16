@@ -7,6 +7,31 @@ function getParser() {
     return tsParser;
 }
 
+function parseReplacementBody(payload: string): any {
+    const dummyCode = `function dummy() {\n${payload}\n}`;
+    try {
+        const dummyAst = recast.parse(dummyCode, { parser: getParser() });
+        return dummyAst.program.body[0].body;
+    } catch (functionError: any) {
+        const privateNames = Array.from(
+            new Set(Array.from(payload.matchAll(/this\.#([A-Za-z_$][\w$]*)/g), match => match[1])),
+        );
+        if (privateNames.length === 0) {
+            throw functionError;
+        }
+
+        const declarations = privateNames.map(name => `#${name};`).join("\n");
+        const dummyClassCode = `class Dummy {\n${declarations}\ndummy() {\n${payload}\n}\n}`;
+        const dummyAst = recast.parse(dummyClassCode, { parser: getParser() });
+        const classBody = dummyAst.program.body[0].body.body;
+        const dummyMethod = classBody.find((node: any) => node.key?.name === "dummy");
+        if (!dummyMethod) {
+            throw new Error("Could not extract dummy class method body");
+        }
+        return dummyMethod.body;
+    }
+}
+
 export function applyPatch(patch: any, projectRoot: string): void {
     const target = patch.target || {};
     const action = patch.action || "";
@@ -69,12 +94,9 @@ function applyModifyFunction(ast: any, target: any, changes: any): void {
     }
     
     if (operation === "replace_body" || operation === "update_logic") {
-        // We wrap payload in a dummy function to parse its body
-        const dummyCode = `function dummy() {\n${payload}\n}`;
         let newBody: any;
         try {
-            const dummyAst = recast.parse(dummyCode, { parser: getParser() });
-            newBody = dummyAst.program.body[0].body;
+            newBody = parseReplacementBody(payload);
         } catch (e: any) {
             throw new Error(`Failed to parse new function body: ${e.message}`);
         }

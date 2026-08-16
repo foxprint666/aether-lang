@@ -1,0 +1,229 @@
+{
+  "trial": 2,
+  "records": [
+    {
+      "task": "bx-18bd",
+      "trial": 2,
+      "descriptor_sha256": "f4514bd1b2315372fdda616d3a03b3107b2df33f3abea4821bd22050f2a10a46",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "e3613305-2617-4bd0-95d6-b8881f3c9f4d",
+        "action": "modify_function",
+        "target": {
+          "file": "index.js",
+          "symbol": "clear",
+          "symbol_type": "method"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\t\tconst size = this.#size ?? 0;\n\t\tthis.#head = undefined;\n\t\tthis.#tail = undefined;\n\t\tthis.#size = 0;\n\n\t\treturn size;"
+        }
+      },
+      "provenance": {
+        "agent": "codex-subagent",
+        "model": "inherited-codex",
+        "blind": true,
+        "tool_policy": "packet-files-only",
+        "oracle_used": false,
+        "protocol": "blind-external-v1",
+        "calibration_round": "final"
+      }
+    },
+    {
+      "task": "bx-5b8e",
+      "trial": 2,
+      "descriptor_sha256": "9dc10dc10ce08ed7bd19fdaa7236a591a6a27188a6551105a7f32541c04c18ab",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "65a7ed71-8765-4d52-9495-d3e9dce6173a",
+        "action": "modify_function",
+        "target": {
+          "file": "src/packaging/utils.py",
+          "symbol": "canonicalize_version",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    if isinstance(version, str):\n        version = version.strip()\n        try:\n            version = Version(version)\n        except InvalidVersion:\n            return str(version)\n    return str(_TrimmedRelease(version) if strip_trailing_zero else version)"
+        }
+      },
+      "provenance": {
+        "agent": "codex-subagent",
+        "model": "inherited-codex",
+        "blind": true,
+        "tool_policy": "packet-files-only",
+        "oracle_used": false,
+        "protocol": "blind-external-v1",
+        "calibration_round": "final"
+      }
+    },
+    {
+      "task": "bx-6ca0",
+      "trial": 2,
+      "descriptor_sha256": "b94f5d5cdf1fdc0054cdf4ce7b6ff1024c5d93d95f77f0d4d6e7770d31079a63",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "b194dbea-dd20-4738-9ab2-0132d1477e75",
+        "action": "modify_function",
+        "target": {
+          "file": "src/requests/_internal_utils.py",
+          "symbol": "unicode_is_ascii",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    if not isinstance(u_string, str):\n        return False\n    try:\n        u_string.encode(\"ascii\")\n        return True\n    except UnicodeEncodeError:\n        return False"
+        }
+      },
+      "provenance": {
+        "agent": "codex-subagent",
+        "model": "inherited-codex",
+        "blind": true,
+        "tool_policy": "packet-files-only",
+        "oracle_used": false,
+        "protocol": "blind-external-v1",
+        "calibration_round": "final"
+      }
+    },
+    {
+      "task": "bx-a13f",
+      "trial": 2,
+      "descriptor_sha256": "e110284b620b70041734683be6f7cd3be65db3d81ce6957338f9dc85025bc8a3",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "35dde558-e9f7-433c-ad5b-94799f9a61d4",
+        "action": "modify_function",
+        "target": {
+          "file": "src/markupsafe/_native.py",
+          "symbol": "_escape_inner",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    return (\n        s.replace(\"&\", \"&amp;\")\n        .replace(\">\", \"&gt;\")\n        .replace(\"<\", \"&lt;\")\n        .replace(\"'\", \"&#39;\")\n        .replace('\\\"', \"&#34;\")\n        .replace(\"`\", \"&#96;\")\n    )"
+        }
+      },
+      "provenance": {
+        "agent": "codex-subagent",
+        "model": "inherited-codex",
+        "blind": true,
+        "tool_policy": "packet-files-only",
+        "oracle_used": false,
+        "protocol": "blind-external-v1",
+        "calibration_round": "final"
+      }
+    },
+    {
+      "task": "bx-c42e",
+      "trial": 2,
+      "descriptor_sha256": "9cf7bcb6edc818f0a34ef127b7e741b131912debac115410acab5becaa804f20",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "7011db20-90f4-4435-821c-b1d915d985db",
+        "action": "modify_function",
+        "target": {
+          "file": "src/packaging/utils.py",
+          "symbol": "canonicalize_name",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    name = name.strip()\n    if validate and not _validate_regex.fullmatch(name):\n        raise InvalidName(f\"name is invalid: {name!r}\")\n    # Ensure all ``.`` and ``_`` are ``-``\n    # Emulates ``re.sub(r\"[-_.]+\", \"-\", name).lower()`` from PEP 503\n    # Much faster than re, and even faster than str.translate\n    value = name.lower().replace(\"_\", \"-\").replace(\".\", \"-\")\n    # Condense repeats (faster than regex)\n    while \"--\" in value:\n        value = value.replace(\"--\", \"-\")\n    return cast(\"NormalizedName\", value)"
+        }
+      },
+      "provenance": {
+        "agent": "codex-subagent",
+        "model": "inherited-codex",
+        "blind": true,
+        "tool_policy": "packet-files-only",
+        "oracle_used": false,
+        "protocol": "blind-external-v1",
+        "calibration_round": "final"
+      }
+    },
+    {
+      "task": "bx-d91b",
+      "trial": 2,
+      "descriptor_sha256": "243c82fcfaba68ffa1a3c21e4edc7cb11b7f36f14fe45be9b5e294744373f87f",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "0ea673ce-174d-4212-b1b7-77e459f69400",
+        "action": "modify_function",
+        "target": {
+          "file": "src/requests/_internal_utils.py",
+          "symbol": "to_native_string",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    if isinstance(string, builtin_str):\n        out = string\n    elif isinstance(string, memoryview):\n        out = string.tobytes().decode(encoding)\n    else:\n        out = string.decode(encoding)\n\n    return out"
+        }
+      },
+      "provenance": {
+        "agent": "codex-subagent",
+        "model": "inherited-codex",
+        "blind": true,
+        "tool_policy": "packet-files-only",
+        "oracle_used": false,
+        "protocol": "blind-external-v1",
+        "calibration_round": "final"
+      }
+    },
+    {
+      "task": "bx-e77a",
+      "trial": 2,
+      "descriptor_sha256": "70f0582e1aefab6714dbed4082fbe4bfb79eabd4f180ec85764703307ed90b52",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "8b051121-a55b-444d-8a72-ea2d638e702c",
+        "action": "modify_function",
+        "target": {
+          "file": "index.js",
+          "symbol": "escapeStringRegexp",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\tif (typeof string !== 'string') {\n\t\ttry {\n\t\t\tstring = String.prototype.valueOf.call(string);\n\t\t} catch {\n\t\t\tthrow new TypeError('Expected a string');\n\t\t}\n\t}\n\n\t// Escape characters with special meaning either inside or outside character sets.\n\t// Use a simple backslash escape when it’s always valid, and a `\\xnn` escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.\n\treturn string\n\t\t.replace(/[|\\\\{}()[\\]^$+*?.]/g, '\\\\$&')\n\t\t.replace(/-/g, '\\\\x2d');"
+        }
+      },
+      "provenance": {
+        "agent": "codex-subagent",
+        "model": "inherited-codex",
+        "blind": true,
+        "tool_policy": "packet-files-only",
+        "oracle_used": false,
+        "protocol": "blind-external-v1",
+        "calibration_round": "final"
+      }
+    },
+    {
+      "task": "bx-f20c",
+      "trial": 2,
+      "descriptor_sha256": "78ac8fcd555c63586a360e6db7c6c63323169064406ada0baafde0aad9976b4c",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "536bb837-e2f7-44a4-bae2-554a5ce74b1e",
+        "action": "modify_function",
+        "target": {
+          "file": "index.js",
+          "symbol": "dequeue",
+          "symbol_type": "method"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\t\tconst current = this.#head;\n\t\tif (!current) {\n\t\t\treturn null;\n\t\t}\n\n\t\tthis.#head = this.#head.next;\n\t\tthis.#size--;\n\n\t\t// Clean up tail reference when queue becomes empty\n\t\tif (!this.#head) {\n\t\t\tthis.#tail = undefined;\n\t\t}\n\n\t\treturn current.value;"
+        }
+      },
+      "provenance": {
+        "agent": "codex-subagent",
+        "model": "inherited-codex",
+        "blind": true,
+        "tool_policy": "packet-files-only",
+        "oracle_used": false,
+        "protocol": "blind-external-v1",
+        "calibration_round": "final"
+      }
+    }
+  ]
+}

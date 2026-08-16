@@ -74,6 +74,29 @@ def test_modify_function_replace_body(tmp_path: Path):
     assert "return True" in content
     assert "def modify_me():" in content
 
+def test_modify_function_replace_body_accepts_common_indentation(tmp_path: Path):
+    target_file = tmp_path / "target.py"
+    target_file.write_text("def modify_me():\n    return 0\n", encoding="utf-8")
+
+    patch = {
+        "action": "modify_function",
+        "target": {
+            "file": "target.py",
+            "symbol": "modify_me",
+            "symbol_type": "function",
+        },
+        "changes": {
+            "operation": "replace_body",
+            "payload": "    value = 41\n    return value + 1\n",
+        },
+    }
+
+    apply_patch(patch, str(tmp_path))
+
+    content = target_file.read_text(encoding="utf-8")
+    assert "    value = 41" in content
+    assert "    return value + 1" in content
+
 def test_update_import_add(tmp_path: Path):
     target_file = tmp_path / "target.py"
     target_file.write_text("import sys\n\ndef my_func():\n    pass\n", encoding="utf-8")

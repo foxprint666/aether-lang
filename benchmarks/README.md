@@ -122,6 +122,7 @@ Implemented now:
 - `agent`: deterministic replay-agent cases that emit patch JSON through an adapter before either unchecked control application or Aether validation/snapshot/application.
 - `real-repository`: local Aether repository-derived Python and JavaScript tasks copied into isolated temp directories.
 - `external-repository`: five immutable GitHub checkouts with matched full-file control, state, Aether, hybrid, behavioral, syntax, and rollback evidence. Requires `--allow-network-repos` on a cold cache.
+- `external-agent`: hash-locked patches produced by independent blind Codex subagents for unpublished hidden-behavior tasks on pinned repositories. The command adapter is required.
 - `smoke`: alias for `correctness`.
 - `all`: runs correctness, failure-injection, replay-agent, and local real-repository tasks.
 
@@ -149,6 +150,16 @@ python benchmarks/analysis/external_efficiency.py benchmarks/results/raw/externa
 ```
 
 The suite pins five repositories at immutable commits: MarkupSafe, Packaging, Requests, escape-string-regexp, and yocto-queue. Ten valid edit tasks run matched control/state/Aether/hybrid conditions. Two guarded fault tasks exercise Python and JavaScript rollback in Aether and hybrid modes. Checkouts are cached by repository and commit under `.tmp/benchmark-repositories`; checkout time is tracked separately from edit execution.
+
+Blind external-agent replay:
+
+```bash
+python benchmarks/agents/export_blind_packets.py --manifest benchmarks/tasks/external_agent_unseen.json --output-dir .tmp/blind-external-packets --trials 3
+python benchmarks/run.py --suite external-agent --mode all-modes --trials 3 --allow-network-repos --experiment-id blind-external-agent-trials3-v1 --agent-adapter command --agent-command python benchmarks/agents/blind_external_provider.py
+python benchmarks/analysis/blind_agent_evidence.py benchmarks/results/raw/blind-external-agent-trials3-v1.json --json-output benchmarks/results/public/blind_external_agent_evidence.json --markdown-output benchmarks/results/public/BLIND_EXTERNAL_AGENT_REPORT.md
+```
+
+Blind packets contain the task description, visible source, target file, and public patch contract. Test commands, expected values, acceptance fields, and reference patches are withheld. Stored outputs are SHA-256 locked to the exact descriptor and replayed without oracle-assisted normalization. This is prompt-level blinding rather than OS-enforced isolation; fresh tasks are required for every future generation study.
 
 OpenAI provider run:
 

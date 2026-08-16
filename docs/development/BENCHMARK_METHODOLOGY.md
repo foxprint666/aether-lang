@@ -159,6 +159,12 @@ The deterministic external control condition emits the complete transformed sour
 
 Repository setup is measured independently and excluded from raw edit execution. `edit_to_verified_time_ms` includes transformation, syntax checking, and the task's declared verification command. Deterministic runs do not claim model generation latency.
 
+### Blind Agent Generation
+
+Unseen-agent evidence uses fresh opaque task IDs and separates the visible packet from the evaluator. The visible packet may contain only the natural-language task, pinned source, target file, language, and public patch contract. Tests, expected output, reference patches, failure labels, and acceptance criteria remain hidden until after generation. Every packet and returned patch is hashed before matched control/state/Aether/hybrid application.
+
+Provider normalization must not infer semantic patch fields from the evaluator. Prompt-enforced file restrictions and stored subagent replay are useful local evidence, but they must be labeled separately from OS-sandboxed agents and live provider telemetry.
+
 ## Statistical Reporting
 
 For each important metric report:
