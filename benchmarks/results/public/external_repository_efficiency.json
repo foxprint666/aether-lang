@@ -1,0 +1,1884 @@
+{
+  "by_language": {
+    "javascript": {
+      "edit_to_verified_time_ms": {
+        "max": 359.187,
+        "mean": 225.542593,
+        "median": 268.755,
+        "min": 72.089,
+        "n": 54,
+        "p95": 348.01325,
+        "stddev": 109.445476,
+        "total": 12179.3
+      },
+      "estimated_input_tokens": {
+        "max": 724.0,
+        "mean": 458.777778,
+        "median": 267.0,
+        "min": 235.0,
+        "n": 54,
+        "p95": 724.0,
+        "stddev": 231.363853,
+        "total": 24774.0
+      },
+      "estimated_output_tokens": {
+        "max": 455.0,
+        "mean": 178.481481,
+        "median": 140.5,
+        "min": 68.0,
+        "n": 54,
+        "p95": 439.4,
+        "stddev": 102.25878,
+        "total": 9638.0
+      },
+      "execution_time_ms": {
+        "max": 270.925,
+        "mean": 149.355667,
+        "median": 195.0985,
+        "min": 0.242,
+        "n": 54,
+        "p95": 263.2859,
+        "stddev": 109.074538,
+        "total": 8065.206
+      },
+      "output_size_bytes": {
+        "max": 1622.0,
+        "mean": 589.888889,
+        "median": 487.0,
+        "min": 240.0,
+        "n": 54,
+        "p95": 1574.55,
+        "stddev": 372.163216,
+        "total": 31854.0
+      },
+      "records": 54,
+      "repository_setup_time_ms": {
+        "max": 12.406,
+        "mean": 10.045815,
+        "median": 9.9285,
+        "min": 9.218,
+        "n": 54,
+        "p95": 11.1162,
+        "stddev": 0.552582,
+        "total": 542.474
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 100.585,
+        "mean": 74.998407,
+        "median": 74.876,
+        "min": 70.066,
+        "n": 54,
+        "p95": 79.2214,
+        "stddev": 4.278636,
+        "total": 4049.914
+      }
+    },
+    "python": {
+      "edit_to_verified_time_ms": {
+        "max": 309.442,
+        "mean": 121.091141,
+        "median": 69.992,
+        "min": 37.304,
+        "n": 78,
+        "p95": 288.3247,
+        "stddev": 87.189609,
+        "total": 9445.109
+      },
+      "estimated_input_tokens": {
+        "max": 3499.0,
+        "mean": 850.115385,
+        "median": 419.0,
+        "min": 182.0,
+        "n": 78,
+        "p95": 3499.0,
+        "stddev": 1142.610385,
+        "total": 66309.0
+      },
+      "estimated_output_tokens": {
+        "max": 2765.0,
+        "mean": 258.012821,
+        "median": 151.0,
+        "min": 60.0,
+        "n": 78,
+        "p95": 378.0,
+        "stddev": 509.621492,
+        "total": 20125.0
+      },
+      "execution_time_ms": {
+        "max": 245.354,
+        "mean": 47.831333,
+        "median": 3.6565,
+        "min": 0.223,
+        "n": 78,
+        "p95": 222.85865,
+        "stddev": 72.558044,
+        "total": 3730.844
+      },
+      "output_size_bytes": {
+        "max": 11388.0,
+        "mean": 962.384615,
+        "median": 481.0,
+        "min": 222.0,
+        "n": 78,
+        "p95": 1556.0,
+        "stddev": 2121.123999,
+        "total": 75066.0
+      },
+      "records": 78,
+      "repository_setup_time_ms": {
+        "max": 94.086,
+        "mean": 63.990026,
+        "median": 82.091,
+        "min": 28.784,
+        "n": 78,
+        "p95": 90.04885,
+        "stddev": 26.402273,
+        "total": 4991.222
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 121.067,
+        "mean": 66.281795,
+        "median": 62.2625,
+        "min": 37.049,
+        "n": 78,
+        "p95": 116.2375,
+        "stddev": 21.788966,
+        "total": 5169.98
+      }
+    }
+  },
+  "by_mode": {
+    "aether": {
+      "edit_to_verified_time_ms": {
+        "max": 359.187,
+        "mean": 266.067083,
+        "median": 298.6005,
+        "min": 116.335,
+        "n": 36,
+        "p95": 347.59375,
+        "stddev": 77.680791,
+        "total": 9578.415
+      },
+      "estimated_input_tokens": {
+        "max": 3499.0,
+        "mean": 663.0,
+        "median": 343.0,
+        "min": 219.0,
+        "n": 36,
+        "p95": 3499.0,
+        "stddev": 887.413609,
+        "total": 23868.0
+      },
+      "estimated_output_tokens": {
+        "max": 219.0,
+        "mean": 157.805556,
+        "median": 147.5,
+        "min": 129.0,
+        "n": 36,
+        "p95": 216.0,
+        "stddev": 29.819284,
+        "total": 5681.0
+      },
+      "execution_time_ms": {
+        "max": 270.925,
+        "mean": 189.453889,
+        "median": 234.1255,
+        "min": 66.78,
+        "n": 36,
+        "p95": 260.8405,
+        "stddev": 71.553175,
+        "total": 6820.34
+      },
+      "output_size_bytes": {
+        "max": 652.0,
+        "mean": 495.166667,
+        "median": 475.5,
+        "min": 404.0,
+        "n": 36,
+        "p95": 652.0,
+        "stddev": 86.163798,
+        "total": 17826.0
+      },
+      "records": 36,
+      "repository_setup_time_ms": {
+        "max": 90.768,
+        "mean": 40.276028,
+        "median": 29.834,
+        "min": 9.451,
+        "n": 36,
+        "p95": 89.2315,
+        "stddev": 33.251306,
+        "total": 1449.937
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 116.2,
+        "mean": 68.447556,
+        "median": 69.053,
+        "min": 38.233,
+        "n": 36,
+        "p95": 100.994,
+        "stddev": 16.19697,
+        "total": 2464.112
+      }
+    },
+    "control": {
+      "edit_to_verified_time_ms": {
+        "max": 121.407,
+        "mean": 72.1901,
+        "median": 72.189,
+        "min": 37.304,
+        "n": 30,
+        "p95": 109.48395,
+        "stddev": 18.339613,
+        "total": 2165.703
+      },
+      "estimated_input_tokens": {
+        "max": 3463.0,
+        "mean": 711.9,
+        "median": 455.0,
+        "min": 182.0,
+        "n": 30,
+        "p95": 3463.0,
+        "stddev": 951.982083,
+        "total": 21357.0
+      },
+      "estimated_output_tokens": {
+        "max": 2765.0,
+        "mean": 490.4,
+        "median": 279.5,
+        "min": 60.0,
+        "n": 30,
+        "p95": 2765.0,
+        "stddev": 785.358016,
+        "total": 14712.0
+      },
+      "execution_time_ms": {
+        "max": 0.366,
+        "mean": 0.289267,
+        "median": 0.2835,
+        "min": 0.239,
+        "n": 30,
+        "p95": 0.349,
+        "stddev": 0.033868,
+        "total": 8.678
+      },
+      "output_size_bytes": {
+        "max": 11388.0,
+        "mean": 1970.2,
+        "median": 1194.0,
+        "min": 222.0,
+        "n": 30,
+        "p95": 11388.0,
+        "stddev": 3241.937537,
+        "total": 59106.0
+      },
+      "records": 30,
+      "repository_setup_time_ms": {
+        "max": 94.086,
+        "mean": 44.3292,
+        "median": 31.0915,
+        "min": 9.218,
+        "n": 30,
+        "p95": 89.24855,
+        "stddev": 34.965841,
+        "total": 1329.876
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 121.067,
+        "mean": 71.898733,
+        "median": 71.852,
+        "min": 37.049,
+        "n": 30,
+        "p95": 109.15405,
+        "stddev": 18.322448,
+        "total": 2156.962
+      }
+    },
+    "hybrid": {
+      "edit_to_verified_time_ms": {
+        "max": 350.883,
+        "mean": 146.95725,
+        "median": 75.06,
+        "min": 42.661,
+        "n": 36,
+        "p95": 343.884,
+        "stddev": 109.351433,
+        "total": 5290.461
+      },
+      "estimated_input_tokens": {
+        "max": 3499.0,
+        "mean": 651.5,
+        "median": 343.0,
+        "min": 182.0,
+        "n": 36,
+        "p95": 3499.0,
+        "stddev": 893.16735,
+        "total": 23454.0
+      },
+      "estimated_output_tokens": {
+        "max": 188.0,
+        "mean": 127.055556,
+        "median": 136.5,
+        "min": 60.0,
+        "n": 36,
+        "p95": 186.0,
+        "stddev": 40.394444,
+        "total": 4574.0
+      },
+      "execution_time_ms": {
+        "max": 264.532,
+        "mean": 68.992611,
+        "median": 5.2045,
+        "min": 0.223,
+        "n": 36,
+        "p95": 261.78375,
+        "stddev": 95.637732,
+        "total": 2483.734
+      },
+      "output_size_bytes": {
+        "max": 555.0,
+        "mean": 417.083333,
+        "median": 448.0,
+        "min": 222.0,
+        "n": 36,
+        "p95": 555.0,
+        "stddev": 117.714273,
+        "total": 15015.0
+      },
+      "records": 36,
+      "repository_setup_time_ms": {
+        "max": 89.917,
+        "mean": 39.792639,
+        "median": 29.4475,
+        "min": 9.512,
+        "n": 36,
+        "p95": 87.01975,
+        "stddev": 32.780229,
+        "total": 1432.535
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 116.45,
+        "mean": 69.231583,
+        "median": 68.8945,
+        "min": 40.837,
+        "n": 36,
+        "p95": 114.609,
+        "stddev": 17.24272,
+        "total": 2492.337
+      }
+    },
+    "state": {
+      "edit_to_verified_time_ms": {
+        "max": 273.237,
+        "mean": 152.994333,
+        "median": 113.425,
+        "min": 43.721,
+        "n": 30,
+        "p95": 272.18305,
+        "stddev": 99.458611,
+        "total": 4589.83
+      },
+      "estimated_input_tokens": {
+        "max": 3499.0,
+        "mean": 746.8,
+        "median": 492.0,
+        "min": 219.0,
+        "n": 30,
+        "p95": 3499.0,
+        "stddev": 952.227675,
+        "total": 22404.0
+      },
+      "estimated_output_tokens": {
+        "max": 221.0,
+        "mean": 159.866667,
+        "median": 147.0,
+        "min": 128.0,
+        "n": 30,
+        "p95": 216.2,
+        "stddev": 32.545706,
+        "total": 4796.0
+      },
+      "execution_time_ms": {
+        "max": 198.355,
+        "mean": 82.7766,
+        "median": 19.588,
+        "min": 1.651,
+        "n": 30,
+        "p95": 197.8032,
+        "stddev": 92.955989,
+        "total": 2483.298
+      },
+      "output_size_bytes": {
+        "max": 652.0,
+        "mean": 499.1,
+        "median": 475.0,
+        "min": 404.0,
+        "n": 30,
+        "p95": 652.0,
+        "stddev": 94.11671,
+        "total": 14973.0
+      },
+      "records": 30,
+      "repository_setup_time_ms": {
+        "max": 90.235,
+        "mean": 44.044933,
+        "median": 30.96,
+        "min": 9.71,
+        "n": 30,
+        "p95": 86.86795,
+        "stddev": 34.348042,
+        "total": 1321.348
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 118.612,
+        "mean": 70.2161,
+        "median": 70.1195,
+        "min": 41.953,
+        "n": 30,
+        "p95": 116.04345,
+        "stddev": 18.949212,
+        "total": 2106.483
+      }
+    }
+  },
+  "by_repository": {
+    "pallets-markupsafe": {
+      "edit_to_verified_time_ms": {
+        "max": 286.699,
+        "mean": 115.452,
+        "median": 62.809,
+        "min": 53.31,
+        "n": 30,
+        "p95": 281.7702,
+        "stddev": 86.664299,
+        "total": 3463.56
+      },
+      "estimated_input_tokens": {
+        "max": 221.0,
+        "mean": 205.0,
+        "median": 219.0,
+        "min": 182.0,
+        "n": 30,
+        "p95": 221.0,
+        "stddev": 18.699069,
+        "total": 6150.0
+      },
+      "estimated_output_tokens": {
+        "max": 221.0,
+        "mean": 124.933333,
+        "median": 133.0,
+        "min": 60.0,
+        "n": 30,
+        "p95": 219.0,
+        "stddev": 59.982143,
+        "total": 3748.0
+      },
+      "execution_time_ms": {
+        "max": 132.976,
+        "mean": 39.486233,
+        "median": 3.508,
+        "min": 0.223,
+        "n": 30,
+        "p95": 124.47955,
+        "stddev": 50.709016,
+        "total": 1184.587
+      },
+      "output_size_bytes": {
+        "max": 649.0,
+        "mean": 400.2,
+        "median": 416.0,
+        "min": 222.0,
+        "n": 30,
+        "p95": 649.0,
+        "stddev": 162.983477,
+        "total": 12006.0
+      },
+      "records": 30,
+      "repository_setup_time_ms": {
+        "max": 36.13,
+        "mean": 30.9886,
+        "median": 30.623,
+        "min": 28.784,
+        "n": 30,
+        "p95": 33.47605,
+        "stddev": 1.627036,
+        "total": 929.658
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 67.171,
+        "mean": 57.825833,
+        "median": 56.758,
+        "min": 49.553,
+        "n": 30,
+        "p95": 65.37185,
+        "stddev": 4.548282,
+        "total": 1734.775
+      }
+    },
+    "psf-requests": {
+      "edit_to_verified_time_ms": {
+        "max": 309.442,
+        "mean": 125.466708,
+        "median": 69.7,
+        "min": 63.583,
+        "n": 24,
+        "p95": 305.23745,
+        "stddev": 100.771358,
+        "total": 3011.201
+      },
+      "estimated_input_tokens": {
+        "max": 567.0,
+        "mean": 556.75,
+        "median": 565.0,
+        "min": 528.0,
+        "n": 24,
+        "p95": 567.0,
+        "stddev": 16.397905,
+        "total": 13362.0
+      },
+      "estimated_output_tokens": {
+        "max": 378.0,
+        "mean": 195.625,
+        "median": 159.0,
+        "min": 128.0,
+        "n": 24,
+        "p95": 378.0,
+        "stddev": 90.86053,
+        "total": 4695.0
+      },
+      "execution_time_ms": {
+        "max": 245.354,
+        "mean": 60.585542,
+        "median": 5.13,
+        "min": 0.239,
+        "n": 24,
+        "p95": 242.81515,
+        "stddev": 101.202504,
+        "total": 1454.053
+      },
+      "output_size_bytes": {
+        "max": 1556.0,
+        "mean": 704.625,
+        "median": 524.0,
+        "min": 414.0,
+        "n": 24,
+        "p95": 1556.0,
+        "stddev": 426.16131,
+        "total": 16911.0
+      },
+      "records": 24,
+      "repository_setup_time_ms": {
+        "max": 90.768,
+        "mean": 83.293542,
+        "median": 82.42,
+        "min": 79.546,
+        "n": 24,
+        "p95": 89.52145,
+        "stddev": 2.727154,
+        "total": 1999.045
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 73.903,
+        "mean": 64.879542,
+        "median": 64.3955,
+        "min": 60.404,
+        "n": 24,
+        "p95": 71.30485,
+        "stddev": 2.967829,
+        "total": 1557.109
+      }
+    },
+    "pypa-packaging": {
+      "edit_to_verified_time_ms": {
+        "max": 276.635,
+        "mean": 123.7645,
+        "median": 133.5345,
+        "min": 37.304,
+        "n": 24,
+        "p95": 274.70545,
+        "stddev": 75.871425,
+        "total": 2970.348
+      },
+      "estimated_input_tokens": {
+        "max": 3499.0,
+        "mean": 1949.875,
+        "median": 1941.0,
+        "min": 382.0,
+        "n": 24,
+        "p95": 3499.0,
+        "stddev": 1573.332611,
+        "total": 46797.0
+      },
+      "estimated_output_tokens": {
+        "max": 2765.0,
+        "mean": 486.75,
+        "median": 158.0,
+        "min": 133.0,
+        "n": 24,
+        "p95": 2765.0,
+        "stddev": 880.300109,
+        "total": 11682.0
+      },
+      "execution_time_ms": {
+        "max": 168.1,
+        "mean": 45.5085,
+        "median": 16.909,
+        "min": 0.254,
+        "n": 24,
+        "p95": 164.57885,
+        "stddev": 62.2482,
+        "total": 1092.204
+      },
+      "output_size_bytes": {
+        "max": 11388.0,
+        "mean": 1922.875,
+        "median": 532.0,
+        "min": 426.0,
+        "n": 24,
+        "p95": 11388.0,
+        "stddev": 3661.024427,
+        "total": 46149.0
+      },
+      "records": 24,
+      "repository_setup_time_ms": {
+        "max": 94.086,
+        "mean": 85.938292,
+        "median": 85.713,
+        "min": 81.998,
+        "n": 24,
+        "p95": 91.25585,
+        "stddev": 3.297299,
+        "total": 2062.519
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 121.067,
+        "mean": 78.254,
+        "median": 79.151,
+        "min": 37.049,
+        "n": 24,
+        "p95": 118.5061,
+        "stddev": 36.188902,
+        "total": 1878.096
+      }
+    },
+    "sindresorhus-escape-string-regexp": {
+      "edit_to_verified_time_ms": {
+        "max": 359.187,
+        "mean": 218.374167,
+        "median": 267.4725,
+        "min": 72.089,
+        "n": 30,
+        "p95": 350.9314,
+        "stddev": 120.413861,
+        "total": 6551.225
+      },
+      "estimated_input_tokens": {
+        "max": 267.0,
+        "mean": 254.2,
+        "median": 267.0,
+        "min": 235.0,
+        "n": 30,
+        "p95": 267.0,
+        "stddev": 15.944732,
+        "total": 7626.0
+      },
+      "estimated_output_tokens": {
+        "max": 213.0,
+        "mean": 136.9,
+        "median": 133.5,
+        "min": 68.0,
+        "n": 30,
+        "p95": 212.55,
+        "stddev": 46.401063,
+        "total": 4107.0
+      },
+      "execution_time_ms": {
+        "max": 270.925,
+        "mean": 140.640133,
+        "median": 191.8975,
+        "min": 0.242,
+        "n": 30,
+        "p95": 264.52525,
+        "stddev": 119.010397,
+        "total": 4219.204
+      },
+      "output_size_bytes": {
+        "max": 652.0,
+        "mean": 457.0,
+        "median": 470.0,
+        "min": 240.0,
+        "n": 30,
+        "p95": 652.0,
+        "stddev": 135.648633,
+        "total": 13710.0
+      },
+      "records": 30,
+      "repository_setup_time_ms": {
+        "max": 11.361,
+        "mean": 10.1369,
+        "median": 10.063,
+        "min": 9.476,
+        "n": 30,
+        "p95": 11.07025,
+        "stddev": 0.459301,
+        "total": 304.107
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 100.585,
+        "mean": 75.5961,
+        "median": 75.2055,
+        "min": 70.644,
+        "n": 30,
+        "p95": 79.80215,
+        "stddev": 5.338925,
+        "total": 2267.883
+      }
+    },
+    "sindresorhus-yocto-queue": {
+      "edit_to_verified_time_ms": {
+        "max": 322.998,
+        "mean": 234.503125,
+        "median": 270.3305,
+        "min": 75.118,
+        "n": 24,
+        "p95": 321.7855,
+        "stddev": 95.757058,
+        "total": 5628.075
+      },
+      "estimated_input_tokens": {
+        "max": 724.0,
+        "mean": 714.5,
+        "median": 721.0,
+        "min": 689.0,
+        "n": 24,
+        "p95": 724.0,
+        "stddev": 14.237122,
+        "total": 17148.0
+      },
+      "estimated_output_tokens": {
+        "max": 455.0,
+        "mean": 230.458333,
+        "median": 186.0,
+        "min": 130.0,
+        "n": 24,
+        "p95": 455.0,
+        "stddev": 127.699709,
+        "total": 5531.0
+      },
+      "execution_time_ms": {
+        "max": 248.452,
+        "mean": 160.250083,
+        "median": 197.0545,
+        "min": 0.274,
+        "n": 24,
+        "p95": 247.3875,
+        "stddev": 96.613622,
+        "total": 3846.002
+      },
+      "output_size_bytes": {
+        "max": 1622.0,
+        "mean": 756.0,
+        "median": 555.0,
+        "min": 404.0,
+        "n": 24,
+        "p95": 1622.0,
+        "stddev": 494.102612,
+        "total": 18144.0
+      },
+      "records": 24,
+      "repository_setup_time_ms": {
+        "max": 12.406,
+        "mean": 9.931958,
+        "median": 9.813,
+        "min": 9.218,
+        "n": 24,
+        "p95": 10.91375,
+        "stddev": 0.642875,
+        "total": 238.367
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 79.031,
+        "mean": 74.251292,
+        "median": 74.8325,
+        "min": 70.066,
+        "n": 24,
+        "p95": 77.31755,
+        "stddev": 2.279622,
+        "total": 1782.031
+      }
+    }
+  },
+  "by_verification_level": {
+    "behavior": {
+      "edit_to_verified_time_ms": {
+        "max": 329.617,
+        "mean": 154.713771,
+        "median": 118.871,
+        "min": 37.304,
+        "n": 96,
+        "p95": 321.5275,
+        "stddev": 102.96477,
+        "total": 14852.522
+      },
+      "estimated_input_tokens": {
+        "max": 3499.0,
+        "mean": 779.09375,
+        "median": 324.5,
+        "min": 182.0,
+        "n": 96,
+        "p95": 3499.0,
+        "stddev": 1049.632006,
+        "total": 74793.0
+      },
+      "estimated_output_tokens": {
+        "max": 2765.0,
+        "mean": 242.53125,
+        "median": 136.0,
+        "min": 60.0,
+        "n": 96,
+        "p95": 455.0,
+        "stddev": 463.89781,
+        "total": 23283.0
+      },
+      "execution_time_ms": {
+        "max": 250.039,
+        "mean": 83.502646,
+        "median": 18.6925,
+        "min": 0.223,
+        "n": 96,
+        "p95": 247.237,
+        "stddev": 98.190156,
+        "total": 8016.254
+      },
+      "output_size_bytes": {
+        "max": 11388.0,
+        "mean": 878.15625,
+        "median": 465.0,
+        "min": 222.0,
+        "n": 96,
+        "p95": 1622.0,
+        "stddev": 1924.828191,
+        "total": 84303.0
+      },
+      "records": 96,
+      "repository_setup_time_ms": {
+        "max": 94.086,
+        "mean": 34.300833,
+        "median": 20.758,
+        "min": 9.218,
+        "n": 96,
+        "p95": 88.4675,
+        "stddev": 31.272346,
+        "total": 3292.88
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 121.067,
+        "mean": 71.209312,
+        "median": 72.615,
+        "min": 37.049,
+        "n": 96,
+        "p95": 115.48375,
+        "stddev": 20.131502,
+        "total": 6836.094
+      }
+    },
+    "safety": {
+      "edit_to_verified_time_ms": {
+        "max": 359.187,
+        "mean": 313.3905,
+        "median": 315.153,
+        "min": 269.646,
+        "n": 12,
+        "p95": 354.6682,
+        "stddev": 38.007888,
+        "total": 3760.686
+      },
+      "estimated_input_tokens": {
+        "max": 267.0,
+        "mean": 244.0,
+        "median": 244.0,
+        "min": 221.0,
+        "n": 12,
+        "p95": 267.0,
+        "stddev": 24.022717,
+        "total": 2928.0
+      },
+      "estimated_output_tokens": {
+        "max": 152.0,
+        "mean": 148.75,
+        "median": 149.5,
+        "min": 144.0,
+        "n": 12,
+        "p95": 151.45,
+        "stddev": 2.767506,
+        "total": 1785.0
+      },
+      "execution_time_ms": {
+        "max": 270.925,
+        "mean": 193.811917,
+        "median": 196.2955,
+        "min": 117.829,
+        "n": 12,
+        "p95": 267.40885,
+        "stddev": 73.392419,
+        "total": 2325.743
+      },
+      "output_size_bytes": {
+        "max": 481.0,
+        "mean": 475.5,
+        "median": 475.5,
+        "min": 470.0,
+        "n": 12,
+        "p95": 481.0,
+        "stddev": 5.744563,
+        "total": 5706.0
+      },
+      "records": 12,
+      "repository_setup_time_ms": {
+        "max": 30.574,
+        "mean": 20.147583,
+        "median": 20.0385,
+        "min": 9.989,
+        "n": 12,
+        "p95": 30.3837,
+        "stddev": 10.112881,
+        "total": 241.771
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 77.8,
+        "mean": 68.890917,
+        "median": 69.256,
+        "min": 60.293,
+        "n": 12,
+        "p95": 76.733,
+        "stddev": 6.507668,
+        "total": 826.691
+      }
+    },
+    "syntax": {
+      "edit_to_verified_time_ms": {
+        "max": 309.442,
+        "mean": 125.466708,
+        "median": 69.7,
+        "min": 63.583,
+        "n": 24,
+        "p95": 305.23745,
+        "stddev": 100.771358,
+        "total": 3011.201
+      },
+      "estimated_input_tokens": {
+        "max": 567.0,
+        "mean": 556.75,
+        "median": 565.0,
+        "min": 528.0,
+        "n": 24,
+        "p95": 567.0,
+        "stddev": 16.397905,
+        "total": 13362.0
+      },
+      "estimated_output_tokens": {
+        "max": 378.0,
+        "mean": 195.625,
+        "median": 159.0,
+        "min": 128.0,
+        "n": 24,
+        "p95": 378.0,
+        "stddev": 90.86053,
+        "total": 4695.0
+      },
+      "execution_time_ms": {
+        "max": 245.354,
+        "mean": 60.585542,
+        "median": 5.13,
+        "min": 0.239,
+        "n": 24,
+        "p95": 242.81515,
+        "stddev": 101.202504,
+        "total": 1454.053
+      },
+      "output_size_bytes": {
+        "max": 1556.0,
+        "mean": 704.625,
+        "median": 524.0,
+        "min": 414.0,
+        "n": 24,
+        "p95": 1556.0,
+        "stddev": 426.16131,
+        "total": 16911.0
+      },
+      "records": 24,
+      "repository_setup_time_ms": {
+        "max": 90.768,
+        "mean": 83.293542,
+        "median": 82.42,
+        "min": 79.546,
+        "n": 24,
+        "p95": 89.52145,
+        "stddev": 2.727154,
+        "total": 1999.045
+      },
+      "success_rate": 1.0,
+      "verification_time_ms": {
+        "max": 73.903,
+        "mean": 64.879542,
+        "median": 64.3955,
+        "min": 60.404,
+        "n": 24,
+        "p95": 71.30485,
+        "stddev": 2.967829,
+        "total": 1557.109
+      }
+    }
+  },
+  "comparisons": {
+    "aether_vs_control": {
+      "edit_to_verified_time_ms": {
+        "left": {
+          "max": 121.407,
+          "mean": 72.1901,
+          "median": 72.189,
+          "min": 37.304,
+          "n": 30,
+          "p95": 109.48395,
+          "stddev": 18.339613,
+          "total": 2165.703
+        },
+        "mean_delta_95ci_ms": [
+          157.421201,
+          208.798178
+        ],
+        "mean_delta_ms": 184.570267,
+        "mean_paired_overhead_95ci": [
+          223.298702,
+          292.489804
+        ],
+        "mean_paired_overhead_pct": 259.853773,
+        "n": 30,
+        "right": {
+          "max": 329.617,
+          "mean": 256.760367,
+          "median": 298.6005,
+          "min": 116.335,
+          "n": 30,
+          "p95": 324.64275,
+          "stddev": 80.099937,
+          "total": 7702.811
+        }
+      },
+      "emitted_bytes": {
+        "left_total": 59106.0,
+        "mean_paired_savings_95ci": [
+          -37.741442,
+          35.02654
+        ],
+        "mean_paired_savings_pct": 0.789557,
+        "n": 30,
+        "right_efficiency_pct": 394.750551,
+        "right_total": 14973.0,
+        "weighted_savings_pct": 74.667546
+      },
+      "estimated_output_tokens": {
+        "left_total": 14712.0,
+        "mean_paired_savings_95ci": [
+          -65.664746,
+          20.125283
+        ],
+        "mean_paired_savings_pct": -20.560946,
+        "n": 30,
+        "right_efficiency_pct": 306.883605,
+        "right_total": 4794.0,
+        "weighted_savings_pct": 67.414356
+      },
+      "estimated_total_tokens": {
+        "left_total": 36069.0,
+        "mean_paired_savings_95ci": [
+          -20.610396,
+          7.504455
+        ],
+        "mean_paired_savings_pct": -5.869458,
+        "n": 30,
+        "right_efficiency_pct": 132.616369,
+        "right_total": 27198.0,
+        "weighted_savings_pct": 24.594527
+      },
+      "execution_time_ms": {
+        "left": {
+          "max": 0.366,
+          "mean": 0.289267,
+          "median": 0.2835,
+          "min": 0.239,
+          "n": 30,
+          "p95": 0.349,
+          "stddev": 0.033868,
+          "total": 8.678
+        },
+        "mean_delta_95ci_ms": [
+          161.28594,
+          212.842539
+        ],
+        "mean_delta_ms": 188.183933,
+        "mean_paired_overhead_95ci": [
+          55642.33449,
+          74372.994772
+        ],
+        "mean_paired_overhead_pct": 65610.73498,
+        "n": 30,
+        "right": {
+          "max": 250.039,
+          "mean": 188.4732,
+          "median": 234.1255,
+          "min": 66.78,
+          "n": 30,
+          "p95": 248.35795,
+          "stddev": 71.647344,
+          "total": 5654.196
+        }
+      },
+      "left_mode": "control",
+      "n": 30,
+      "right_mode": "aether",
+      "success": {
+        "left_rate": 1.0,
+        "right_rate": 1.0
+      },
+      "verification_time_ms": {
+        "left": {
+          "max": 121.067,
+          "mean": 71.898733,
+          "median": 71.852,
+          "min": 37.049,
+          "n": 30,
+          "p95": 109.15405,
+          "stddev": 18.322448,
+          "total": 2156.962
+        },
+        "mean_delta_95ci_ms": [
+          -6.314868,
+          -1.312192
+        ],
+        "mean_delta_ms": -3.613367,
+        "mean_paired_overhead_95ci": [
+          -8.091703,
+          -1.78573
+        ],
+        "mean_paired_overhead_pct": -4.688099,
+        "n": 30,
+        "right": {
+          "max": 116.2,
+          "mean": 68.285367,
+          "median": 69.053,
+          "min": 38.233,
+          "n": 30,
+          "p95": 104.0096,
+          "stddev": 17.47853,
+          "total": 2048.561
+        }
+      }
+    },
+    "aether_vs_state": {
+      "edit_to_verified_time_ms": {
+        "left": {
+          "max": 273.237,
+          "mean": 152.994333,
+          "median": 113.425,
+          "min": 43.721,
+          "n": 30,
+          "p95": 272.18305,
+          "stddev": 99.458611,
+          "total": 4589.83
+        },
+        "mean_delta_95ci_ms": [
+          81.116814,
+          126.559357
+        ],
+        "mean_delta_ms": 103.766033,
+        "mean_paired_overhead_95ci": [
+          87.986923,
+          171.375164
+        ],
+        "mean_paired_overhead_pct": 129.110854,
+        "n": 30,
+        "right": {
+          "max": 329.617,
+          "mean": 256.760367,
+          "median": 298.6005,
+          "min": 116.335,
+          "n": 30,
+          "p95": 324.64275,
+          "stddev": 80.099937,
+          "total": 7702.811
+        }
+      },
+      "emitted_bytes": {
+        "left_total": 14973.0,
+        "mean_paired_savings_95ci": [
+          0.0,
+          0.0
+        ],
+        "mean_paired_savings_pct": 0.0,
+        "n": 30,
+        "right_efficiency_pct": 100.0,
+        "right_total": 14973.0,
+        "weighted_savings_pct": 0.0
+      },
+      "estimated_output_tokens": {
+        "left_total": 4796.0,
+        "mean_paired_savings_95ci": [
+          -0.691367,
+          0.67316
+        ],
+        "mean_paired_savings_pct": -0.006094,
+        "n": 30,
+        "right_efficiency_pct": 100.041719,
+        "right_total": 4794.0,
+        "weighted_savings_pct": 0.041701
+      },
+      "estimated_total_tokens": {
+        "left_total": 27200.0,
+        "mean_paired_savings_95ci": [
+          -0.28877,
+          0.154886
+        ],
+        "mean_paired_savings_pct": -0.065439,
+        "n": 30,
+        "right_efficiency_pct": 100.007353,
+        "right_total": 27198.0,
+        "weighted_savings_pct": 0.007353
+      },
+      "execution_time_ms": {
+        "left": {
+          "max": 198.355,
+          "mean": 82.7766,
+          "median": 19.588,
+          "min": 1.651,
+          "n": 30,
+          "p95": 197.8032,
+          "stddev": 92.955989,
+          "total": 2483.298
+        },
+        "mean_delta_95ci_ms": [
+          82.475459,
+          128.743656
+        ],
+        "mean_delta_ms": 105.6966,
+        "mean_paired_overhead_95ci": [
+          1336.75061,
+          3168.43052
+        ],
+        "mean_paired_overhead_pct": 2229.52113,
+        "n": 30,
+        "right": {
+          "max": 250.039,
+          "mean": 188.4732,
+          "median": 234.1255,
+          "min": 66.78,
+          "n": 30,
+          "p95": 248.35795,
+          "stddev": 71.647344,
+          "total": 5654.196
+        }
+      },
+      "left_mode": "state",
+      "n": 30,
+      "right_mode": "aether",
+      "success": {
+        "left_rate": 1.0,
+        "right_rate": 1.0
+      },
+      "verification_time_ms": {
+        "left": {
+          "max": 118.612,
+          "mean": 70.2161,
+          "median": 70.1195,
+          "min": 41.953,
+          "n": 30,
+          "p95": 116.04345,
+          "stddev": 18.949212,
+          "total": 2106.483
+        },
+        "mean_delta_95ci_ms": [
+          -3.49398,
+          -0.496833
+        ],
+        "mean_delta_ms": -1.930733,
+        "mean_paired_overhead_95ci": [
+          -4.448695,
+          -0.511828
+        ],
+        "mean_paired_overhead_pct": -2.4442,
+        "n": 30,
+        "right": {
+          "max": 116.2,
+          "mean": 68.285367,
+          "median": 69.053,
+          "min": 38.233,
+          "n": 30,
+          "p95": 104.0096,
+          "stddev": 17.47853,
+          "total": 2048.561
+        }
+      }
+    },
+    "hybrid_vs_control": {
+      "edit_to_verified_time_ms": {
+        "left": {
+          "max": 121.407,
+          "mean": 72.1901,
+          "median": 72.189,
+          "min": 37.304,
+          "n": 30,
+          "p95": 109.48395,
+          "stddev": 18.339613,
+          "total": 2165.703
+        },
+        "mean_delta_95ci_ms": [
+          15.503347,
+          71.030777
+        ],
+        "mean_delta_ms": 41.322533,
+        "mean_paired_overhead_95ci": [
+          19.190708,
+          92.680215
+        ],
+        "mean_paired_overhead_pct": 53.300574,
+        "n": 30,
+        "right": {
+          "max": 283.007,
+          "mean": 113.512633,
+          "median": 71.4155,
+          "min": 42.661,
+          "n": 30,
+          "p95": 273.3988,
+          "stddev": 85.267531,
+          "total": 3405.379
+        }
+      },
+      "emitted_bytes": {
+        "left_total": 59106.0,
+        "mean_paired_savings_95ci": [
+          29.27911,
+          55.403233
+        ],
+        "mean_paired_savings_pct": 42.862532,
+        "n": 30,
+        "right_efficiency_pct": 485.989147,
+        "right_total": 12162.0,
+        "weighted_savings_pct": 79.423409
+      },
+      "estimated_output_tokens": {
+        "left_total": 14712.0,
+        "mean_paired_savings_95ci": [
+          25.731813,
+          50.049111
+        ],
+        "mean_paired_savings_pct": 37.938825,
+        "n": 30,
+        "right_efficiency_pct": 400.217628,
+        "right_total": 3676.0,
+        "weighted_savings_pct": 75.013594
+      },
+      "estimated_total_tokens": {
+        "left_total": 36069.0,
+        "mean_paired_savings_95ci": [
+          8.584104,
+          18.321871
+        ],
+        "mean_paired_savings_pct": 13.359159,
+        "n": 30,
+        "right_efficiency_pct": 140.532222,
+        "right_total": 25666.0,
+        "weighted_savings_pct": 28.841942
+      },
+      "execution_time_ms": {
+        "left": {
+          "max": 0.366,
+          "mean": 0.289267,
+          "median": 0.2835,
+          "min": 0.239,
+          "n": 30,
+          "p95": 0.349,
+          "stddev": 0.033868,
+          "total": 8.678
+        },
+        "mean_delta_95ci_ms": [
+          18.222983,
+          72.931033
+        ],
+        "mean_delta_ms": 43.848567,
+        "mean_paired_overhead_95ci": [
+          6112.065801,
+          24897.946984
+        ],
+        "mean_paired_overhead_pct": 14822.507096,
+        "n": 30,
+        "right": {
+          "max": 208.709,
+          "mean": 44.137833,
+          "median": 2.519,
+          "min": 0.223,
+          "n": 30,
+          "p95": 197.8979,
+          "stddev": 78.749049,
+          "total": 1324.135
+        }
+      },
+      "left_mode": "control",
+      "n": 30,
+      "right_mode": "hybrid",
+      "success": {
+        "left_rate": 1.0,
+        "right_rate": 1.0
+      },
+      "verification_time_ms": {
+        "left": {
+          "max": 121.067,
+          "mean": 71.898733,
+          "median": 71.852,
+          "min": 37.049,
+          "n": 30,
+          "p95": 109.15405,
+          "stddev": 18.322448,
+          "total": 2156.962
+        },
+        "mean_delta_95ci_ms": [
+          -5.117903,
+          -0.312871
+        ],
+        "mean_delta_ms": -2.5255,
+        "mean_paired_overhead_95ci": [
+          -6.489495,
+          -0.590724
+        ],
+        "mean_paired_overhead_pct": -3.387848,
+        "n": 30,
+        "right": {
+          "max": 116.45,
+          "mean": 69.373233,
+          "median": 67.722,
+          "min": 40.837,
+          "n": 30,
+          "p95": 114.8634,
+          "stddev": 18.805556,
+          "total": 2081.197
+        }
+      }
+    },
+    "state_vs_control": {
+      "edit_to_verified_time_ms": {
+        "left": {
+          "max": 121.407,
+          "mean": 72.1901,
+          "median": 72.189,
+          "min": 37.304,
+          "n": 30,
+          "p95": 109.48395,
+          "stddev": 18.339613,
+          "total": 2165.703
+        },
+        "mean_delta_95ci_ms": [
+          49.286342,
+          114.216024
+        ],
+        "mean_delta_ms": 80.804233,
+        "mean_paired_overhead_95ci": [
+          62.395726,
+          148.381884
+        ],
+        "mean_paired_overhead_pct": 104.039914,
+        "n": 30,
+        "right": {
+          "max": 273.237,
+          "mean": 152.994333,
+          "median": 113.425,
+          "min": 43.721,
+          "n": 30,
+          "p95": 272.18305,
+          "stddev": 99.458611,
+          "total": 4589.83
+        }
+      },
+      "emitted_bytes": {
+        "left_total": 59106.0,
+        "mean_paired_savings_95ci": [
+          -37.741442,
+          35.02654
+        ],
+        "mean_paired_savings_pct": 0.789557,
+        "n": 30,
+        "right_efficiency_pct": 394.750551,
+        "right_total": 14973.0,
+        "weighted_savings_pct": 74.667546
+      },
+      "estimated_output_tokens": {
+        "left_total": 14712.0,
+        "mean_paired_savings_95ci": [
+          -65.273765,
+          20.380133
+        ],
+        "mean_paired_savings_pct": -20.05362,
+        "n": 30,
+        "right_efficiency_pct": 306.75563,
+        "right_total": 4796.0,
+        "weighted_savings_pct": 67.400761
+      },
+      "estimated_total_tokens": {
+        "left_total": 36069.0,
+        "mean_paired_savings_95ci": [
+          -20.461167,
+          7.657785
+        ],
+        "mean_paired_savings_pct": -5.750119,
+        "n": 30,
+        "right_efficiency_pct": 132.606618,
+        "right_total": 27200.0,
+        "weighted_savings_pct": 24.588982
+      },
+      "execution_time_ms": {
+        "left": {
+          "max": 0.366,
+          "mean": 0.289267,
+          "median": 0.2835,
+          "min": 0.239,
+          "n": 30,
+          "p95": 0.349,
+          "stddev": 0.033868,
+          "total": 8.678
+        },
+        "mean_delta_95ci_ms": [
+          50.410121,
+          115.554601
+        ],
+        "mean_delta_ms": 82.487333,
+        "mean_paired_overhead_95ci": [
+          17115.034516,
+          39608.826128
+        ],
+        "mean_paired_overhead_pct": 28030.743587,
+        "n": 30,
+        "right": {
+          "max": 198.355,
+          "mean": 82.7766,
+          "median": 19.588,
+          "min": 1.651,
+          "n": 30,
+          "p95": 197.8032,
+          "stddev": 92.955989,
+          "total": 2483.298
+        }
+      },
+      "left_mode": "control",
+      "n": 30,
+      "right_mode": "state",
+      "success": {
+        "left_rate": 1.0,
+        "right_rate": 1.0
+      },
+      "verification_time_ms": {
+        "left": {
+          "max": 121.067,
+          "mean": 71.898733,
+          "median": 71.852,
+          "min": 37.049,
+          "n": 30,
+          "p95": 109.15405,
+          "stddev": 18.322448,
+          "total": 2156.962
+        },
+        "mean_delta_95ci_ms": [
+          -4.60324,
+          0.717792
+        ],
+        "mean_delta_ms": -1.682633,
+        "mean_paired_overhead_95ci": [
+          -5.720124,
+          1.081784
+        ],
+        "mean_paired_overhead_pct": -2.094516,
+        "n": 30,
+        "right": {
+          "max": 118.612,
+          "mean": 70.2161,
+          "median": 70.1195,
+          "min": 41.953,
+          "n": 30,
+          "p95": 116.04345,
+          "stddev": 18.949212,
+          "total": 2106.483
+        }
+      }
+    }
+  },
+  "evidence": {
+    "languages": [
+      "javascript",
+      "python"
+    ],
+    "modes": [
+      "aether",
+      "control",
+      "hybrid",
+      "state"
+    ],
+    "records": 132,
+    "repositories": [
+      "pallets-markupsafe",
+      "psf-requests",
+      "pypa-packaging",
+      "sindresorhus-escape-string-regexp",
+      "sindresorhus-yocto-queue"
+    ],
+    "repository_count": 5,
+    "success_rate": 1.0,
+    "successful_records": 132,
+    "task_count": 12,
+    "tasks": [
+      "external-escape-regexp-add-import",
+      "external-escape-regexp-invalid-rollback",
+      "external-escape-regexp-modify-function",
+      "external-markupsafe-add-import",
+      "external-markupsafe-invalid-rollback",
+      "external-markupsafe-modify-function",
+      "external-packaging-add-import",
+      "external-packaging-modify-function",
+      "external-requests-add-import",
+      "external-requests-modify-function",
+      "external-yocto-queue-add-import",
+      "external-yocto-queue-replace-block"
+    ],
+    "token_estimators": [
+      "tiktoken:cl100k_base"
+    ],
+    "verification_levels": {
+      "behavior": 96,
+      "safety": 12,
+      "syntax": 24
+    }
+  },
+  "experiments": [
+    "external-matrix-allmodes-trials3-v3"
+  ],
+  "hybrid": {
+    "mean_estimated_output_savings_pct": -20.427256,
+    "records": 36,
+    "safety_records": 6,
+    "safety_selected_modes": {
+      "aether": 6
+    },
+    "selected_modes": {
+      "aether": 6,
+      "control": 12,
+      "state": 18
+    },
+    "success_rate": 1.0,
+    "valid_records": 30,
+    "valid_selected_modes": {
+      "control": 12,
+      "state": 18
+    }
+  },
+  "limitations": [
+    "Token values are offline tokenizer estimates, not provider billing telemetry.",
+    "Generation latency and model retries are absent because these tasks use deterministic reference patches.",
+    "Control execution measures writing an already-generated complete file; model generation time is not fabricated.",
+    "Raw execution time excludes repository checkout and verification; edit_to_verified_time_ms includes syntax and declared task verification.",
+    "Behavior-level verification is reported separately from syntax-only verification."
+  ],
+  "matched_triples": {
+    "n": 30,
+    "success_rate": {
+      "aether": 1.0,
+      "control": 1.0,
+      "state": 1.0
+    }
+  },
+  "report_version": "external-efficiency-v1",
+  "safety": {
+    "by_language": {
+      "javascript": {
+        "edit_to_verified_time_ms": {
+          "max": 359.187,
+          "mean": 349.305167,
+          "median": 348.6755,
+          "min": 343.607,
+          "n": 6,
+          "p95": 357.133,
+          "stddev": 5.735912,
+          "total": 2095.831
+        },
+        "estimated_input_tokens": {
+          "max": 267.0,
+          "mean": 267.0,
+          "median": 267.0,
+          "min": 267.0,
+          "n": 6,
+          "p95": 267.0,
+          "stddev": 0.0,
+          "total": 1602.0
+        },
+        "estimated_output_tokens": {
+          "max": 151.0,
+          "mean": 147.0,
+          "median": 146.0,
+          "min": 144.0,
+          "n": 6,
+          "p95": 150.75,
+          "stddev": 2.828427,
+          "total": 882.0
+        },
+        "execution_time_ms": {
+          "max": 270.925,
+          "mean": 263.952667,
+          "median": 263.57,
+          "min": 259.615,
+          "n": 6,
+          "p95": 269.32675,
+          "stddev": 3.894788,
+          "total": 1583.716
+        },
+        "output_size_bytes": {
+          "max": 470.0,
+          "mean": 470.0,
+          "median": 470.0,
+          "min": 470.0,
+          "n": 6,
+          "p95": 470.0,
+          "stddev": 0.0,
+          "total": 2820.0
+        },
+        "records": 6,
+        "repository_setup_time_ms": {
+          "max": 11.293,
+          "mean": 10.479,
+          "median": 10.451,
+          "min": 9.989,
+          "n": 6,
+          "p95": 11.12525,
+          "stddev": 0.4796,
+          "total": 62.874
+        },
+        "success_rate": 1.0,
+        "verification_time_ms": {
+          "max": 77.8,
+          "mean": 74.669833,
+          "median": 75.316,
+          "min": 71.341,
+          "n": 6,
+          "p95": 77.315,
+          "stddev": 2.391298,
+          "total": 448.019
+        }
+      },
+      "python": {
+        "edit_to_verified_time_ms": {
+          "max": 286.699,
+          "mean": 277.475833,
+          "median": 276.837,
+          "min": 269.646,
+          "n": 6,
+          "p95": 286.086,
+          "stddev": 7.038923,
+          "total": 1664.855
+        },
+        "estimated_input_tokens": {
+          "max": 221.0,
+          "mean": 221.0,
+          "median": 221.0,
+          "min": 221.0,
+          "n": 6,
+          "p95": 221.0,
+          "stddev": 0.0,
+          "total": 1326.0
+        },
+        "estimated_output_tokens": {
+          "max": 152.0,
+          "mean": 150.5,
+          "median": 151.0,
+          "min": 149.0,
+          "n": 6,
+          "p95": 151.75,
+          "stddev": 1.224745,
+          "total": 903.0
+        },
+        "execution_time_ms": {
+          "max": 132.976,
+          "mean": 123.671167,
+          "median": 122.663,
+          "min": 117.829,
+          "n": 6,
+          "p95": 131.1355,
+          "stddev": 5.260694,
+          "total": 742.027
+        },
+        "output_size_bytes": {
+          "max": 481.0,
+          "mean": 481.0,
+          "median": 481.0,
+          "min": 481.0,
+          "n": 6,
+          "p95": 481.0,
+          "stddev": 0.0,
+          "total": 2886.0
+        },
+        "records": 6,
+        "repository_setup_time_ms": {
+          "max": 30.574,
+          "mean": 29.816167,
+          "median": 29.9275,
+          "min": 28.784,
+          "n": 6,
+          "p95": 30.4875,
+          "stddev": 0.639658,
+          "total": 178.897
+        },
+        "success_rate": 1.0,
+        "verification_time_ms": {
+          "max": 67.171,
+          "mean": 63.112,
+          "median": 62.9155,
+          "min": 60.293,
+          "n": 6,
+          "p95": 66.624,
+          "stddev": 2.702042,
+          "total": 378.672
+        }
+      }
+    },
+    "failure_detection_rate": 1.0,
+    "records": 12,
+    "rollback_success_rate": 1.0,
+    "rollback_trigger_rate": 1.0,
+    "successful_records": 12
+  },
+  "source_size_effect": {
+    "by_source_size": {
+      "0-1KiB": {
+        "mean_savings_pct": -145.336772,
+        "n": 12
+      },
+      "1-4KiB": {
+        "mean_savings_pct": 57.312269,
+        "n": 15
+      },
+      "4-16KiB": {
+        "mean_savings_pct": 94.249548,
+        "n": 3
+      }
+    },
+    "n": 30,
+    "pearson_source_bytes_vs_output_savings": 0.448483,
+    "positive_savings_rate": 0.6
+  }
+}

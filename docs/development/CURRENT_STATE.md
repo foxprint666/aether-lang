@@ -120,7 +120,9 @@ Current benchmark evidence is useful for hypothesis generation but is not yet a 
 - State-transition fast-path benchmarking through `--mode state` and `--mode all-modes`, with `benchmarks/analysis/state_efficiency.py` for control/state/Aether comparisons.
 - Live Gemini provider command smoke run with token, latency, retry, and model metadata.
 - Local real-repository fixtures covering isolated Aether Python and JavaScript files.
-- Pinned external GitHub repository smoke coverage for Pallets MarkupSafe through `--suite external-repository --allow-network-repos`.
+- Pinned external GitHub coverage for MarkupSafe, Packaging, Requests, escape-string-regexp, and yocto-queue through `--suite external-repository --allow-network-repos`, including matched full-file control/state/Aether/hybrid records and external Python/JavaScript rollback.
+- Dedicated external efficiency analysis with tokenizer estimates, emitted bytes, setup/apply/verification timing, bootstrap intervals, hybrid routing, and source-size buckets.
+- Manual GitHub Actions workflow for cached three-trial external validation and artifact publication.
 - Benchmark smoke CI workflow.
 - Documentation for adding benchmarks and language adapters.
 
@@ -128,7 +130,7 @@ Current benchmark evidence is useful for hypothesis generation but is not yet a 
 
 - Repeated live/provider benchmark records across larger task sets with configured cost rates.
 - Live-provider A/B runs on the expanded Phase 6 agent task set. The expanded A/B task set has passed the local command/mock completion gate, but it has not yet been repeated against live Gemini/OpenRouter after expansion.
-- Broader externally cloned/pinned real repository datasets across more Python and JavaScript projects. The runner can clone git manifests behind `--allow-network-repos`, and one pinned MarkupSafe smoke task has been verified.
+- External coverage beyond the current five repositories and twelve tasks, including dependency-installed project test suites, TypeScript, and multi-file changes.
 - CI coverage for full SDK unit tests and full benchmark suites.
 
 ## Risks
@@ -176,4 +178,4 @@ benchmarks/
   run.py
 ```
 
-The runner now covers deterministic correctness, cross-language failure injection, expanded A/B agent replay, command-agent provider ingestion, live provider smoke runs, parallel subagent patch generation, expanded local real-repository fixtures, and a pinned external MarkupSafe smoke task. Later milestones should add repeated provider runs on the expanded A/B task set, broader external pinned repositories, broader task coverage, and stronger statistical analysis.
+The runner now covers deterministic correctness, cross-language failure injection, expanded A/B agent replay, command-agent provider ingestion, live provider smoke runs, parallel subagent patch generation, local real-repository fixtures, and a five-repository external matrix with matched efficiency and rollback evidence. Later milestones should add repeated live-provider runs on the expanded A/B task set, dependency-installed external test suites, broader task coverage, and multi-file transitions.

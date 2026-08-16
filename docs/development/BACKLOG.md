@@ -34,6 +34,7 @@
 - M6: Added OpenAI Responses API provider command wrapper for live command-agent runs.
 - M6: Added Gemini `generateContent` provider command wrapper for live command-agent runs.
 - M6: Added external git repository manifest support behind `--allow-network-repos`.
+- M7: Expanded external validation to five pinned Python/JavaScript repositories, twelve tasks, cached checkouts, full-file control baselines, three-trial efficiency reporting, and external rollback cases.
 - M6: Added broader CI workflow for Rust, focused Python, and focused Node checks.
 - M6: Added Codex session evidence documenting real AI-agent work performed in this development session.
 
@@ -47,7 +48,7 @@
 - M3: Add recovery-time measurement around rollback.
 - Add provider-specific command wrappers for Anthropic/local agents.
 - Expand live/provider matched control-vs-Aether experiments beyond the current Gemini smoke record.
-- Add external pinned Python and JavaScript repositories with clean checkout/cache policy.
+- Add dependency-installed external project test suites and multi-file tasks beyond the current pinned matrix.
 
 ## Epic A - Benchmark Infrastructure
 

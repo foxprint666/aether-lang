@@ -14,7 +14,7 @@ Latest local verification during this development session:
 | `agent` with `command` adapter and mock provider | `both` | 5 | 5 passed |
 | `agent` with `command` adapter and Gemini provider | `both` | 5 | 5 passed |
 | `real-repository` | `aether` | 6 | 6 passed |
-| `external-repository` | `all-modes` | 9 | 9 passed |
+| `external-repository` | `all-modes`, three trials | 132 | 132 passed |
 | `all` | `both` | 50 | 50 passed |
 | `all` | `all-modes` | 85 | 85 passed |
 
@@ -62,7 +62,7 @@ Latest live Gemini smoke run:
 - State fast-path evidence passed 137/137 records across correctness, expanded replay-agent, and local real-repository runs. On 47 matched state/Aether records, state mode averaged 123.459 ms and full Aether averaged 176.240 ms, so state mode was 29.948% faster than full Aether while preserving 100% task success in this scoped run. On the all-suite smoke, `state-fastpath-all-smoke` passed 85/85 records; state averaged 122.875 ms versus 178.408 ms for full Aether on 21 matched state/Aether records, a 31.127% speed improvement. Against direct control, state still had overhead on tiny local fixtures because patch generation, structured AST application, and Node subprocess startup dominate very small edits.
 - Offline token-estimate fields are now recorded separately from live provider token telemetry: `estimated_input_tokens`, `estimated_output_tokens`, `estimated_traditional_output_tokens`, and `token_estimator`. `tiktoken:cl100k_base` is used when available; otherwise the runner records `heuristic:regex-v1`. In `token-estimate-all-smoke`, 85/85 records passed and 69 patch records received estimates. Overall patch output was 13.069% smaller than a full target-file rewrite baseline, while state-mode patch output was 40.942% smaller. JavaScript tiny-file fixtures were negative because the structured patch JSON is larger than the very small source files; larger Python real-repository fixtures showed stronger savings.
 - Hybrid mode is now available through `--mode hybrid`. The default policy uses state transitions only when the estimated structured patch output is at least 20% smaller than a full target-file rewrite, uses control/direct editing for tiny safe edits below the threshold, and uses guarded Aether for expected safety/failure cases. In `hybrid-threshold-all-smoke`, hybrid mode passed 43/43 records. It selected control for 17 tiny/safe records, state for 6 records that cleared the token-savings threshold, and Aether for 20 safety/failure records. The 6 state-selected records averaged 77.075% estimated output-token savings.
-- External pinned GitHub repository evidence is now included. `external-markupsafe-allmodes-trials3-v2` cloned Pallets MarkupSafe at commit `b2e4d9c7687be25695fffbe93a37622302b24fb1`, applied a structured import update to `src/markupsafe/_native.py`, and passed 9/9 records across state, Aether, and hybrid modes over three trials.
+- Expanded external evidence, `external-matrix-allmodes-trials3-v3`, passed 132/132 records across five immutable GitHub repositories, twelve tasks, Python and JavaScript, and three trials against harness commit `a5d95ce5137e5f404873703f3c36c4f0ff42c6e8`. The matrix contains 96 behavior records, 24 syntax records, and 12 guarded rollback records. Hybrid versus full-file control saved 75.014% estimated output tokens, 28.842% estimated total tokens, and 79.423% emitted bytes while adding 41.323 ms mean edit-to-verified time; its bootstrap 95% interval was 15.503 to 71.031 ms. These are `tiktoken:cl100k_base` offline estimates, not provider billing telemetry.
 
 ## What This Proves So Far
 
@@ -83,7 +83,7 @@ In the tested configuration:
 - Local real-repository fixtures copied from this repository can be patched and verified in isolated temp projects across Python and JavaScript files.
 - The expanded local benchmark can be repeated over three trials with 100% task success, 100% Aether invalid-patch detection, 0% false acceptance, and 100% rollback success for rollback-triggering cases.
 - The Phase 4/5/6 acceptance gates are machine-checkable and currently pass for the local reproducible benchmark scope.
-- External git repository manifests are supported behind `--allow-network-repos`, and a pinned MarkupSafe smoke run has passed. Broader external datasets remain future work.
+- External git repository manifests, immutable checkout caching, full-file control baselines, state/Aether/hybrid matching, and per-repository efficiency reporting are supported behind `--allow-network-repos`. The current five-repository matrix passed 132/132; broader project and task distributions remain future work.
 - The result schema now includes retry, token, tool-call, latency, and cost fields for live/provider adapters.
 - The result schema now also supports offline estimated-token fields without mixing them into provider-reported billing telemetry.
 - Python import insertion now preserves module docstrings and `from __future__` ordering in the tested AST and real-repository cases.
@@ -94,9 +94,9 @@ In the tested configuration:
 These claims remain outside the Phase 4/5/6 local completion gates and should be handled in Phase 7/public replication:
 
 - Whether Aether makes real AI coding agents more successful across realistic tasks and repeated trials.
-- Whether token savings hold across broader real repository and task distributions.
+- Whether the observed external token savings hold beyond the current five repositories and ten valid edit tasks.
 - Whether the expanded A/B agent result holds for external live providers rather than local replay/mock providers.
-- Whether latency and cost tradeoffs are favorable outside synthetic or local fixture tasks.
+- Whether the measured external latency tradeoff remains favorable with real model generation, retries, and provider billing.
 - Whether the benchmark adapter/runtime overhead can be reduced enough for Aether to beat direct string edits on very small local files.
 - Whether state-transition mode beats direct control on larger real edits and live-agent loops where structured edit correctness may reduce retries.
 - Whether JavaScript rollback safety is broadly comparable to Python across larger external repositories and still more failure classes.

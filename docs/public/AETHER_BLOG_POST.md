@@ -49,7 +49,7 @@ We built a reproducible benchmark suite covering:
 - replay-agent generated patches,
 - command/provider adapters,
 - local real-repository workloads,
-- a pinned external GitHub repository smoke test,
+- five pinned external GitHub repositories,
 - state-only fast path,
 - hybrid threshold routing,
 - token estimates,
@@ -60,15 +60,11 @@ The public benchmark bundle now reports:
 - Phase 4 real repositories: `18/18`, `100%`
 - Phase 5 cross-language recovery: `54/54`, `100%`
 - Phase 6 A/B agent benchmark: `48/48`, `100%`
-- Tested proof scope: `189/189`, `100%`
-- External pinned repo smoke: `9/9`, `100%`
+- Tested proof scope: `321/321`, `100%`
+- External repository matrix: `132/132`, `100%`
 - Phase 7 readiness: `true`
 
-The external repository smoke used Pallets MarkupSafe pinned to:
-
-```text
-b2e4d9c7687be25695fffbe93a37622302b24fb1
-```
+The external matrix uses immutable commits from MarkupSafe, Packaging, Requests, escape-string-regexp, and yocto-queue. It contains ten valid edit tasks and two rollback tasks across Python and JavaScript, repeated over three trials. Of the 132 records, 96 use behavior-level checks, 24 use syntax-level checks, and 12 exercise guarded rollback.
 
 This matters because it moves the work beyond synthetic-only tests.
 
@@ -80,6 +76,16 @@ The strongest live provider signal came from OpenRouter smoke evidence:
 - Total-token savings: `60.10%`
 
 The local benchmark also showed where the threshold lives.
+
+In the three-trial external matrix, hybrid versus full-file control measured:
+
+- Output-token savings: `75.01%`
+- Estimated total-token savings: `28.84%`
+- Emitted-byte savings: `79.42%`
+- Mean edit-to-verified delta: `+41.32 ms`
+- Bootstrap 95% interval for that time delta: `+15.50 ms` to `+71.03 ms`
+
+These are offline `tiktoken:cl100k_base` estimates, not provider billing telemetry. The control prompt asks for a complete updated file; the state/Aether prompt asks for structured patch JSON. No model generation latency was invented.
 
 For very small files, structured patch JSON can be larger than rewriting the whole file. That is expected. Aether has fixed metadata overhead.
 
@@ -107,7 +113,7 @@ The hybrid mode makes this explicit. In our benchmark:
 - Hybrid selected `state` for records that cleared the token-savings threshold.
 - Hybrid selected full `aether` for safety/failure cases.
 
-The records routed to state averaged `77.08%` estimated output-token savings.
+On the ten valid external tasks over three trials, hybrid routed 12 tiny-file records to control and 18 larger-file records to state. The six safety records were routed to full Aether. Only `60%` of valid matched tasks had positive patch-token savings before routing: files below 1 KiB averaged negative savings, while the 1-4 KiB bucket averaged `57.31%` savings and the 4-16 KiB bucket averaged `94.25%`.
 
 ## Safety Results
 
@@ -120,6 +126,7 @@ In the tested scope:
 - Invalid patch detection: `100%`
 - False acceptance: `0%`
 - Rollback success in tested rollback cases: `100%`
+- External Python/JavaScript rollback: `12/12`, `100%`
 - Phase 7 public readiness: `true`
 
 That does not mean Aether is universally safe. It means the tested benchmark scope passed, and the evidence is reproducible.
@@ -171,7 +178,7 @@ The benchmark is promising, not final proof.
 Current limitations:
 
 - Live provider token/cost evidence is still small.
-- External repository coverage includes a pinned smoke task, not a broad external dataset.
+- External repository coverage is five repositories and twelve tasks, still not a representative sample of all projects.
 - State mode is faster but does not include full validation/snapshot/rollback safety.
 - Hybrid routing is a practical threshold policy, not a universally optimal policy.
 - More real-world agent trials are needed.
