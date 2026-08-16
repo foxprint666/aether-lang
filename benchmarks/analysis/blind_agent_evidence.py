@@ -64,6 +64,9 @@ def analyze(records: list[dict[str, Any]]) -> dict[str, Any]:
 
     modes = sorted({str((item.get("configuration") or {}).get("mode")) for item in records})
     by_mode = {mode: mode_summary(records, mode) for mode in modes}
+    successful_groups = sum(
+        all(item["success"].values()) and len(item["success"]) == 4 for item in matched
+    )
     control_records = [
         item for item in records if (item.get("configuration") or {}).get("mode") == "control"
     ]
@@ -78,6 +81,8 @@ def analyze(records: list[dict[str, Any]]) -> dict[str, Any]:
             "records": len(records),
             "success_rate": rate(sum(bool(item.get("task_success")) for item in records), len(records)),
             "generation_events": len(groups),
+            "successful_generation_events": successful_groups,
+            "generation_success_rate": rate(successful_groups, len(groups)),
             "tasks": sorted({str(item.get("task_id")) for item in records}),
             "task_count": len({str(item.get("task_id")) for item in records}),
             "repositories": sorted({str(item.get("repository")) for item in records}),
@@ -91,6 +96,11 @@ def analyze(records: list[dict[str, Any]]) -> dict[str, Any]:
             ),
         },
         "by_mode": by_mode,
+        "timing_comparison": {
+            "aether_vs_control_pct": relative_delta(by_mode, "aether", "control"),
+            "state_vs_control_pct": relative_delta(by_mode, "state", "control"),
+            "hybrid_vs_control_pct": relative_delta(by_mode, "hybrid", "control"),
+        },
         "matched_generation": {
             "groups": len(matched),
             "identical_patch_groups": sum(item["identical_patch_across_modes"] for item in matched),
@@ -142,6 +152,12 @@ def savings(value: float, baseline: float) -> float | None:
     return round((baseline - value) / baseline * 100, 6) if baseline else None
 
 
+def relative_delta(by_mode: dict[str, dict[str, Any]], mode: str, baseline: str) -> float | None:
+    value = by_mode.get(mode, {}).get("mean_edit_to_verified_time_ms")
+    reference = by_mode.get(baseline, {}).get("mean_edit_to_verified_time_ms")
+    return round((value - reference) / reference * 100, 6) if value is not None and reference else None
+
+
 def rate(numerator: int, denominator: int) -> float | None:
     return round(numerator / denominator, 6) if denominator else None
 
@@ -154,7 +170,9 @@ def render_markdown(report: dict[str, Any]) -> str:
         "# Blind External-Agent Report",
         "",
         f"- Records: `{evidence['records']}` across `{evidence['generation_events']}` independent generation events.",
-        f"- Success rate: `{evidence['success_rate']}`.",
+        f"- Successful generated patches: `{evidence['successful_generation_events']}/{evidence['generation_events']}` "
+        f"(`{evidence['generation_success_rate']}`).",
+        f"- Record success rate: `{evidence['success_rate']}`.",
         f"- Coverage: `{evidence['repository_count']}` repositories, `{evidence['task_count']}` tasks, `{', '.join(evidence['languages'])}`.",
         f"- Blind records: `{evidence['blind_records']}`; oracle-used records: `{evidence['oracle_used_records']}`.",
         f"- Hash-matched patches across modes: `{matched['identical_patch_groups']}/{matched['groups']}`.",
@@ -169,6 +187,14 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- `{mode}`: `{values['success_rate']}` success, "
             f"`{values['mean_edit_to_verified_time_ms']} ms` mean edit-to-verified."
         )
+    timing = report["timing_comparison"]
+    lines.extend([
+        "",
+        f"Relative to direct control, Aether was `{timing['aether_vs_control_pct']}%`, "
+        f"state was `{timing['state_vs_control_pct']}%`, and hybrid was "
+        f"`{timing['hybrid_vs_control_pct']}%` in mean edit-to-verified time "
+        "(positive is slower; negative is faster).",
+    ])
     lines.extend(["", "## Limitations", ""])
     lines.extend(f"- {item}" for item in report["limitations"])
     return "\n".join(lines) + "\n"

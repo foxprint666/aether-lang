@@ -62,11 +62,14 @@ The public benchmark bundle now reports:
 - Phase 6 A/B agent benchmark: `48/48`, `100%`
 - Tested proof scope: `321/321`, `100%`
 - External repository matrix: `132/132`, `100%`
+- Blind agent-generated patches: `16/24`, `66.67%`
 - Phase 7 readiness: `true`
 
 The external matrix uses immutable commits from MarkupSafe, Packaging, Requests, escape-string-regexp, and yocto-queue. It contains ten valid edit tasks and two rollback tasks across Python and JavaScript, repeated over three trials. Of the 132 records, 96 use behavior-level checks, 24 use syntax-level checks, and 12 exercise guarded rollback.
 
 This matters because it moves the work beyond synthetic-only tests.
+
+We also ran a stricter blind track. Three independent coding-agent trials received only an opaque task description, the target source file, and Aether's public patch contract. They did not receive hidden tests, expected output, or reference patches. Across eight previously unpublished tasks, 16 of 24 generated patches passed hidden behavior tests. The failures remain in the public evidence: four malformed structured bodies and four behavior mistakes. This is a more realistic result than a perfect reference-patch replay, and it identifies agent patch generation as a real remaining bottleneck.
 
 ## Efficiency Results
 
@@ -86,6 +89,8 @@ In the three-trial external matrix, hybrid versus full-file control measured:
 - Bootstrap 95% interval for that time delta: `+15.50 ms` to `+71.03 ms`
 
 These are offline `tiktoken:cl100k_base` estimates, not provider billing telemetry. The control prompt asks for a complete updated file; the state/Aether prompt asks for structured patch JSON. No model generation latency was invented.
+
+For the blind generated patches, structured output was `78.23%` smaller in estimated output tokens and `82.80%` smaller in bytes than full-file output. Direct control averaged `228.43 ms` edit-to-verified, state `224.47 ms`, Aether `339.78 ms`, and hybrid `194.90 ms`. Full Aether was `48.74%` slower than direct control in this local application-only comparison; hybrid was `14.68%` faster. Those figures exclude model generation and come from only 24 generation events, so they are evidence, not a universal performance promise.
 
 For very small files, structured patch JSON can be larger than rewriting the whole file. That is expected. Aether has fixed metadata overhead.
 

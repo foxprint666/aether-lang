@@ -1,0 +1,533 @@
+{
+  "by_mode": {
+    "aether": {
+      "mean_edit_to_verified_time_ms": 339.77735,
+      "median_edit_to_verified_time_ms": 352.1825,
+      "records": 24,
+      "success_rate": 0.666667
+    },
+    "control": {
+      "mean_edit_to_verified_time_ms": 228.4326,
+      "median_edit_to_verified_time_ms": 253.8905,
+      "records": 24,
+      "success_rate": 0.666667
+    },
+    "hybrid": {
+      "mean_edit_to_verified_time_ms": 194.8971,
+      "median_edit_to_verified_time_ms": 201.7525,
+      "records": 24,
+      "success_rate": 0.666667
+    },
+    "state": {
+      "mean_edit_to_verified_time_ms": 224.46655,
+      "median_edit_to_verified_time_ms": 247.409,
+      "records": 24,
+      "success_rate": 0.666667
+    }
+  },
+  "evidence": {
+    "blind_records": 96,
+    "generation_events": 24,
+    "generation_success_rate": 0.666667,
+    "languages": [
+      "javascript",
+      "python"
+    ],
+    "oracle_used_records": 0,
+    "records": 96,
+    "repositories": [
+      "pallets-markupsafe",
+      "psf-requests",
+      "pypa-packaging",
+      "sindresorhus-escape-string-regexp",
+      "sindresorhus-yocto-queue"
+    ],
+    "repository_count": 5,
+    "success_rate": 0.666667,
+    "successful_generation_events": 16,
+    "task_count": 8,
+    "tasks": [
+      "bx-18bd",
+      "bx-5b8e",
+      "bx-6ca0",
+      "bx-a13f",
+      "bx-c42e",
+      "bx-d91b",
+      "bx-e77a",
+      "bx-f20c"
+    ],
+    "trials": [
+      1,
+      2,
+      3
+    ]
+  },
+  "hybrid_routing": {
+    "None": 4,
+    "control": 6,
+    "state": 14
+  },
+  "limitations": [
+    "Generation used independent Codex subagents with prompt-level packet restrictions, not an OS-enforced filesystem sandbox.",
+    "The stored provider replays hash-locked agent outputs; it does not claim live provider token, latency, retry, or cost telemetry.",
+    "Control, state, Aether, and hybrid apply the same generated structured patch; this isolates application safety and overhead but is not a full-file-generation agent control arm.",
+    "Tasks were unpublished before generation but are revealed with this evidence bundle, so future blind trials require fresh tasks."
+  ],
+  "matched_generation": {
+    "all_modes_present_groups": 24,
+    "details": [
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-18bd",
+        "trial": 1
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-18bd",
+        "trial": 2
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-18bd",
+        "trial": 3
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": false,
+          "control": false,
+          "hybrid": false,
+          "state": false
+        },
+        "task": "bx-5b8e",
+        "trial": 1
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-5b8e",
+        "trial": 2
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": false,
+          "control": false,
+          "hybrid": false,
+          "state": false
+        },
+        "task": "bx-5b8e",
+        "trial": 3
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-6ca0",
+        "trial": 1
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-6ca0",
+        "trial": 2
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": false,
+          "control": false,
+          "hybrid": false,
+          "state": false
+        },
+        "task": "bx-6ca0",
+        "trial": 3
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-a13f",
+        "trial": 1
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-a13f",
+        "trial": 2
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-a13f",
+        "trial": 3
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-c42e",
+        "trial": 1
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-c42e",
+        "trial": 2
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": false,
+          "control": false,
+          "hybrid": false,
+          "state": false
+        },
+        "task": "bx-c42e",
+        "trial": 3
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-d91b",
+        "trial": 1
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-d91b",
+        "trial": 2
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": false,
+          "control": false,
+          "hybrid": false,
+          "state": false
+        },
+        "task": "bx-d91b",
+        "trial": 3
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": false,
+          "control": false,
+          "hybrid": false,
+          "state": false
+        },
+        "task": "bx-e77a",
+        "trial": 1
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": false,
+          "control": false,
+          "hybrid": false,
+          "state": false
+        },
+        "task": "bx-e77a",
+        "trial": 2
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": false,
+          "control": false,
+          "hybrid": false,
+          "state": false
+        },
+        "task": "bx-e77a",
+        "trial": 3
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-f20c",
+        "trial": 1
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-f20c",
+        "trial": 2
+      },
+      {
+        "identical_descriptor_across_modes": true,
+        "identical_patch_across_modes": true,
+        "modes": [
+          "aether",
+          "control",
+          "hybrid",
+          "state"
+        ],
+        "success": {
+          "aether": true,
+          "control": true,
+          "hybrid": true,
+          "state": true
+        },
+        "task": "bx-f20c",
+        "trial": 3
+      }
+    ],
+    "groups": 24,
+    "identical_descriptor_groups": 24,
+    "identical_patch_groups": 24
+  },
+  "offline_efficiency": {
+    "estimator": [
+      "tiktoken:cl100k_base"
+    ],
+    "full_file_output_bytes": 62577.0,
+    "full_file_output_tokens": 15499.0,
+    "patch_output_bytes": 10762.0,
+    "patch_output_tokens": 3374.0,
+    "weighted_output_byte_savings_pct": 82.801988,
+    "weighted_output_token_savings_pct": 78.230854
+  },
+  "report_version": "blind-external-agent-v1",
+  "timing_comparison": {
+    "aether_vs_control_pct": 48.742933,
+    "hybrid_vs_control_pct": -14.680698,
+    "state_vs_control_pct": -1.736201
+  }
+}

@@ -15,6 +15,7 @@ Latest local verification during this development session:
 | `agent` with `command` adapter and Gemini provider | `both` | 5 | 5 passed |
 | `real-repository` | `aether` | 6 | 6 passed |
 | `external-repository` | `all-modes`, three trials | 132 | 132 passed |
+| `external-agent` blind generation | `all-modes`, three trials | 96 | 64 passed (16/24 generated patches) |
 | `all` | `both` | 50 | 50 passed |
 | `all` | `all-modes` | 85 | 85 passed |
 
@@ -63,6 +64,9 @@ Latest live Gemini smoke run:
 - Offline token-estimate fields are now recorded separately from live provider token telemetry: `estimated_input_tokens`, `estimated_output_tokens`, `estimated_traditional_output_tokens`, and `token_estimator`. `tiktoken:cl100k_base` is used when available; otherwise the runner records `heuristic:regex-v1`. In `token-estimate-all-smoke`, 85/85 records passed and 69 patch records received estimates. Overall patch output was 13.069% smaller than a full target-file rewrite baseline, while state-mode patch output was 40.942% smaller. JavaScript tiny-file fixtures were negative because the structured patch JSON is larger than the very small source files; larger Python real-repository fixtures showed stronger savings.
 - Hybrid mode is now available through `--mode hybrid`. The default policy uses state transitions only when the estimated structured patch output is at least 20% smaller than a full target-file rewrite, uses control/direct editing for tiny safe edits below the threshold, and uses guarded Aether for expected safety/failure cases. In `hybrid-threshold-all-smoke`, hybrid mode passed 43/43 records. It selected control for 17 tiny/safe records, state for 6 records that cleared the token-savings threshold, and Aether for 20 safety/failure records. The 6 state-selected records averaged 77.075% estimated output-token savings.
 - Expanded external evidence, `external-matrix-allmodes-trials3-v3`, passed 132/132 records across five immutable GitHub repositories, twelve tasks, Python and JavaScript, and three trials against harness commit `a5d95ce5137e5f404873703f3c36c4f0ff42c6e8`. The matrix contains 96 behavior records, 24 syntax records, and 12 guarded rollback records. Hybrid versus full-file control saved 75.014% estimated output tokens, 28.842% estimated total tokens, and 79.423% emitted bytes while adding 41.323 ms mean edit-to-verified time; its bootstrap 95% interval was 15.503 to 71.031 ms. These are `tiktoken:cl100k_base` offline estimates, not provider billing telemetry.
+- Blind external-agent evidence, `blind-external-agent-trials3-v1`, evaluated 24 independently generated patches over eight previously unpublished tasks in five pinned repositories. The agents received source-only packets without tests, expected output, or reference patches. Sixteen of 24 patches passed hidden behavior tests (`66.667%`); replaying each patch through control, state, Aether, and hybrid produced 64/96 successful records with identical outcomes in every mode. All 24 prompt and patch hash groups matched across modes, all 96 records were marked blind, and zero records reported oracle use.
+- In that blind run, structured patches used 78.231% fewer estimated output tokens and 82.802% fewer emitted bytes than full-file output. Mean edit-to-verified time was 228.433 ms for direct control, 224.467 ms for state, 339.777 ms for Aether, and 194.897 ms for hybrid. Thus Aether was 48.743% slower than control, state was 1.736% faster, and hybrid was 14.681% faster in this small local run. These timings exclude live model generation and should not be generalized beyond this workload.
+- The eight failed generations were preserved: four contained malformed Python body indentation and four failed hidden behavior. During calibration, valid agent payloads also exposed and led to fixes for Python common-indentation handling and JavaScript private-field parsing. Calibration outputs are excluded from the final result.
 
 ## What This Proves So Far
 
@@ -84,6 +88,7 @@ In the tested configuration:
 - The expanded local benchmark can be repeated over three trials with 100% task success, 100% Aether invalid-patch detection, 0% false acceptance, and 100% rollback success for rollback-triggering cases.
 - The Phase 4/5/6 acceptance gates are machine-checkable and currently pass for the local reproducible benchmark scope.
 - External git repository manifests, immutable checkout caching, full-file control baselines, state/Aether/hybrid matching, and per-repository efficiency reporting are supported behind `--allow-network-repos`. The current five-repository matrix passed 132/132; broader project and task distributions remain future work.
+- Source-only blind-agent packets, hash-locked generated-patch replay, hidden tests, and a manual CI workflow now provide leak-resistant unseen-task evidence. The first final run passed 16/24 independent generations without answer-key normalization.
 - The result schema now includes retry, token, tool-call, latency, and cost fields for live/provider adapters.
 - The result schema now also supports offline estimated-token fields without mixing them into provider-reported billing telemetry.
 - Python import insertion now preserves module docstrings and `from __future__` ordering in the tested AST and real-repository cases.
@@ -93,7 +98,7 @@ In the tested configuration:
 
 These claims remain outside the Phase 4/5/6 local completion gates and should be handled in Phase 7/public replication:
 
-- Whether Aether makes real AI coding agents more successful across realistic tasks and repeated trials.
+- Whether Aether makes agents more successful than a matched full-file-generation control. The blind run measures structured-patch generation and matched application, but all four modes apply the same generated patch.
 - Whether the observed external token savings hold beyond the current five repositories and ten valid edit tasks.
 - Whether the expanded A/B agent result holds for external live providers rather than local replay/mock providers.
 - Whether the measured external latency tradeoff remains favorable with real model generation, retries, and provider billing.
@@ -101,6 +106,7 @@ These claims remain outside the Phase 4/5/6 local completion gates and should be
 - Whether state-transition mode beats direct control on larger real edits and live-agent loops where structured edit correctness may reduce retries.
 - Whether JavaScript rollback safety is broadly comparable to Python across larger external repositories and still more failure classes.
 - Whether broader external git repository benchmarks remain stable across CI/network environments.
+- Whether blind generation results reproduce under an OS-enforced agent sandbox; the current source-only restriction was enforced by prompts and independently checked packet contents.
 
 ## Issue Found And Fixed During Real-Repo Smoke Work
 
