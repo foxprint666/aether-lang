@@ -65,6 +65,8 @@ Every result should include:
 - token/tool-call counts when measured
 - agent retry count, adapter latency, and cost when measured
 - execution and validation timing
+- repository setup, verification, edit-to-verified, and total task timing
+- source, repository, emitted-output, and full-rewrite byte sizes
 - test outcomes
 - syntax/runtime/validation flags
 - rollback flags
@@ -148,10 +150,14 @@ The wrapper uses OpenRouter's OpenAI-compatible chat-completions endpoint. For r
 External git repository benchmarks require an explicit network flag:
 
 ```bash
-python benchmarks/run.py --suite real-repository --mode aether --allow-network-repos
+python benchmarks/run.py --suite external-repository --mode all-modes --trials 3 --allow-network-repos
 ```
 
 Manifests must pin immutable commit SHAs. Branch names are not acceptable evidence pins.
+
+The deterministic external control condition emits the complete transformed source file. State and Aether emit structured patch JSON. Both conditions receive the same source and task description, but each input includes its actual output contract. Offline token comparisons use the recorded tokenizer and must remain separate from live provider telemetry.
+
+Repository setup is measured independently and excluded from raw edit execution. `edit_to_verified_time_ms` includes transformation, syntax checking, and the task's declared verification command. Deterministic runs do not claim model generation latency.
 
 ## Statistical Reporting
 

@@ -30,7 +30,7 @@ python benchmarks/run.py --suite agent --mode hybrid --hybrid-min-output-savings
 python benchmarks/run.py --suite all --mode all-modes --trials 1
 ```
 
-If the global `python` executable is not available or does not have the Python SDK dependencies installed, run with the interpreter used for this repository. The runner also adds `sdk/python/.venv/Lib/site-packages` to `sys.path` when that local dependency directory exists.
+If the global `python` executable is not available or does not have the Python SDK dependencies installed, run with the interpreter used for this repository. The runner only uses `sdk/python/.venv/Lib/site-packages` when that environment matches the active Python major/minor version; stale binary packages are rejected with an actionable error.
 
 Outputs are written to:
 
@@ -95,8 +95,8 @@ python benchmarks/analysis/phase7_readiness.py \
   --phase6 benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json \
   --state-results benchmarks/results/raw/state-fastpath-correctness.json benchmarks/results/raw/state-fastpath-agent-trials3.json benchmarks/results/raw/state-fastpath-realrepo-trials3.json benchmarks/results/raw/state-fastpath-all-smoke.json \
   --hybrid-results benchmarks/results/raw/hybrid-threshold-all-smoke.json benchmarks/results/raw/hybrid-threshold-smoke-v2.json \
-  --external-results benchmarks/results/raw/external-markupsafe-allmodes-trials3-v2.json \
-  --proof-results benchmarks/results/raw/live-openrouter-smoke-v3.json benchmarks/results/raw/phase6-expanded-all.json benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json benchmarks/results/raw/phase4-realrepo-done-trials3.json benchmarks/results/raw/phase5-crosslang-done-trials3.json
+  --external-results benchmarks/results/raw/external-matrix-allmodes-trials3-v3.json \
+  --proof-results benchmarks/results/raw/live-openrouter-smoke-v3.json benchmarks/results/raw/phase6-expanded-all.json benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json benchmarks/results/raw/phase4-realrepo-done-trials3.json benchmarks/results/raw/phase5-crosslang-done-trials3.json benchmarks/results/raw/external-matrix-allmodes-trials3-v3.json
 ```
 
 Generate a Phase 7 public benchmark bundle:
@@ -108,9 +108,9 @@ python benchmarks/analysis/phase7_bundle.py \
   --phase6 benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json \
   --state-results benchmarks/results/raw/state-fastpath-correctness.json benchmarks/results/raw/state-fastpath-agent-trials3.json benchmarks/results/raw/state-fastpath-realrepo-trials3.json benchmarks/results/raw/state-fastpath-all-smoke.json \
   --hybrid-results benchmarks/results/raw/hybrid-threshold-all-smoke.json benchmarks/results/raw/hybrid-threshold-smoke-v2.json \
-  --external-results benchmarks/results/raw/external-markupsafe-allmodes-trials3-v2.json \
+  --external-results benchmarks/results/raw/external-matrix-allmodes-trials3-v3.json \
   --token-results benchmarks/results/raw/token-estimate-all-smoke.json \
-  --proof-results benchmarks/results/raw/live-openrouter-smoke-v3.json benchmarks/results/raw/phase6-expanded-all.json benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json benchmarks/results/raw/phase4-realrepo-done-trials3.json benchmarks/results/raw/phase5-crosslang-done-trials3.json
+  --proof-results benchmarks/results/raw/live-openrouter-smoke-v3.json benchmarks/results/raw/phase6-expanded-all.json benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json benchmarks/results/raw/phase4-realrepo-done-trials3.json benchmarks/results/raw/phase5-crosslang-done-trials3.json benchmarks/results/raw/external-matrix-allmodes-trials3-v3.json
 ```
 
 ## Suites
@@ -121,6 +121,7 @@ Implemented now:
 - `failure-injection`: deterministic Python and JavaScript injected-failure cases for syntax errors, runtime errors, broken imports, sensitive paths, and AST-apply failures.
 - `agent`: deterministic replay-agent cases that emit patch JSON through an adapter before either unchecked control application or Aether validation/snapshot/application.
 - `real-repository`: local Aether repository-derived Python and JavaScript tasks copied into isolated temp directories.
+- `external-repository`: five immutable GitHub checkouts with matched full-file control, state, Aether, hybrid, behavioral, syntax, and rollback evidence. Requires `--allow-network-repos` on a cold cache.
 - `smoke`: alias for `correctness`.
 - `all`: runs correctness, failure-injection, replay-agent, and local real-repository tasks.
 
@@ -138,8 +139,16 @@ python benchmarks/run.py --suite agent --mode both --agent-adapter command --age
 Pinned external repository check:
 
 ```bash
-python benchmarks/run.py --suite external-repository --mode all-modes --trials 3 --allow-network-repos
+python -m pip install -e sdk/python tiktoken
+cd sdk/node
+npm ci
+npm run build
+cd ../..
+python benchmarks/run.py --suite external-repository --mode all-modes --trials 3 --allow-network-repos --experiment-id external-matrix-allmodes-trials3-v3
+python benchmarks/analysis/external_efficiency.py benchmarks/results/raw/external-matrix-allmodes-trials3-v3.json --json-output benchmarks/results/public/external_repository_efficiency.json --markdown-output benchmarks/results/public/EXTERNAL_REPOSITORY_REPORT.md
 ```
+
+The suite pins five repositories at immutable commits: MarkupSafe, Packaging, Requests, escape-string-regexp, and yocto-queue. Ten valid edit tasks run matched control/state/Aether/hybrid conditions. Two guarded fault tasks exercise Python and JavaScript rollback in Aether and hybrid modes. Checkouts are cached by repository and commit under `.tmp/benchmark-repositories`; checkout time is tracked separately from edit execution.
 
 OpenAI provider run:
 
@@ -185,7 +194,7 @@ Research-aligned upgrades for stronger public results:
 - Version every benchmark dataset and bump the version when tasks or grading change.
 - Keep objective pass/fail checks as the primary score. Use model or human judging only as a secondary rubric when automated tests cannot grade the task.
 - Publish raw JSON, processed CSV, exact commands, commit SHA, OS/runtime metadata, and known limitations together.
-- Expand pinned external repositories behind `--allow-network-repos` once networked CI or a release workflow is available.
+- Expand the pinned external dataset beyond the current five repositories and twelve tasks.
 - Increase live-provider repetitions only when cost/quota allows, and report provider failures separately from Aether failures.
 - Keep `state` and `aether` results separate: `state` measures raw transition efficiency, while `aether` measures guarded agent safety.
 - Use `hybrid` to model a practical product default: traditional/full generation for very small first drafts, state transitions for token-efficient focused edits, and full Aether for safety-sensitive failures.
@@ -197,11 +206,12 @@ Research-aligned upgrades for stronger public results:
 - Every number in future evidence reports should be traceable to raw JSON.
 - Missing measurements should be recorded as `null`, not invented.
 - Offline token estimates are useful for local comparisons, but only provider-reported `input_tokens` and `output_tokens` should be treated as live billing telemetry.
+- External efficiency records track full-rewrite control input/output, structured-patch input/output, emitted bytes, repository setup, raw apply time, verification time, and edit-to-verified time. They never fabricate model generation latency.
 - JavaScript Aether benchmark runs now use validation plus `SnapshotStore` rollback through the Node benchmark adapter.
 - Correctness summaries include transformation success rate, invalid-patch detection rate, false acceptance rate, rollback success rate, and expected rollback detection rate where the task mix supports them.
 - Failure-injection summaries include `failure_detection_rate` where the task mix supports it.
 - Replay-agent summaries cover deterministic patch ingestion only. Token usage, model cost, and live agent behavior remain `null` unless a command/provider adapter reports them.
 - Proof-score summaries are conservative evidence-maturity reports. They reward repeated evaluable pairs, provider availability, live token telemetry, safety coverage, and real-repository coverage; they do not treat one perfect smoke run as universal proof.
-- The current expanded local benchmark evidence passed 50/50 records, including 6/6 local real-repository records, and reached an 85.615% conservative combined proof score when scored with the live/provider and parallel-subagent runs from this session.
+- The current three-trial external matrix passed 132/132 records across five pinned repositories, twelve tasks, Python and JavaScript, and four execution modes where supported.
 - Phase-gate summaries define "done" for the current reproducible benchmark scope. They do not claim public Phase 7 replication or broad live-provider generality.
 - State-mode summaries measure the raw transition engine without Aether's safety envelope. A faster state run is not equivalent to full Aether safety.

@@ -49,13 +49,16 @@ def build_report(records: list[dict[str, Any]], experiments: list[str]) -> dict[
     ]
     invalid = [
         record for record in records
-        if record.get("category") == "invalid_patch"
+        if (
+            record.get("category") == "invalid_patch"
+            or record.get("configuration", {}).get("verification_level") == "safety"
+        )
         and record.get("configuration", {}).get("mode") == "aether"
         and patch_was_tested(record)
     ]
     real_repo = [
         record for record in records
-        if record.get("category") == "real_repository"
+        if record.get("category") in {"real_repository", "external_repository"}
         and patch_was_tested(record)
     ]
     provider_failures = [record for record in records if record.get("provider_error_type")]

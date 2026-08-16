@@ -1,0 +1,11 @@
+{
+  "repository_id": "sindresorhus-yocto-queue",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/sindresorhus/yocto-queue.git",
+    "commit": "b07eac099753833b29d06c614149904445739776"
+  },
+  "description": "Pinned yocto-queue fixture for external JavaScript benchmarks.",
+  "default_timeout_ms": 30000,
+  "license": "MIT"
+}

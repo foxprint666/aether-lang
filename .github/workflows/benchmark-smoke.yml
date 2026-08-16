@@ -58,7 +58,7 @@ jobs:
         run: npm run build
 
       - name: Run benchmark smoke
-        run: python benchmarks/run.py --suite smoke --mode both --trials 1 --experiment-id ci-smoke-${{ github.run_id }}
+        run: python benchmarks/run.py --suite smoke --mode all-modes --trials 1 --experiment-id ci-smoke-${{ github.run_id }}
 
       - name: Upload benchmark outputs
         uses: actions/upload-artifact@v4

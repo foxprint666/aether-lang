@@ -67,8 +67,14 @@ def main() -> int:
         "hybrid_routes_to_control_state_aether": {"control", "state", "aether"} <= set(
             hybrid.get("selected_modes", {})
         ),
-        "external_records_at_least_9": int(external.get("records") or 0) >= 9,
+        "external_records_at_least_120": int(external.get("records") or 0) >= 120,
         "external_success_100_pct": external.get("success_rate") == 1.0,
+        "external_repositories_at_least_5": int(external.get("repository_count") or 0) >= 5,
+        "external_tasks_at_least_12": int(external.get("task_count") or 0) >= 12,
+        "external_cross_language": {"python", "javascript"} <= set(external.get("languages", [])),
+        "external_behavior_records_at_least_90": int(external.get("verification_levels", {}).get("behavior") or 0) >= 90,
+        "external_safety_records_at_least_12": int(external.get("verification_levels", {}).get("safety") or 0) >= 12,
+        "external_rollback_success_100_pct": external.get("rollback_success_rate") == 1.0,
         "external_pinned_git_manifest": external.get("pinned_git_manifest") is True,
         "tested_scope_pass_100_pct": proof_gaps.get("tested_scope", {}).get("pass_rate_pct") == 100.0,
         "benchmark_readme_documents_state_mode": file_contains(
@@ -156,10 +162,26 @@ def summarize_external(records: list[dict[str, Any]]) -> dict[str, Any]:
         for record in external
         if record.get("configuration", {}).get("repository_manifest")
     }
+    rollback = [record for record in external if record.get("rollback_triggered")]
+    repositories = sorted({record.get("repository") for record in external})
+    tasks = sorted({record.get("task_id") for record in external})
+    verification_levels: dict[str, int] = {}
+    for record in external:
+        level = str(record.get("configuration", {}).get("verification_level", "unspecified"))
+        verification_levels[level] = verification_levels.get(level, 0) + 1
     return {
         "records": len(external),
         "success_rate": rate(sum(1 for record in external if record.get("task_success")), len(external)),
-        "repositories": sorted({record.get("repository") for record in external}),
+        "repositories": repositories,
+        "repository_count": len(repositories),
+        "tasks": tasks,
+        "task_count": len(tasks),
+        "languages": sorted({record.get("language") for record in external}),
+        "verification_levels": dict(sorted(verification_levels.items())),
+        "rollback_success_rate": rate(
+            sum(1 for record in rollback if record.get("rollback_success") is True),
+            len(rollback),
+        ),
         "modes": sorted({record.get("configuration", {}).get("mode") for record in external}),
         "manifests": sorted(manifests),
         "pinned_git_manifest": all(git_manifest_is_pinned(manifest) for manifest in manifests) if manifests else False,

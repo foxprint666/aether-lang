@@ -1,0 +1,11 @@
+{
+  "repository_id": "sindresorhus-escape-string-regexp",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/sindresorhus/escape-string-regexp.git",
+    "commit": "cbc42403142c96923b482604e1f3d627b1956aff"
+  },
+  "description": "Pinned escape-string-regexp fixture for external JavaScript benchmarks.",
+  "default_timeout_ms": 30000,
+  "license": "MIT"
+}

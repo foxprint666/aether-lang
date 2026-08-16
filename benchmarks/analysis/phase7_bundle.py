@@ -58,6 +58,13 @@ def main() -> int:
     token_estimates = run_json(
         [sys.executable, str(Path(__file__).with_name("token_estimates.py")), *(str(path) for path in args.token_results)]
     )
+    external_efficiency = run_json(
+        [
+            sys.executable,
+            str(Path(__file__).with_name("external_efficiency.py")),
+            *(str(path) for path in args.external_results),
+        ]
+    )
 
     source_files = {
         "phase4": [args.phase4],
@@ -87,6 +94,7 @@ def main() -> int:
             "state_efficiency": state,
             "hybrid_policy": hybrid,
             "token_estimates": token_estimates,
+            "external_efficiency": external_efficiency,
         },
         "limitations": limitations(),
     }
@@ -134,6 +142,7 @@ def reproduction_commands(args: argparse.Namespace) -> list[str]:
     return [
         "python benchmarks/run.py --suite smoke --mode all-modes --trials 1 --experiment-id ci-smoke-local",
         "python benchmarks/run.py --suite all --mode hybrid --trials 1 --experiment-id hybrid-threshold-all-smoke",
+        "python benchmarks/run.py --suite external-repository --mode all-modes --trials 3 --allow-network-repos --experiment-id external-matrix-allmodes-trials3-v3",
         "python benchmarks/analysis/phase_gates.py --phase4 benchmarks/results/raw/phase4-realrepo-done-trials3.json --phase5 benchmarks/results/raw/phase5-crosslang-done-trials3.json --phase6 benchmarks/results/raw/phase6-agent-ab-expanded-command-mock-trials3.json",
         command_from_args("python benchmarks/analysis/phase7_readiness.py", args),
         command_from_args("python benchmarks/analysis/phase7_bundle.py", args),
@@ -172,7 +181,7 @@ def limitations() -> list[str]:
         "Live token/cost telemetry is limited to small provider smoke evidence; offline token estimates are reported separately.",
         "State mode measures raw transition efficiency without validation, snapshots, or rollback.",
         "Hybrid mode is a threshold policy for product routing, not an externally validated universal optimum.",
-        "External pinned repository coverage currently includes a small MarkupSafe smoke task; broader external datasets remain future work.",
+        "External coverage is five pinned repositories and twelve tasks; it is stronger than a smoke test but still not a representative sample of all software projects.",
     ]
 
 
@@ -184,6 +193,8 @@ def render_markdown(bundle: dict[str, Any]) -> str:
     hybrid = bundle["reports"]["hybrid_policy"]
     external = readiness["external_repository"]
     tokens = bundle["reports"]["token_estimates"]
+    external_efficiency = bundle["reports"]["external_efficiency"]
+    external_hybrid = external_efficiency["comparisons"]["hybrid_vs_control"]
     phase = readiness["phase_gates"]
     lines = [
         "# Phase 7 Public Benchmark Report",
@@ -197,7 +208,9 @@ def render_markdown(bundle: dict[str, Any]) -> str:
         f"- Phase 4 real repositories: `{phase['phase4_real_repositories']['records']}` records, `{phase['phase4_real_repositories']['success_rate_pct']}%` success.",
         f"- Phase 5 cross-language: `{phase['phase5_cross_language']['records']}` records, `{phase['phase5_cross_language']['success_rate_pct']}%` success.",
         f"- Phase 6 A/B agent: `{phase['phase6_ab_agent']['records']}` records, `{phase['phase6_ab_agent']['success_rate_pct']}%` success.",
-        f"- External pinned repository: `{external['records']}` records, `{external['success_rate']}` success rate, repositories `{json.dumps(external['repositories'])}`.",
+        f"- External pinned repositories: `{external['records']}` records across `{external['repository_count']}` repositories and `{external['task_count']}` tasks, `{external['success_rate']}` success rate.",
+        f"- External verification levels: `{json.dumps(external['verification_levels'], sort_keys=True)}`.",
+        f"- External rollback success: `{external['rollback_success_rate']}`.",
         f"- Tested proof scope: `{gaps['tested_scope']['passed_records']}/{gaps['tested_scope']['tested_records']}` passed.",
         f"- Conservative proof score: `{proof['overall_proof_score_pct']}%` ({proof['interpretation']}).",
         "",
@@ -210,6 +223,10 @@ def render_markdown(bundle: dict[str, Any]) -> str:
         f"- Hybrid records: `{hybrid['hybrid_records']}`, success rate `{hybrid['success_rate']}`.",
         f"- Hybrid selected modes: `{json.dumps(hybrid['selected_modes'], sort_keys=True)}`.",
         f"- Offline estimated patch-vs-rewrite output savings: `{tokens['overall']['patch_vs_traditional_output_savings_pct']}%`.",
+        f"- External hybrid output-token savings: `{external_hybrid['estimated_output_tokens']['weighted_savings_pct']}%`.",
+        f"- External hybrid total-token savings: `{external_hybrid['estimated_total_tokens']['weighted_savings_pct']}%`.",
+        f"- External hybrid emitted-byte savings: `{external_hybrid['emitted_bytes']['weighted_savings_pct']}%`.",
+        f"- External hybrid edit-to-verified delta: `{external_hybrid['edit_to_verified_time_ms']['mean_delta_ms']} ms`.",
         "",
         "## Reproduction Commands",
         "",

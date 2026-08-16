@@ -22,6 +22,7 @@ import os
 import platform
 import py_compile
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -71,6 +72,11 @@ CSV_FIELDS = [
     "failure_detected",
     "patch_generated",
     "patch_size",
+    "source_size_bytes",
+    "repository_size_bytes",
+    "repository_file_count",
+    "output_size_bytes",
+    "traditional_output_size_bytes",
     "input_tokens",
     "output_tokens",
     "estimated_input_tokens",
@@ -84,8 +90,12 @@ CSV_FIELDS = [
     "agent_attempts",
     "agent_latency_ms",
     "agent_cost_usd",
+    "repository_setup_time_ms",
     "execution_time_ms",
     "validation_time_ms",
+    "verification_time_ms",
+    "edit_to_verified_time_ms",
+    "total_task_time_ms",
     "tests_passed",
     "tests_failed",
     "syntax_error",
@@ -115,6 +125,7 @@ class BenchmarkTask:
     failure_type: str | None
     description: str
     test_command: str
+    verification_level: str
     timeout_ms: int
     supported_modes: list[str]
     expected_success: bool
@@ -270,6 +281,7 @@ def load_tasks(suite: str) -> list[BenchmarkTask]:
             failure_type=item.get("failure_type"),
             description=item["description"],
             test_command=item["test_command"],
+            verification_level=str(item.get("verification_level", "syntax")),
             timeout_ms=int(item["timeout_ms"]),
             supported_modes=list(item["supported_modes"]),
             expected_success=bool(item["expected_success"]),
@@ -301,13 +313,18 @@ def run_task(
     args: argparse.Namespace,
     suite: str,
 ) -> dict[str, Any]:
+    task_started = time.perf_counter()
     workdir = Path(tempfile.mkdtemp(prefix=f"aether-bench-{task.task_id}-{mode}-"))
     before_hash = ""
     after_hash = ""
     error_type: str | None = None
     error_detail: str | None = None
     validation_time_ms: float | None = None
+    repository_setup_time_ms: float | None = None
     execution_time_ms: float | None = None
+    verification_time_ms: float | None = None
+    edit_to_verified_time_ms: float | None = None
+    edit_started: float | None = None
     tests_passed = 0
     tests_failed = 0
     syntax_error = False
@@ -317,6 +334,11 @@ def run_task(
     rollback_success: bool | None = None
     patch_generated = mode in {"state", "aether"} or is_agent_task(task)
     patch_size: int | None = None
+    source_size_bytes: int | None = None
+    repository_size_bytes: int | None = None
+    repository_file_count: int | None = None
+    output_size_bytes: int | None = None
+    traditional_output_size_bytes: int | None = None
     usage: dict[str, Any] = {}
     agent_info: dict[str, Any] = {}
     hybrid_decision: dict[str, Any] = {}
@@ -324,31 +346,57 @@ def run_task(
     failure_detected = False
 
     try:
+        setup_started = time.perf_counter()
         write_project(workdir, task)
+        repository_setup_time_ms = elapsed_ms(setup_started)
         before_hash = tree_hash(workdir)
+        source_path = workdir / source_file_for(task)
+        source_size_bytes = len(source_path.read_bytes())
+        repository_size_bytes, repository_file_count = tree_size(workdir)
         if mode == "control":
             if is_agent_task(task):
                 patch, agent_info, usage = generate_patch(workdir, task, args, trial)
                 patch_size = len(json.dumps(patch, sort_keys=True).encode("utf-8"))
                 usage.update(estimate_patch_tokens(workdir, task, patch, trial, args))
                 t0 = time.perf_counter()
+                edit_started = t0
                 apply_unchecked_patch(workdir, patch)
+            elif uses_reference_rewrite_control(task):
+                patch = build_patch(task)
+                reference_output = render_reference_output(workdir, task, patch)
+                usage.update(estimate_full_rewrite_tokens(workdir, task, reference_output, trial, args))
+                patch_generated = True
+                patch_size = len(reference_output.encode("utf-8"))
+                output_size_bytes = patch_size
+                traditional_output_size_bytes = patch_size
+                t0 = time.perf_counter()
+                edit_started = t0
+                apply_full_rewrite(workdir, task, reference_output)
             else:
                 t0 = time.perf_counter()
+                edit_started = t0
                 apply_control_edit(workdir, task)
             execution_time_ms = elapsed_ms(t0)
         elif mode == "state":
             patch, agent_info, usage = generate_patch(workdir, task, args, trial)
             patch_size = len(json.dumps(patch, sort_keys=True).encode("utf-8"))
-            usage.update(estimate_patch_tokens(workdir, task, patch, trial, args))
+            reference_output = reference_output_for_metrics(workdir, task, patch)
+            usage.update(estimate_patch_tokens(workdir, task, patch, trial, args, reference_output))
+            output_size_bytes = patch_size
+            traditional_output_size_bytes = encoded_size(reference_output)
             t0 = time.perf_counter()
+            edit_started = t0
             apply_state_patch(workdir, patch)
             execution_time_ms = elapsed_ms(t0)
         elif mode == "aether":
             patch, agent_info, usage = generate_patch(workdir, task, args, trial)
             patch_size = len(json.dumps(patch, sort_keys=True).encode("utf-8"))
-            usage.update(estimate_patch_tokens(workdir, task, patch, trial, args))
+            reference_output = reference_output_for_metrics(workdir, task, patch)
+            usage.update(estimate_patch_tokens(workdir, task, patch, trial, args, reference_output))
+            output_size_bytes = patch_size
+            traditional_output_size_bytes = encoded_size(reference_output)
             t0 = time.perf_counter()
+            edit_started = t0
             result = apply_aether_patch(workdir, patch)
             execution_time_ms = elapsed_ms(t0)
             validation_time_ms = result["validation_time_ms"]
@@ -361,22 +409,33 @@ def run_task(
         else:
             patch, agent_info, usage = generate_patch(workdir, task, args, trial)
             patch_size = len(json.dumps(patch, sort_keys=True).encode("utf-8"))
-            usage.update(estimate_patch_tokens(workdir, task, patch, trial, args))
+            reference_output = reference_output_for_metrics(workdir, task, patch)
+            usage.update(estimate_patch_tokens(workdir, task, patch, trial, args, reference_output))
+            output_size_bytes = patch_size
+            traditional_output_size_bytes = encoded_size(reference_output)
             hybrid_decision = choose_hybrid_mode(task, usage, args)
             selected_mode = hybrid_decision["selected_mode"]
             if selected_mode == "control":
+                if reference_output is not None:
+                    usage.update(estimate_full_rewrite_tokens(workdir, task, reference_output, trial, args))
+                    output_size_bytes = encoded_size(reference_output)
                 t0 = time.perf_counter()
-                if is_agent_task(task):
+                edit_started = t0
+                if uses_reference_rewrite_control(task) and reference_output is not None:
+                    apply_full_rewrite(workdir, task, reference_output)
+                elif is_agent_task(task):
                     apply_unchecked_patch(workdir, patch)
                 else:
                     apply_control_edit(workdir, task)
                 execution_time_ms = elapsed_ms(t0)
             elif selected_mode == "state":
                 t0 = time.perf_counter()
+                edit_started = t0
                 apply_state_patch(workdir, patch)
                 execution_time_ms = elapsed_ms(t0)
             else:
                 t0 = time.perf_counter()
+                edit_started = t0
                 result = apply_aether_patch(workdir, patch)
                 execution_time_ms = elapsed_ms(t0)
                 validation_time_ms = result["validation_time_ms"]
@@ -387,6 +446,7 @@ def run_task(
                     error_type = "validation_failed" if validation_failed else "aether_apply_failed"
                     error_detail = "; ".join(stringify_error(item) for item in result["errors"])
 
+        verification_started = time.perf_counter()
         source_path = workdir / source_file_for(task)
         compile_result = check_syntax(source_path, task.language)
         if not compile_result[0]:
@@ -432,6 +492,9 @@ def run_task(
                 and expected_failure_matches
                 and (not rollback_triggered or repository_restored)
             )
+        verification_time_ms = elapsed_ms(verification_started)
+        if edit_started is not None:
+            edit_to_verified_time_ms = elapsed_ms(edit_started)
     except Exception as exc:  # Keep benchmark failures visible in raw output.
         error_type = exc.__class__.__name__
         error_detail = f"{exc}\n{traceback.format_exc(limit=8)}"
@@ -465,6 +528,7 @@ def run_task(
             "suite": suite,
             "workdir_kept": bool(args.keep_workdirs),
             "test_command": task.test_command,
+            "verification_level": task.verification_level,
             "timeout_ms": task.timeout_ms,
             "expected_success": task.expected_success,
             "category": task.category,
@@ -482,6 +546,11 @@ def run_task(
         },
         "patch_generated": patch_generated,
         "patch_size": patch_size,
+        "source_size_bytes": source_size_bytes,
+        "repository_size_bytes": repository_size_bytes,
+        "repository_file_count": repository_file_count,
+        "output_size_bytes": output_size_bytes,
+        "traditional_output_size_bytes": traditional_output_size_bytes,
         "input_tokens": usage.get("input_tokens"),
         "output_tokens": usage.get("output_tokens"),
         "estimated_input_tokens": usage.get("estimated_input_tokens"),
@@ -495,8 +564,12 @@ def run_task(
         "agent_attempts": usage.get("agent_attempts"),
         "agent_latency_ms": usage.get("agent_latency_ms"),
         "agent_cost_usd": usage.get("agent_cost_usd"),
+        "repository_setup_time_ms": rounded_ms(repository_setup_time_ms),
         "execution_time_ms": round(execution_time_ms, 3) if execution_time_ms is not None else None,
         "validation_time_ms": round(validation_time_ms, 3) if validation_time_ms is not None else None,
+        "verification_time_ms": rounded_ms(verification_time_ms),
+        "edit_to_verified_time_ms": rounded_ms(edit_to_verified_time_ms),
+        "total_task_time_ms": rounded_ms(elapsed_ms(task_started)),
         "tests_passed": tests_passed,
         "tests_failed": tests_failed,
         "syntax_error": syntax_error,
@@ -541,15 +614,49 @@ def apply_unchecked_patch(workdir: Path, patch: dict[str, Any]) -> None:
     apply_python_unchecked_patch(workdir, patch)
 
 
+def uses_reference_rewrite_control(task: BenchmarkTask) -> bool:
+    return task.category == "external_repository"
+
+
+def reference_output_for_metrics(
+    workdir: Path,
+    task: BenchmarkTask,
+    patch: dict[str, Any],
+) -> str | None:
+    if task.category != "external_repository" or not task.expected_success:
+        return None
+    return render_reference_output(workdir, task, patch)
+
+
+def render_reference_output(
+    workdir: Path,
+    task: BenchmarkTask,
+    patch: dict[str, Any],
+) -> str:
+    reference_root = Path(tempfile.mkdtemp(prefix="aether-bench-reference-"))
+    try:
+        relative_path = Path(source_file_for(task))
+        source = workdir / relative_path
+        target = reference_root / relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        apply_state_patch(reference_root, patch)
+        return target.read_text(encoding="utf-8")
+    finally:
+        shutil.rmtree(reference_root, ignore_errors=True)
+
+
+def apply_full_rewrite(workdir: Path, task: BenchmarkTask, source: str) -> None:
+    target = workdir / source_file_for(task)
+    target.write_bytes(source.encode("utf-8"))
+
+
+def encoded_size(value: str | None) -> int | None:
+    return len(value.encode("utf-8")) if value is not None else None
+
+
 def apply_python_patch(workdir: Path, patch: dict[str, Any]) -> dict[str, Any]:
-    if str(PYTHON_SDK) not in sys.path:
-        sys.path.insert(0, str(PYTHON_SDK))
-    if (
-        importlib.util.find_spec("jsonschema") is None
-        and PYTHON_SDK_VENV_SITE.exists()
-        and str(PYTHON_SDK_VENV_SITE) not in sys.path
-    ):
-        sys.path.insert(1, str(PYTHON_SDK_VENV_SITE))
+    ensure_python_sdk_paths()
     from ai_runtime.orchestrator import PatchOrchestrator
 
     orchestrator = PatchOrchestrator(project_root=workdir, ae_binary=None)
@@ -564,25 +671,48 @@ def apply_python_patch(workdir: Path, patch: dict[str, Any]) -> dict[str, Any]:
 
 
 def apply_python_state_patch(workdir: Path, patch: dict[str, Any]) -> None:
-    if str(PYTHON_SDK) not in sys.path:
-        sys.path.insert(0, str(PYTHON_SDK))
+    ensure_python_sdk_paths()
     from ai_runtime.ast.engine import apply_patch
 
     apply_patch(patch, str(workdir))
 
 
 def apply_python_unchecked_patch(workdir: Path, patch: dict[str, Any]) -> None:
-    if str(PYTHON_SDK) not in sys.path:
-        sys.path.insert(0, str(PYTHON_SDK))
-    if (
-        importlib.util.find_spec("libcst") is None
-        and PYTHON_SDK_VENV_SITE.exists()
-        and str(PYTHON_SDK_VENV_SITE) not in sys.path
-    ):
-        sys.path.insert(1, str(PYTHON_SDK_VENV_SITE))
+    ensure_python_sdk_paths()
     from ai_runtime.ast.engine import apply_patch
 
     apply_patch(patch, str(workdir))
+
+
+def ensure_python_sdk_paths() -> None:
+    if str(PYTHON_SDK) not in sys.path:
+        sys.path.insert(0, str(PYTHON_SDK))
+    missing = [name for name in ("jsonschema", "libcst", "pathspec") if importlib.util.find_spec(name) is None]
+    if not missing:
+        return
+    if python_sdk_venv_is_compatible() and str(PYTHON_SDK_VENV_SITE) not in sys.path:
+        sys.path.insert(1, str(PYTHON_SDK_VENV_SITE))
+        return
+    raise RuntimeError(
+        "Python benchmark dependencies are missing or use an incompatible interpreter: "
+        f"{', '.join(missing)}. Run the benchmark from a Python {sys.version_info.major}."
+        f"{sys.version_info.minor} environment with sdk/python installed."
+    )
+
+
+def python_sdk_venv_is_compatible() -> bool:
+    if not PYTHON_SDK_VENV_SITE.exists():
+        return False
+    config_path = PYTHON_SDK / ".venv" / "pyvenv.cfg"
+    if not config_path.exists():
+        return True
+    match = re.search(
+        r"(?m)^version(?:_info)?\s*=\s*(\d+)\.(\d+)",
+        config_path.read_text(encoding="utf-8"),
+    )
+    if match is None:
+        return True
+    return (int(match.group(1)), int(match.group(2))) == sys.version_info[:2]
 
 
 def apply_node_patch(workdir: Path, patch: dict[str, Any], unchecked: bool = False) -> dict[str, Any]:
@@ -658,17 +788,36 @@ def estimate_patch_tokens(
     patch: dict[str, Any],
     trial: int,
     args: argparse.Namespace,
+    traditional_output: str | None = None,
 ) -> dict[str, Any]:
     estimator = token_estimator_name()
     prompt_payload = build_token_prompt_payload(workdir, task, trial, args)
     patch_output = json.dumps(patch, sort_keys=True)
     source_path = workdir / source_file_for(task)
-    traditional_output = source_path.read_text(encoding="utf-8") if source_path.exists() else ""
+    if traditional_output is None:
+        traditional_output = source_path.read_text(encoding="utf-8") if source_path.exists() else ""
     return {
         "estimated_input_tokens": count_tokens(json.dumps(prompt_payload, sort_keys=True)),
         "estimated_output_tokens": count_tokens(patch_output),
         "estimated_traditional_output_tokens": count_tokens(traditional_output),
         "token_estimator": estimator,
+    }
+
+
+def estimate_full_rewrite_tokens(
+    workdir: Path,
+    task: BenchmarkTask,
+    rewritten_source: str,
+    trial: int,
+    args: argparse.Namespace,
+) -> dict[str, Any]:
+    prompt_payload = build_full_rewrite_prompt_payload(workdir, task, trial, args)
+    output_tokens = count_tokens(rewritten_source)
+    return {
+        "estimated_input_tokens": count_tokens(json.dumps(prompt_payload, sort_keys=True)),
+        "estimated_output_tokens": output_tokens,
+        "estimated_traditional_output_tokens": output_tokens,
+        "token_estimator": token_estimator_name(),
     }
 
 
@@ -755,6 +904,27 @@ def build_token_prompt_payload(
             "schema_version": "1.0",
             "target_file": source_file_for(task),
         },
+        "agent_adapter": args.agent_adapter if is_agent_task(task) else None,
+    }
+
+
+def build_full_rewrite_prompt_payload(
+    workdir: Path,
+    task: BenchmarkTask,
+    trial: int,
+    args: argparse.Namespace,
+) -> dict[str, Any]:
+    source_path = workdir / source_file_for(task)
+    return {
+        "task_id": task.task_id,
+        "trial": trial,
+        "language": task.language,
+        "repository": task.repository,
+        "category": task.category,
+        "description": task.description,
+        "source_file": source_file_for(task),
+        "source": source_path.read_text(encoding="utf-8") if source_path.exists() else "",
+        "output_contract": "Return the complete updated source file.",
         "agent_adapter": args.agent_adapter if is_agent_task(task) else None,
     }
 
@@ -955,31 +1125,113 @@ def checkout_git_repository(workdir: Path, task: BenchmarkTask) -> None:
             f"for manifest {task.repository_manifest}"
         )
 
-    url = source["url"]
-    commit = source["commit"]
-    subprocess.run(
-        ["git", "clone", "--quiet", "--no-tags", "--depth", "1", url, str(workdir)],
-        cwd=str(REPO_ROOT),
-        text=True,
-        capture_output=True,
-        timeout=120,
-        check=True,
+    url = str(source["url"])
+    commit = str(source["commit"])
+    if re.fullmatch(r"[0-9a-fA-F]{40}", commit) is None:
+        raise ValueError(f"Repository manifest {task.repository_manifest} must pin a 40-character commit SHA")
+
+    cache_root = repository_cache_root()
+    cache_root.mkdir(parents=True, exist_ok=True)
+    cache_key = repository_cache_key(task.repository, commit)
+    cached_checkout = cache_root / cache_key
+    marker = cached_checkout / ".aether-benchmark-cache.json"
+
+    if not repository_cache_is_valid(marker, url, commit):
+        remove_repository_cache_entry(cache_root, cached_checkout)
+        staged_checkout = Path(tempfile.mkdtemp(prefix=f".{cache_key}-", dir=str(cache_root)))
+        try:
+            run_git_with_retries(
+                ["git", "clone", "--quiet", "--no-tags", "--depth", "1", url, str(staged_checkout)],
+                cwd=REPO_ROOT,
+                timeout=120,
+            )
+            run_git_with_retries(
+                ["git", "fetch", "--quiet", "--depth", "1", "origin", commit],
+                cwd=staged_checkout,
+                timeout=120,
+            )
+            run_git_with_retries(
+                ["git", "checkout", "--quiet", commit],
+                cwd=staged_checkout,
+                timeout=60,
+            )
+            (staged_checkout / ".aether-benchmark-cache.json").write_text(
+                json.dumps({"url": url, "commit": commit}, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            try:
+                staged_checkout.replace(cached_checkout)
+            except OSError:
+                if repository_cache_is_valid(marker, url, commit):
+                    shutil.rmtree(staged_checkout, ignore_errors=True)
+                else:
+                    raise
+        except Exception:
+            shutil.rmtree(staged_checkout, ignore_errors=True)
+            raise
+
+    shutil.copytree(
+        cached_checkout,
+        workdir,
+        dirs_exist_ok=True,
+        ignore=shutil.ignore_patterns(".git", ".aether-benchmark-cache.json"),
     )
-    subprocess.run(
-        ["git", "fetch", "--quiet", "--depth", "1", "origin", commit],
-        cwd=str(workdir),
-        text=True,
-        capture_output=True,
-        timeout=120,
-        check=False,
-    )
-    subprocess.run(
-        ["git", "checkout", "--quiet", commit],
-        cwd=str(workdir),
-        text=True,
-        capture_output=True,
-        timeout=60,
-        check=True,
+
+
+def repository_cache_root() -> Path:
+    configured = os.environ.get("AETHER_BENCHMARK_REPO_CACHE")
+    if configured:
+        return Path(configured).resolve()
+    return REPO_ROOT / ".tmp" / "benchmark-repositories"
+
+
+def repository_cache_key(repository: str, commit: str) -> str:
+    safe_repository = re.sub(r"[^A-Za-z0-9_.-]+", "-", repository).strip("-._")
+    return f"{safe_repository or 'repository'}-{commit.lower()}"
+
+
+def repository_cache_is_valid(marker: Path, url: str, commit: str) -> bool:
+    if not marker.is_file():
+        return False
+    try:
+        payload = json.loads(marker.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return payload == {"url": url, "commit": commit}
+
+
+def remove_repository_cache_entry(cache_root: Path, entry: Path) -> None:
+    if not entry.exists():
+        return
+    if entry.resolve().parent != cache_root.resolve():
+        raise RuntimeError(f"Refusing to remove repository cache outside {cache_root}")
+    shutil.rmtree(entry)
+
+
+def run_git_with_retries(
+    command: list[str],
+    *,
+    cwd: Path,
+    timeout: int,
+    attempts: int = 3,
+) -> None:
+    last_result: subprocess.CompletedProcess[str] | None = None
+    for attempt in range(1, attempts + 1):
+        last_result = subprocess.run(
+            command,
+            cwd=str(cwd),
+            text=True,
+            capture_output=True,
+            timeout=timeout,
+            check=False,
+        )
+        if last_result.returncode == 0:
+            return
+        if attempt < attempts:
+            time.sleep(float(attempt))
+    detail = (last_result.stderr or last_result.stdout).strip() if last_result else "unknown error"
+    raise RuntimeError(
+        f"Git command failed after {attempts} attempts ({' '.join(command[:3])}): {detail}"
     )
 
 
@@ -1194,7 +1446,7 @@ def run_verification(
     source_path: Path,
     task: BenchmarkTask,
 ) -> subprocess.CompletedProcess[str]:
-    if task.category == "real_repository":
+    if task.category in {"real_repository", "external_repository"}:
         return run_test_command(workdir, task.test_command, task.timeout_ms)
     return run_program(source_path, task.language, task.timeout_ms)
 
@@ -1204,11 +1456,20 @@ def run_test_command(
     command: str,
     timeout_ms: int,
 ) -> subprocess.CompletedProcess[str]:
-    py_compile_prefix = "python -m py_compile "
-    if command.startswith(py_compile_prefix):
-        target = command[len(py_compile_prefix):].strip()
+    command_parts = shlex.split(command, posix=True)
+    if command_parts and command_parts[0] in {"python", "python3"}:
+        command_parts[0] = sys.executable
         return subprocess.run(
-            [sys.executable, "-m", "py_compile", target],
+            command_parts,
+            cwd=str(workdir),
+            text=True,
+            capture_output=True,
+            timeout=timeout_ms / 1000,
+            check=False,
+        )
+    if command_parts and command_parts[0] == "node":
+        return subprocess.run(
+            command_parts,
             cwd=str(workdir),
             text=True,
             capture_output=True,
@@ -1281,7 +1542,8 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def correctness_metrics(records: list[dict[str, Any]]) -> dict[str, Any]:
-    valid = [r for r in records if r["configuration"].get("category") == "valid_transformation"]
+    valid_categories = {"valid_transformation", "real_repository", "external_repository", "agent_patch"}
+    valid = [r for r in records if r["configuration"].get("category") in valid_categories]
     invalid = [
         r for r in records
         if r["configuration"].get("category") == "invalid_patch"
@@ -1419,6 +1681,26 @@ def tree_hash(root: Path) -> str:
     return digest.hexdigest()
 
 
+def tree_size(root: Path) -> tuple[int, int]:
+    total_bytes = 0
+    file_count = 0
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(root).as_posix()
+        if (
+            rel.startswith(".ai_runtime/")
+            or rel.startswith(".git/")
+            or rel in {".agent-task.json", ".benchmark-patch.json"}
+            or "__pycache__/" in rel
+            or rel.endswith(".pyc")
+        ):
+            continue
+        total_bytes += path.stat().st_size
+        file_count += 1
+    return total_bytes, file_count
+
+
 def git_commit_sha() -> str | None:
     try:
         result = subprocess.run(
@@ -1456,6 +1738,10 @@ def load_json(path: Path) -> Any:
 
 def elapsed_ms(start: float) -> float:
     return (time.perf_counter() - start) * 1000
+
+
+def rounded_ms(value: float | None) -> float | None:
+    return round(value, 3) if value is not None else None
 
 
 def now_iso() -> str:

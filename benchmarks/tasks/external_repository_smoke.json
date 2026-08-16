@@ -1,7 +1,7 @@
 {
   "suite": "external-repository",
-  "version": "0.1.0",
-  "description": "Pinned external GitHub repository benchmark tasks. These require --allow-network-repos.",
+  "version": "0.2.0",
+  "description": "Pinned external Python and JavaScript repository tasks. Network access is required only to populate the immutable checkout cache.",
   "tasks": [
     {
       "task_id": "external-markupsafe-add-import",
@@ -11,31 +11,291 @@
       "fixture": "repo:git:pallets-markupsafe",
       "source_file": "src/markupsafe/_native.py",
       "category": "external_repository",
-      "description": "Clone a pinned external MarkupSafe commit, apply a structured import update, and verify a standalone Python module.",
-      "test_command": "python -m py_compile src/markupsafe/_native.py",
+      "description": "Add a standard-library import to MarkupSafe while preserving escape behavior.",
+      "test_command": "python -c \"import sys; sys.path.insert(0, 'src'); from markupsafe._native import _escape_inner; assert _escape_inner('<a&') == '&lt;a&amp;'\"",
+      "verification_level": "behavior",
       "timeout_ms": 30000,
-      "supported_modes": [
-        "state",
-        "aether",
-        "hybrid"
-      ],
+      "supported_modes": ["control", "state", "aether"],
       "expected_success": true,
       "expected_stdout": null,
-      "expected_content": [
-        "import json"
-      ],
+      "expected_content": ["import json"],
       "expected_absent_content": [],
       "patch": {
         "action": "update_import",
-        "target": {
-          "file": "src/markupsafe/_native.py"
-        },
+        "target": {"file": "src/markupsafe/_native.py"},
+        "changes": {"operation": "add_import", "imports": ["import json"]}
+      }
+    },
+    {
+      "task_id": "external-markupsafe-modify-function",
+      "language": "python",
+      "repository": "pallets-markupsafe",
+      "repository_manifest": "benchmarks/repositories/markupsafe_pinned.json",
+      "fixture": "repo:git:pallets-markupsafe",
+      "source_file": "src/markupsafe/_native.py",
+      "category": "external_repository",
+      "description": "Rewrite MarkupSafe's native escape function body without changing behavior.",
+      "test_command": "python -c \"import sys; sys.path.insert(0, 'src'); from markupsafe._native import _escape_inner; assert _escape_inner('<a&') == '&lt;a&amp;'\"",
+      "verification_level": "behavior",
+      "timeout_ms": 30000,
+      "supported_modes": ["control", "state", "aether"],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": ["escaped = (", "return escaped"],
+      "expected_absent_content": ["def _escape_inner(s: str, /) -> str:\n    return ("],
+      "patch": {
+        "action": "modify_function",
+        "target": {"file": "src/markupsafe/_native.py", "symbol": "_escape_inner", "symbol_type": "function"},
         "changes": {
-          "operation": "add_import",
-          "imports": [
-            "import json"
-          ]
+          "operation": "replace_body",
+          "payload": "escaped = (\n    s.replace(\"&\", \"&amp;\")\n    .replace(\">\", \"&gt;\")\n    .replace(\"<\", \"&lt;\")\n    .replace(\"'\", \"&#39;\")\n    .replace('\\\"', \"&#34;\")\n)\nreturn escaped"
         }
+      }
+    },
+    {
+      "task_id": "external-packaging-add-import",
+      "language": "python",
+      "repository": "pypa-packaging",
+      "repository_manifest": "benchmarks/repositories/packaging_pinned.json",
+      "fixture": "repo:git:pypa-packaging",
+      "source_file": "src/packaging/_structures.py",
+      "category": "external_repository",
+      "description": "Add a standard-library import after Packaging's future import and verify the module.",
+      "test_command": "python -c \"import sys; sys.path.insert(0, 'src'); from packaging._structures import Infinity; assert repr(Infinity) == 'Infinity'\"",
+      "verification_level": "behavior",
+      "timeout_ms": 30000,
+      "supported_modes": ["control", "state", "aether"],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": ["from __future__ import annotations", "import copy"],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "update_import",
+        "target": {"file": "src/packaging/_structures.py"},
+        "changes": {"operation": "add_import", "imports": ["import copy"]}
+      }
+    },
+    {
+      "task_id": "external-packaging-modify-function",
+      "language": "python",
+      "repository": "pypa-packaging",
+      "repository_manifest": "benchmarks/repositories/packaging_pinned.json",
+      "fixture": "repo:git:pypa-packaging",
+      "source_file": "src/packaging/utils.py",
+      "category": "external_repository",
+      "description": "Rewrite Packaging's normalized-name predicate while preserving public behavior.",
+      "test_command": "python -c \"import sys; sys.path.insert(0, 'src'); from packaging.utils import is_normalized_name; assert is_normalized_name('requests') and not is_normalized_name('Django')\"",
+      "verification_level": "behavior",
+      "timeout_ms": 30000,
+      "supported_modes": ["control", "state", "aether"],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": ["match = _normalized_regex.fullmatch(name)", "return match is not None"],
+      "expected_absent_content": ["return _normalized_regex.fullmatch(name) is not None"],
+      "patch": {
+        "action": "modify_function",
+        "target": {"file": "src/packaging/utils.py", "symbol": "is_normalized_name", "symbol_type": "function"},
+        "changes": {"operation": "replace_body", "payload": "match = _normalized_regex.fullmatch(name)\nreturn match is not None"}
+      }
+    },
+    {
+      "task_id": "external-requests-add-import",
+      "language": "python",
+      "repository": "psf-requests",
+      "repository_manifest": "benchmarks/repositories/requests_pinned.json",
+      "fixture": "repo:git:psf-requests",
+      "source_file": "src/requests/_internal_utils.py",
+      "category": "external_repository",
+      "description": "Add a standard-library import to Requests' internal utility module.",
+      "test_command": "python -m py_compile src/requests/_internal_utils.py",
+      "verification_level": "syntax",
+      "timeout_ms": 30000,
+      "supported_modes": ["control", "state", "aether"],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": ["import string"],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "update_import",
+        "target": {"file": "src/requests/_internal_utils.py"},
+        "changes": {"operation": "add_import", "imports": ["import string"]}
+      }
+    },
+    {
+      "task_id": "external-requests-modify-function",
+      "language": "python",
+      "repository": "psf-requests",
+      "repository_manifest": "benchmarks/repositories/requests_pinned.json",
+      "fixture": "repo:git:psf-requests",
+      "source_file": "src/requests/_internal_utils.py",
+      "category": "external_repository",
+      "description": "Rewrite Requests' ASCII predicate with Python's native string operation.",
+      "test_command": "python -m py_compile src/requests/_internal_utils.py",
+      "verification_level": "syntax",
+      "timeout_ms": 30000,
+      "supported_modes": ["control", "state", "aether"],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": ["return u_string.isascii()"],
+      "expected_absent_content": ["except UnicodeEncodeError:"],
+      "patch": {
+        "action": "modify_function",
+        "target": {"file": "src/requests/_internal_utils.py", "symbol": "unicode_is_ascii", "symbol_type": "function"},
+        "changes": {"operation": "replace_body", "payload": "assert isinstance(u_string, str)\nreturn u_string.isascii()"}
+      }
+    },
+    {
+      "task_id": "external-escape-regexp-add-import",
+      "language": "javascript",
+      "repository": "sindresorhus-escape-string-regexp",
+      "repository_manifest": "benchmarks/repositories/escape_string_regexp_pinned.json",
+      "fixture": "repo:git:sindresorhus-escape-string-regexp",
+      "source_file": "index.js",
+      "category": "external_repository",
+      "description": "Add a built-in ESM import while preserving escape-string-regexp behavior.",
+      "test_command": "node --input-type=module -e \"import escapeStringRegexp from './index.js'; if (escapeStringRegexp('.').length !== 2) process.exit(1)\"",
+      "verification_level": "behavior",
+      "timeout_ms": 30000,
+      "supported_modes": ["control", "state", "aether"],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": ["import process from 'node:process';"],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "update_import",
+        "target": {"file": "index.js"},
+        "changes": {"operation": "add_import", "imports": ["import process from 'node:process';"]}
+      }
+    },
+    {
+      "task_id": "external-escape-regexp-modify-function",
+      "language": "javascript",
+      "repository": "sindresorhus-escape-string-regexp",
+      "repository_manifest": "benchmarks/repositories/escape_string_regexp_pinned.json",
+      "fixture": "repo:git:sindresorhus-escape-string-regexp",
+      "source_file": "index.js",
+      "category": "external_repository",
+      "description": "Rewrite escape-string-regexp's exported function body while preserving behavior.",
+      "test_command": "node --input-type=module -e \"import escapeStringRegexp from './index.js'; if (escapeStringRegexp('.').length !== 2) process.exit(1)\"",
+      "verification_level": "behavior",
+      "timeout_ms": 30000,
+      "supported_modes": ["control", "state", "aether"],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": ["const escaped = string", "return escaped;"],
+      "expected_absent_content": ["return string\n\t\t.replace"],
+      "patch": {
+        "action": "modify_function",
+        "target": {"file": "index.js", "symbol": "escapeStringRegexp", "symbol_type": "function"},
+        "changes": {
+          "operation": "replace_body",
+          "payload": "if (typeof string !== 'string') {\n\tthrow new TypeError('Expected a string');\n}\nconst escaped = string\n\t.replace(/[|\\\\{}()[\\]^$+*?.]/g, '\\\\$&')\n\t.replace(/-/g, '\\\\x2d');\nreturn escaped;"
+        }
+      }
+    },
+    {
+      "task_id": "external-yocto-queue-add-import",
+      "language": "javascript",
+      "repository": "sindresorhus-yocto-queue",
+      "repository_manifest": "benchmarks/repositories/yocto_queue_pinned.json",
+      "fixture": "repo:git:sindresorhus-yocto-queue",
+      "source_file": "index.js",
+      "category": "external_repository",
+      "description": "Add a built-in ESM import while preserving queue behavior.",
+      "test_command": "node --input-type=module -e \"import Queue from './index.js'; const queue = new Queue(); queue.enqueue(42); if (queue.dequeue() !== 42) process.exit(1)\"",
+      "verification_level": "behavior",
+      "timeout_ms": 30000,
+      "supported_modes": ["control", "state", "aether"],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": ["import process from 'node:process';"],
+      "expected_absent_content": [],
+      "patch": {
+        "action": "update_import",
+        "target": {"file": "index.js"},
+        "changes": {"operation": "add_import", "imports": ["import process from 'node:process';"]}
+      }
+    },
+    {
+      "task_id": "external-yocto-queue-replace-block",
+      "language": "javascript",
+      "repository": "sindresorhus-yocto-queue",
+      "repository_manifest": "benchmarks/repositories/yocto_queue_pinned.json",
+      "fixture": "repo:git:sindresorhus-yocto-queue",
+      "source_file": "index.js",
+      "category": "external_repository",
+      "description": "Replace yocto-queue's peek implementation while preserving queue behavior.",
+      "test_command": "node --input-type=module -e \"import Queue from './index.js'; const queue = new Queue(); queue.enqueue(42); if (queue.peek() !== 42) process.exit(1)\"",
+      "verification_level": "behavior",
+      "timeout_ms": 30000,
+      "supported_modes": ["control", "state", "aether"],
+      "expected_success": true,
+      "expected_stdout": null,
+      "expected_content": ["const head = this.#head;", "return head.value;"],
+      "expected_absent_content": ["return this.#head.value;"],
+      "patch": {
+        "action": "replace_block",
+        "target": {"file": "index.js"},
+        "changes": {
+          "operation": "context_replace",
+          "context_before": "\tpeek() {\n",
+          "context_after": "\n\t}\n\n\tclear()",
+          "payload": "\t\tconst head = this.#head;\n\t\tif (!head) {\n\t\t\treturn;\n\t\t}\n\n\t\treturn head.value;"
+        }
+      }
+    },
+    {
+      "task_id": "external-markupsafe-invalid-rollback",
+      "language": "python",
+      "repository": "pallets-markupsafe",
+      "repository_manifest": "benchmarks/repositories/markupsafe_pinned.json",
+      "fixture": "repo:git:pallets-markupsafe",
+      "source_file": "src/markupsafe/_native.py",
+      "category": "external_repository",
+      "failure_type": "syntax_error",
+      "description": "Reject an invalid MarkupSafe function body and restore the pinned repository snapshot.",
+      "test_command": "python -c \"import sys; sys.path.insert(0, 'src'); from markupsafe._native import _escape_inner; assert _escape_inner('<') == '&lt;'\"",
+      "verification_level": "safety",
+      "timeout_ms": 30000,
+      "supported_modes": ["aether"],
+      "expected_success": false,
+      "expected_error_type": "aether_apply_failed",
+      "expected_rollback": true,
+      "expected_failure_detected": true,
+      "expected_stdout": null,
+      "expected_content": ["def _escape_inner"],
+      "expected_absent_content": ["return (1 +"],
+      "patch": {
+        "action": "modify_function",
+        "target": {"file": "src/markupsafe/_native.py", "symbol": "_escape_inner", "symbol_type": "function"},
+        "changes": {"operation": "replace_body", "payload": "return (1 +"}
+      }
+    },
+    {
+      "task_id": "external-escape-regexp-invalid-rollback",
+      "language": "javascript",
+      "repository": "sindresorhus-escape-string-regexp",
+      "repository_manifest": "benchmarks/repositories/escape_string_regexp_pinned.json",
+      "fixture": "repo:git:sindresorhus-escape-string-regexp",
+      "source_file": "index.js",
+      "category": "external_repository",
+      "failure_type": "syntax_error",
+      "description": "Reject an invalid JavaScript function body and restore the pinned repository snapshot.",
+      "test_command": "node --input-type=module -e \"import escapeStringRegexp from './index.js'; if (escapeStringRegexp('.').length !== 2) process.exit(1)\"",
+      "verification_level": "safety",
+      "timeout_ms": 30000,
+      "supported_modes": ["aether"],
+      "expected_success": false,
+      "expected_error_type": "aether_apply_failed",
+      "expected_rollback": true,
+      "expected_failure_detected": true,
+      "expected_stdout": null,
+      "expected_content": ["export default function escapeStringRegexp"],
+      "expected_absent_content": ["return (1 +;"],
+      "patch": {
+        "action": "modify_function",
+        "target": {"file": "index.js", "symbol": "escapeStringRegexp", "symbol_type": "function"},
+        "changes": {"operation": "replace_body", "payload": "return (1 +;"}
       }
     }
   ]

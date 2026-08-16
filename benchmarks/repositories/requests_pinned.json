@@ -1,0 +1,11 @@
+{
+  "repository_id": "psf-requests",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/psf/requests.git",
+    "commit": "8068356288978c4f54661ae6f95afe0e0831885e"
+  },
+  "description": "Pinned Requests repository fixture for external Python benchmarks.",
+  "default_timeout_ms": 30000,
+  "license": "Apache-2.0"
+}

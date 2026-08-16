@@ -5,7 +5,7 @@
     "url": "https://github.com/pallets/markupsafe.git",
     "commit": "b2e4d9c7687be25695fffbe93a37622302b24fb1"
   },
-  "description": "Pinned external GitHub repository fixture for Phase 7 external-repository smoke benchmarks.",
+  "description": "Pinned MarkupSafe fixture for external Python correctness and rollback benchmarks.",
   "default_timeout_ms": 30000,
   "license": "BSD-3-Clause"
 }

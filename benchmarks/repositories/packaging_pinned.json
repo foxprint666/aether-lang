@@ -1,0 +1,11 @@
+{
+  "repository_id": "pypa-packaging",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/pypa/packaging.git",
+    "commit": "f173f774d88b4dc962cc37eb2e707fd8b4838f71"
+  },
+  "description": "Pinned Packaging repository fixture for external Python benchmarks.",
+  "default_timeout_ms": 30000,
+  "license": "Apache-2.0 OR BSD-2-Clause"
+}

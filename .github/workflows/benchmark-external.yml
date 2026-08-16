@@ -1,0 +1,76 @@
+name: External Repository Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      trials:
+        description: Matched trials per task and mode
+        required: true
+        default: "3"
+
+permissions:
+  contents: read
+
+jobs:
+  external-repositories:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: sdk/python/pyproject.toml
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: sdk/node/package-lock.json
+
+      - name: Cache pinned repository checkouts
+        uses: actions/cache@v4
+        with:
+          path: .tmp/benchmark-repositories
+          key: external-repos-${{ runner.os }}-${{ hashFiles('benchmarks/repositories/*_pinned.json') }}
+
+      - name: Install Python benchmark dependencies
+        run: python -m pip install -e sdk/python tiktoken
+
+      - name: Install and build Node SDK
+        working-directory: sdk/node
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run matched external benchmark
+        run: >-
+          python benchmarks/run.py
+          --suite external-repository
+          --mode all-modes
+          --trials ${{ inputs.trials }}
+          --allow-network-repos
+          --experiment-id external-${{ github.run_id }}
+
+      - name: Build external efficiency report
+        run: >-
+          python benchmarks/analysis/external_efficiency.py
+          benchmarks/results/raw/external-${{ github.run_id }}.json
+          --json-output benchmarks/results/processed/external-${{ github.run_id }}-efficiency.json
+          --markdown-output benchmarks/results/processed/EXTERNAL_REPOSITORY_REPORT.md
+
+      - name: Upload external benchmark evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: external-repository-benchmark-${{ github.run_id }}
+          path: |
+            benchmarks/results/raw/external-${{ github.run_id }}.json
+            benchmarks/results/processed/external-${{ github.run_id }}.csv
+            benchmarks/results/processed/external-${{ github.run_id }}-efficiency.json
+            benchmarks/results/processed/EXTERNAL_REPOSITORY_REPORT.md
