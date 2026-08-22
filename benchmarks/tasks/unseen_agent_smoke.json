@@ -1,0 +1,31 @@
+{
+  "suite": "unseen-agent-smoke",
+  "version": "0.1.0",
+  "description": "Small hidden-test tasks for the command-backed unseen agent A/B runner. Agent descriptors exclude test commands and evaluator fields.",
+  "tasks": [
+    {
+      "task_id": "ux-js-total",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_large_math",
+      "source_file": "app.js",
+      "category": "unseen_agent_ab",
+      "description": "Change total so the program prints total=42 while preserving add.",
+      "test_command": "node --check app.js; node app.js",
+      "expected_stdout": "total=42",
+      "timeout_ms": 10000
+    },
+    {
+      "task_id": "ux-js-block",
+      "language": "javascript",
+      "repository": "synthetic-temp-project",
+      "fixture": "js_large_block",
+      "source_file": "app.js",
+      "category": "unseen_agent_ab",
+      "description": "Change value so the program prints value=42 without changing the public function name.",
+      "test_command": "node --check app.js; node app.js",
+      "expected_stdout": "value=42",
+      "timeout_ms": 10000
+    }
+  ]
+}
