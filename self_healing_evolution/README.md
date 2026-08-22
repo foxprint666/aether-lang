@@ -132,13 +132,15 @@ benchmarks/results/public/SELF_HEALING_AB_REPORT.md
 
 Current result:
 
+- Mutation cases: `8`
 - Raw repair success rate: `1.0`
 - Aether repair success rate: `1.0`
 - Raw safety success rate on invalid repair: `0.0`
 - Aether safety success rate on invalid repair: `1.0`
-- Raw corruptions after failed attempts: `1`
+- Raw corruptions after failed attempts: `3`
 - Aether corruptions after failed attempts: `0`
-- Aether output-token savings: `57.921811%`
+- Aether output-token savings: `80.352505%`
+- Aether output-byte savings: `85.437535%`
 - Self-healing gate passed: `true`
 
 ## Folder Map

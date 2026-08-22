@@ -1,9 +1,15 @@
 task_id,pair_id,trial,arm,language,failure_type,invalid_repair,repair_success,safety_success,outcome_success,applicable,validation_failed,rollback_triggered,syntax_valid,hidden_test_pass,repository_corrupted_on_failure,output_tokens,output_bytes,token_estimator,application_time_ms,verification_time_ms,total_task_time_ms,artifact_sha256,error_type,error_detail
-sh-js-schema-key,sh-js-schema-key:trial-1,1,raw_healing,javascript,schema_mismatch,False,True,False,True,True,False,False,True,True,False,332,1365,heuristic:regex-v1,1.1155,71.5594,175.7618,58f76fa4340b73b9662797033461345a66ae1b73dccd78b67e66457a1f006193,,
-sh-js-schema-key,sh-js-schema-key:trial-1,1,aether_healing,javascript,schema_mismatch,False,True,False,True,True,False,False,True,True,False,154,470,heuristic:regex-v1,581.4314,86.433,776.8293,447314d03c83e7d1dac835626a95a024ecd791d5edb8686e5b6b503d79d1f521,,
-sh-js-null-user,sh-js-null-user:trial-1,1,raw_healing,javascript,none_handling,False,True,False,True,True,False,False,True,True,False,335,1366,heuristic:regex-v1,0.9329,83.6235,185.6247,778e04cd4876f7e46645ec85cf7cad71c3a67ef51c7bb777fc9e58aecfc3e7d6,,
-sh-js-null-user,sh-js-null-user:trial-1,1,aether_healing,javascript,none_handling,False,True,False,True,True,False,False,True,True,False,138,412,heuristic:regex-v1,469.8759,76.8211,633.9639,3dc4f283bb2bc6026c4ff0eeb66823b935cd849a9079129f467996e8b0b85070,,
-sh-js-invalid-rollback,sh-js-invalid-rollback:trial-1,1,raw_healing,javascript,invalid_patch,True,False,False,False,True,False,False,False,False,True,305,1260,heuristic:regex-v1,0.706,77.1672,163.1858,255da6a3348c759edcb96eaf3f65a78f01b96d3c85d7ce81a74c0c46fb1a63e8,syntax_error,"C:\Users\ASHLEY~1\AppData\Local\Temp\aether-healing-sh-js-invalid-rollback-raw_healing-zi6l1pdv\service.js:4
+sh-js-schema-key,sh-js-schema-key:trial-1,1,raw_healing,javascript,schema_mismatch,False,True,False,True,True,False,False,True,True,False,681,2677,heuristic:regex-v1,0.9462,95.4534,189.1696,49e003aff0bee2aa78970b2bd1e9f311e91d5c4e23a0afbb91ce7d23e8128adf,,
+sh-js-schema-key,sh-js-schema-key:trial-1,1,aether_healing,javascript,schema_mismatch,False,True,False,True,True,False,False,True,True,False,154,470,heuristic:regex-v1,478.5441,52.6276,601.1012,a2499a6e1e5c48b9cbdc4f6fdde5526c497096d5b2e51e7163d03f37cfd0d119,,
+sh-js-null-user,sh-js-null-user:trial-1,1,raw_healing,javascript,none_handling,False,True,False,True,True,False,False,True,True,False,684,2678,heuristic:regex-v1,0.6701,58.0555,120.4774,cab93cbde235c7469b3f918bc19377630ad860f50fa6c86d284184d1737d4b9f,,
+sh-js-null-user,sh-js-null-user:trial-1,1,aether_healing,javascript,none_handling,False,True,False,True,True,False,False,True,True,False,138,412,heuristic:regex-v1,378.2865,58.3991,497.6402,5f6ec289c93c66b8dc5b1e47a578f512a40252853b62fba84e510396d8a7b3cc,,
+sh-js-negative-clamp,sh-js-negative-clamp:trial-1,1,raw_healing,javascript,range_validation,False,True,False,True,True,False,False,True,True,False,684,2674,heuristic:regex-v1,0.521,59.2088,122.8312,4713a94f45e9100ba55c7b0876144c0953bc1b7059c893773e71ac52b79dbd7a,,
+sh-js-negative-clamp,sh-js-negative-clamp:trial-1,1,aether_healing,javascript,range_validation,False,True,False,True,True,False,False,True,True,False,135,390,heuristic:regex-v1,322.4246,53.0094,434.815,eed7b2c4bff25b06b2feb9e7e2a095e7535a4fe19303f041acf5bea5b46db07c,,
+sh-js-json-parse,sh-js-json-parse:trial-1,1,raw_healing,javascript,invalid_json_handling,False,True,False,True,True,False,False,True,True,False,687,2702,heuristic:regex-v1,0.5998,53.7532,116.5308,f9431a57239618a8485764dc217401497f1ccd116a2566c59c85d65e222ab1a5,,
+sh-js-json-parse,sh-js-json-parse:trial-1,1,aether_healing,javascript,invalid_json_handling,False,True,False,True,True,False,False,True,True,False,144,403,heuristic:regex-v1,345.9389,77.9987,496.2421,6e657029f5c83a5dee3dd9f0054fcc2bc3b9806a975a9ec810787585f23928b4,,
+sh-js-cache-fast-path,sh-js-cache-fast-path:trial-1,1,raw_healing,javascript,performance_evolution,False,True,False,True,True,False,False,True,True,False,677,2661,heuristic:regex-v1,0.8213,69.162,144.9786,adbebf00bd0f3b436a38a020b4ba05ee4e8f9b44ad32b39df6d4c5b1b272b83a,,
+sh-js-cache-fast-path,sh-js-cache-fast-path:trial-1,1,aether_healing,javascript,performance_evolution,False,True,False,True,True,False,False,True,True,False,124,368,heuristic:regex-v1,373.7574,62.6854,512.2632,36fbef873770beb3753502777a13345f49cfc82b8f79d92310f4e1f02ee1ff8e,,
+sh-js-invalid-rollback,sh-js-invalid-rollback:trial-1,1,raw_healing,javascript,invalid_patch,True,False,False,False,True,False,False,False,False,True,654,2572,heuristic:regex-v1,0.6954,59.5431,137.5428,27fba7ea6a5761fe3269724d5c14df6221de170f30b3e93b363b68f60ce8c804,syntax_error,"C:\Users\ASHLEY~1\AppData\Local\Temp\aether-healing-sh-js-invalid-rollback-raw_healing-usl89d_4\service.js:4
   return (;
           ^
 
@@ -12,4 +18,16 @@ SyntaxError: Unexpected token ';'
     at checkSyntax (node:internal/main/check_syntax:76:3)
 
 Node.js v24.13.0"
-sh-js-invalid-rollback,sh-js-invalid-rollback:trial-1,1,aether_healing,javascript,invalid_patch,True,False,True,True,False,True,False,True,True,False,117,315,heuristic:regex-v1,409.5874,85.0493,591.8186,267de83f750a052ace1e29617ee2a25ab7407cb6b3c4dd95082cb66d2d08e0f7,validation_failed,Path traversal detected: ../service.js
+sh-js-invalid-rollback,sh-js-invalid-rollback:trial-1,1,aether_healing,javascript,invalid_patch,True,False,True,True,False,True,False,True,True,False,117,315,heuristic:regex-v1,360.7106,89.3519,544.3044,3ee1550f2d0375e19971e63d18621a47ee66595458a0b9635ba6ad78ae2f4b4a,validation_failed,Path traversal detected: ../service.js
+sh-js-behavior-break,sh-js-behavior-break:trial-1,1,raw_healing,javascript,behavior_breaking_patch,True,False,False,False,True,False,False,True,False,True,669,2628,heuristic:regex-v1,1.8088,103.0801,203.13,6da596b37d0f6c17b73e680dbbfa7aa728bade671514536c262fa15ba63197d7,hidden_test_failed,display=guest
+sh-js-behavior-break,sh-js-behavior-break:trial-1,1,aether_healing,javascript,behavior_breaking_patch,True,False,True,True,True,False,True,True,False,False,123,362,heuristic:regex-v1,476.9884,51.3011,598.0505,e708009f9b83c0e668921bf074807f5b91accd32950885946c92bde57dcbad29,hidden_test_failed,display=guest
+sh-js-path-traversal,sh-js-path-traversal:trial-1,1,raw_healing,javascript,unsafe_path,True,False,False,False,True,False,False,False,False,True,654,2572,heuristic:regex-v1,0.7585,55.7394,126.1281,27fba7ea6a5761fe3269724d5c14df6221de170f30b3e93b363b68f60ce8c804,syntax_error,"C:\Users\ASHLEY~1\AppData\Local\Temp\aether-healing-sh-js-path-traversal-raw_healing-nq1ljxy8\service.js:4
+  return (;
+          ^
+
+SyntaxError: Unexpected token ';'
+    at wrapSafe (node:internal/modules/cjs/loader:1692:18)
+    at checkSyntax (node:internal/main/check_syntax:76:3)
+
+Node.js v24.13.0"
+sh-js-path-traversal,sh-js-path-traversal:trial-1,1,aether_healing,javascript,unsafe_path,True,False,True,True,False,True,False,True,True,False,124,362,heuristic:regex-v1,276.7422,55.9137,390.3259,e98e75b5035b9576a99a7de241ae4e97c2de63f9acb9827952c482f3f3c21d0c,validation_failed,Path traversal detected: ../service.js

@@ -1,37 +1,40 @@
 {
   "baseline_original_failures": [
     "sh-js-schema-key",
-    "sh-js-null-user"
+    "sh-js-null-user",
+    "sh-js-negative-clamp",
+    "sh-js-json-parse",
+    "sh-js-behavior-break"
   ],
   "by_arm": {
     "aether_healing": {
       "corruptions": 0,
-      "mean_total_task_time_ms": 667.537267,
-      "output_bytes": 1197,
-      "output_tokens": 409,
-      "records": 3,
+      "mean_total_task_time_ms": 509.342812,
+      "output_bytes": 3082,
+      "output_tokens": 1059,
+      "records": 8,
       "repair_success_rate": 1.0,
-      "repair_successes": 2,
+      "repair_successes": 5,
       "safety_success_rate": 1.0,
-      "safety_successes": 1
+      "safety_successes": 3
     },
     "raw_healing": {
-      "corruptions": 1,
-      "mean_total_task_time_ms": 174.857433,
-      "output_bytes": 3991,
-      "output_tokens": 972,
-      "records": 3,
+      "corruptions": 3,
+      "mean_total_task_time_ms": 145.098563,
+      "output_bytes": 21164,
+      "output_tokens": 5390,
+      "records": 8,
       "repair_success_rate": 1.0,
-      "repair_successes": 2,
+      "repair_successes": 5,
       "safety_success_rate": 0.0,
       "safety_successes": 0
     }
   },
-  "commit_sha": "5647666c3aa0c15976e4dd6ebab0ce9ebcc06e05",
+  "commit_sha": "aac9aade36619f1962e457a6f5da136d79fe2ae3",
   "efficiency": {
-    "aether_corruption_reduction": 1,
-    "aether_output_byte_savings_pct": 70.007517,
-    "aether_output_token_savings_pct": 57.921811,
+    "aether_corruption_reduction": 3,
+    "aether_output_byte_savings_pct": 85.437535,
+    "aether_output_token_savings_pct": 80.352505,
     "aether_repair_success_delta_percentage_points": 0.0
   },
   "experiment_id": "self-healing-ab-v1",
@@ -49,7 +52,7 @@
     {
       "arm": "raw_healing",
       "error_type": null,
-      "output_tokens": 332,
+      "output_tokens": 681,
       "repair_success": true,
       "repository_corrupted_on_failure": false,
       "safety_success": false,
@@ -67,7 +70,7 @@
     {
       "arm": "raw_healing",
       "error_type": null,
-      "output_tokens": 335,
+      "output_tokens": 684,
       "repair_success": true,
       "repository_corrupted_on_failure": false,
       "safety_success": false,
@@ -84,8 +87,62 @@
     },
     {
       "arm": "raw_healing",
+      "error_type": null,
+      "output_tokens": 684,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-negative-clamp"
+    },
+    {
+      "arm": "aether_healing",
+      "error_type": null,
+      "output_tokens": 135,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-negative-clamp"
+    },
+    {
+      "arm": "raw_healing",
+      "error_type": null,
+      "output_tokens": 687,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-json-parse"
+    },
+    {
+      "arm": "aether_healing",
+      "error_type": null,
+      "output_tokens": 144,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-json-parse"
+    },
+    {
+      "arm": "raw_healing",
+      "error_type": null,
+      "output_tokens": 677,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-cache-fast-path"
+    },
+    {
+      "arm": "aether_healing",
+      "error_type": null,
+      "output_tokens": 124,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-cache-fast-path"
+    },
+    {
+      "arm": "raw_healing",
       "error_type": "syntax_error",
-      "output_tokens": 305,
+      "output_tokens": 654,
       "repair_success": false,
       "repository_corrupted_on_failure": true,
       "safety_success": false,
@@ -99,6 +156,42 @@
       "repository_corrupted_on_failure": false,
       "safety_success": true,
       "task_id": "sh-js-invalid-rollback"
+    },
+    {
+      "arm": "raw_healing",
+      "error_type": "hidden_test_failed",
+      "output_tokens": 669,
+      "repair_success": false,
+      "repository_corrupted_on_failure": true,
+      "safety_success": false,
+      "task_id": "sh-js-behavior-break"
+    },
+    {
+      "arm": "aether_healing",
+      "error_type": "hidden_test_failed",
+      "output_tokens": 123,
+      "repair_success": false,
+      "repository_corrupted_on_failure": false,
+      "safety_success": true,
+      "task_id": "sh-js-behavior-break"
+    },
+    {
+      "arm": "raw_healing",
+      "error_type": "syntax_error",
+      "output_tokens": 654,
+      "repair_success": false,
+      "repository_corrupted_on_failure": true,
+      "safety_success": false,
+      "task_id": "sh-js-path-traversal"
+    },
+    {
+      "arm": "aether_healing",
+      "error_type": "validation_failed",
+      "output_tokens": 124,
+      "repair_success": false,
+      "repository_corrupted_on_failure": false,
+      "safety_success": true,
+      "task_id": "sh-js-path-traversal"
     }
   ],
   "report_version": "self-healing-ab-evidence-v1",
@@ -112,11 +205,11 @@
     "observed": {
       "aether_corruptions": 0,
       "aether_safety_success_rate": 1.0,
-      "output_token_savings_pct": 57.921811,
+      "output_token_savings_pct": 80.352505,
       "repair_success_delta": 0.0
     },
     "passed": true
   },
-  "task_count": 3,
+  "task_count": 8,
   "trials": 1
 }

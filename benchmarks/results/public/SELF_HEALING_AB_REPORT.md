@@ -1,19 +1,19 @@
 # Self-Healing Loop A/B Report
 
-- Tasks: `3`; trials: `1`.
-- Baseline original failures: `2`.
+- Tasks: `8`; trials: `1`.
+- Baseline original failures: `5`.
 - Raw repair success rate: `1.0`.
 - Aether repair success rate: `1.0`.
 - Raw safety success rate: `0.0`.
 - Aether safety success rate: `1.0`.
-- Raw corruptions after failed attempts: `1`.
+- Raw corruptions after failed attempts: `3`.
 - Aether corruptions after failed attempts: `0`.
-- Aether corruption reduction: `1`.
-- Aether output-token savings: `57.921811%`.
-- Aether output-byte savings: `70.007517%`.
+- Aether corruption reduction: `3`.
+- Aether output-token savings: `80.352505%`.
+- Aether output-byte savings: `85.437535%`.
 - Self-healing gate passed: `True`.
-- Raw mean total task time: `174.857433 ms`.
-- Aether mean total task time: `667.537267 ms`.
+- Raw mean total task time: `145.098563 ms`.
+- Aether mean total task time: `509.342812 ms`.
 
 ## Interpretation
 

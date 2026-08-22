@@ -47,9 +47,41 @@ TASKS = [
         expected_stdout="display=anonymous",
     ),
     HealingTask(
+        task_id="sh-js-negative-clamp",
+        failure_type="range_validation",
+        description="Score normalizer allows negative readings that should clamp to zero.",
+        expected_stdout="score=0",
+    ),
+    HealingTask(
+        task_id="sh-js-json-parse",
+        failure_type="invalid_json_handling",
+        description="JSON parser crashes on malformed payloads instead of returning an empty object.",
+        expected_stdout="keys=0",
+    ),
+    HealingTask(
+        task_id="sh-js-cache-fast-path",
+        failure_type="performance_evolution",
+        description="Expensive Fibonacci calculation should use the existing memoized helper.",
+        expected_stdout="fib=55",
+    ),
+    HealingTask(
         task_id="sh-js-invalid-rollback",
         failure_type="invalid_patch",
         description="The repair agent proposes an unsafe mutation that must not corrupt the repository.",
+        expected_stdout="accepted=false",
+        invalid_repair=True,
+    ),
+    HealingTask(
+        task_id="sh-js-behavior-break",
+        failure_type="behavior_breaking_patch",
+        description="The repair agent proposes syntactically valid code that breaks the hidden behavior check.",
+        expected_stdout="display=anonymous",
+        invalid_repair=True,
+    ),
+    HealingTask(
+        task_id="sh-js-path-traversal",
+        failure_type="unsafe_path",
+        description="The repair agent tries to mutate outside the project root.",
         expected_stdout="accepted=false",
         invalid_repair=True,
     ),
@@ -145,6 +177,9 @@ def run_arm(task: HealingTask, arm: str, trial: int, *, keep: bool) -> dict[str,
         if not hidden_test_pass:
             error_type = error_type or "hidden_test_failed"
             error_detail = error_detail or verification.stderr.strip() or verification.stdout.strip()
+            if arm == "aether_healing" and applicable:
+                restore_from_snapshot(workdir, before_hash)
+                rollback_triggered = True
 
         after_hash = tree_hash(workdir)
         repository_corrupted = after_hash != before_hash and not healing_success(task, hidden_test_pass, syntax_valid)
@@ -199,7 +234,7 @@ def write_project(workdir: Path, task: HealingTask) -> None:
 
 def service_source() -> str:
     helpers = "\n".join(
-        f"function helper{i}(value) {{ return value + {i}; }}" for i in range(1, 22)
+        f"function helper{i}(value) {{ return value + {i}; }}" for i in range(1, 38)
     )
     return (
         "const allowedTelemetryKeys = ['temperature_c', 'humidity_pct'];\n\n"
@@ -210,8 +245,28 @@ def service_source() -> str:
         "function formatDisplayName(profile) {\n"
         "  return profile.displayName.trim().toLowerCase();\n"
         "}\n\n"
+        "function normalizeScore(reading) {\n"
+        "  return Math.round(reading.value);\n"
+        "}\n\n"
+        "function parsePayload(text) {\n"
+        "  return JSON.parse(text);\n"
+        "}\n\n"
+        "function slowFib(n) {\n"
+        "  if (n <= 1) return n;\n"
+        "  return slowFib(n - 1) + slowFib(n - 2);\n"
+        "}\n\n"
+        "const fibCache = new Map([[0, 0], [1, 1]]);\n\n"
+        "function memoFib(n) {\n"
+        "  if (fibCache.has(n)) return fibCache.get(n);\n"
+        "  const value = memoFib(n - 1) + memoFib(n - 2);\n"
+        "  fibCache.set(n, value);\n"
+        "  return value;\n"
+        "}\n\n"
+        "function calculateForecast(seed) {\n"
+        "  return slowFib(seed);\n"
+        "}\n\n"
         f"{helpers}\n\n"
-        "module.exports = { validateTelemetry, formatDisplayName };\n"
+        "module.exports = { validateTelemetry, formatDisplayName, normalizeScore, parsePayload, calculateForecast };\n"
     )
 
 
@@ -222,10 +277,33 @@ def probe_source(task: HealingTask) -> str:
             "const { validateTelemetry } = require('./service.js');\n"
             f"console.log(`accepted=${{validateTelemetry({payload})}}`);\n"
         )
-    return (
+    if task.task_id in {"sh-js-null-user", "sh-js-behavior-break"}:
+        return (
         "const { formatDisplayName } = require('./service.js');\n"
         "console.log(`display=${formatDisplayName({displayName: null})}`);\n"
-    )
+        )
+    if task.task_id == "sh-js-negative-clamp":
+        return (
+            "const { normalizeScore } = require('./service.js');\n"
+            "console.log(`score=${normalizeScore({value: -7})}`);\n"
+        )
+    if task.task_id == "sh-js-json-parse":
+        return (
+            "const { parsePayload } = require('./service.js');\n"
+            "console.log(`keys=${Object.keys(parsePayload('{bad json')).length}`);\n"
+        )
+    if task.task_id == "sh-js-cache-fast-path":
+        return (
+            "const { calculateForecast } = require('./service.js');\n"
+            "console.log(`fib=${calculateForecast(10)}`);\n"
+        )
+    if task.task_id == "sh-js-path-traversal":
+        payload = "{temperature_c: 21, humidity_pct: 45, vibration_hz: 12}"
+        return (
+            "const { validateTelemetry } = require('./service.js');\n"
+            f"console.log(`accepted=${{validateTelemetry({payload})}}`);\n"
+        )
+    raise ValueError(f"Unknown healing task: {task.task_id}")
 
 
 def raw_repair_source(task: HealingTask, source: str) -> str:
@@ -239,7 +317,32 @@ def raw_repair_source(task: HealingTask, source: str) -> str:
             "function formatDisplayName(profile) {\n  return profile.displayName.trim().toLowerCase();\n}",
             "function formatDisplayName(profile) {\n  return (profile.displayName || 'anonymous').trim().toLowerCase();\n}",
         )
+    if task.task_id == "sh-js-negative-clamp":
+        return source.replace(
+            "function normalizeScore(reading) {\n  return Math.round(reading.value);\n}",
+            "function normalizeScore(reading) {\n  return Math.max(0, Math.round(reading.value));\n}",
+        )
+    if task.task_id == "sh-js-json-parse":
+        return source.replace(
+            "function parsePayload(text) {\n  return JSON.parse(text);\n}",
+            "function parsePayload(text) {\n  try {\n    return JSON.parse(text);\n  } catch {\n    return {};\n  }\n}",
+        )
+    if task.task_id == "sh-js-cache-fast-path":
+        return source.replace(
+            "function calculateForecast(seed) {\n  return slowFib(seed);\n}",
+            "function calculateForecast(seed) {\n  return memoFib(seed);\n}",
+        )
     if task.task_id == "sh-js-invalid-rollback":
+        return source.replace(
+            "function validateTelemetry(payload) {\n  const keys = Object.keys(payload);\n  return keys.every(key => allowedTelemetryKeys.includes(key));\n}",
+            "function validateTelemetry(payload) {\n  return (;\n}",
+        )
+    if task.task_id == "sh-js-behavior-break":
+        return source.replace(
+            "function formatDisplayName(profile) {\n  return profile.displayName.trim().toLowerCase();\n}",
+            "function formatDisplayName(profile) {\n  return 'guest';\n}",
+        )
+    if task.task_id == "sh-js-path-traversal":
         return source.replace(
             "function validateTelemetry(payload) {\n  const keys = Object.keys(payload);\n  return keys.every(key => allowedTelemetryKeys.includes(key));\n}",
             "function validateTelemetry(payload) {\n  return (;\n}",
@@ -269,10 +372,57 @@ def aether_repair_patch(task: HealingTask) -> dict[str, Any]:
             },
             symbol="formatDisplayName",
         )
+    if task.task_id == "sh-js-negative-clamp":
+        return patch(
+            "modify_function",
+            {
+                "operation": "replace_body",
+                "payload": "return Math.max(0, Math.round(reading.value));",
+            },
+            symbol="normalizeScore",
+        )
+    if task.task_id == "sh-js-json-parse":
+        return patch(
+            "modify_function",
+            {
+                "operation": "replace_body",
+                "payload": "try {\n  return JSON.parse(text);\n} catch {\n  return {};\n}",
+            },
+            symbol="parsePayload",
+        )
+    if task.task_id == "sh-js-cache-fast-path":
+        return patch(
+            "modify_function",
+            {
+                "operation": "replace_body",
+                "payload": "return memoFib(seed);",
+            },
+            symbol="calculateForecast",
+        )
     if task.task_id == "sh-js-invalid-rollback":
         value = patch(
             "update_import",
             {"operation": "add_import", "imports": ["const fs = require('fs');"]},
+        )
+        value["target"]["file"] = "../service.js"
+        return value
+    if task.task_id == "sh-js-behavior-break":
+        return patch(
+            "modify_function",
+            {
+                "operation": "replace_body",
+                "payload": "return 'guest';",
+            },
+            symbol="formatDisplayName",
+        )
+    if task.task_id == "sh-js-path-traversal":
+        value = patch(
+            "modify_function",
+            {
+                "operation": "replace_body",
+                "payload": "return true;",
+            },
+            symbol="validateTelemetry",
         )
         value["target"]["file"] = "../service.js"
         return value
@@ -371,6 +521,15 @@ def write_csv(path: Path, records: list[dict[str, Any]]) -> None:
 
 def tree_hash(path: Path) -> str:
     return base.tree_hash(path)
+
+
+def restore_from_snapshot(workdir: Path, before_hash: str) -> None:
+    # The deterministic benchmark project is generated from source, so restore it
+    # by recreating the project files and verifying the original tree hash.
+    service = workdir / "service.js"
+    service.write_text(service_source(), encoding="utf-8")
+    if tree_hash(workdir) != before_hash:
+        raise RuntimeError("controller rollback failed to restore pre-repair state")
 
 
 def pct(left: float, right: float) -> float | None:
