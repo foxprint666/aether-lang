@@ -23,7 +23,7 @@
       "total_estimated_tokens": 36888
     }
   },
-  "commit_sha": "b291ea81cf68ff8687b15299a5d051b655215c76",
+  "commit_sha": "573e21f2b60ca7ce80e641e976221936ec8cab60",
   "efficiency": {
     "graph_context_input_token_savings_pct": 75.590258,
     "graph_output_token_delta_pct": -43.649762,

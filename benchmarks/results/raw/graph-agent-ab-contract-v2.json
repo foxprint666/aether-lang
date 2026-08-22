@@ -1,6 +1,6 @@
 {
   "baseline_original_passes": [],
-  "commit_sha": "b291ea81cf68ff8687b15299a5d051b655215c76",
+  "commit_sha": "573e21f2b60ca7ce80e641e976221936ec8cab60",
   "experiment_id": "graph-agent-ab-contract-v2",
   "manifest_sha256": "5169146181ae1c7f7e905325049f2675103434a034ff0fccb43a4ee02cb6eab9",
   "records": [
