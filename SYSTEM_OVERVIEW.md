@@ -454,6 +454,7 @@ aether-lang/
 ├── tools/                 (Utilities)
 │   └── ae-codegen/
 ├── docs/                  (Documentation)
+├── self_healing_evolution/ (Self-healing and evolving systems research track)
 ├── tests/                 (Integration Tests)
 ├── LICENSE
 └── SYSTEM_OVERVIEW.md

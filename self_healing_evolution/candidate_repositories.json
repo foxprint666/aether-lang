@@ -1,0 +1,50 @@
+{
+  "selected_first_candidate": "matebenyovszky/healing-agent",
+  "candidates": [
+    {
+      "name": "healing-agent",
+      "url": "https://github.com/matebenyovszky/healing-agent",
+      "type": "python_self_healing_agent",
+      "fit": "high",
+      "notes": [
+        "Catches exceptions and generates repair suggestions.",
+        "Supports optional auto-fix behavior.",
+        "Uses backups before code modification, making it a natural baseline for Aether snapshot rollback.",
+        "Small enough for a first integration experiment."
+      ]
+    },
+    {
+      "name": "RepairAgent",
+      "url": "https://github.com/sola-st/RepairAgent",
+      "type": "autonomous_program_repair_agent",
+      "fit": "medium_later_stage",
+      "notes": [
+        "Strong autonomous repair benchmark target.",
+        "Heavier setup because it depends on Java and Defects4J.",
+        "Useful after the Aether self-healing adapter is proven on smaller systems."
+      ]
+    },
+    {
+      "name": "distil-self-healing-agent",
+      "url": "https://github.com/distil-labs/distil-self-healing-agent",
+      "type": "self_healing_demo_with_control_plane",
+      "fit": "medium_architecture_target",
+      "notes": [
+        "Good end-to-end control-plane comparison.",
+        "Useful for studying telemetry, diagnosis, and remediation handoff.",
+        "May require provider credentials and local service setup."
+      ]
+    },
+    {
+      "name": "Self-Healing-SRE-Agent",
+      "url": "https://github.com/jalpatel11/Self-Healing-SRE-Agent",
+      "type": "sre_incident_response_agent",
+      "fit": "medium_workflow_target",
+      "notes": [
+        "Good workflow-level comparison target.",
+        "Useful for multi-agent incident repair and validation.",
+        "Best after low-level mutation safety is already demonstrated."
+      ]
+    }
+  ]
+}

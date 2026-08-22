@@ -1,0 +1,59 @@
+{
+  "suite": "self-healing-evolution-ab",
+  "version": "0.1.0",
+  "description": "Template manifest for comparing raw self-healing repair loops against Aether-assisted repair loops.",
+  "candidate_repository": {
+    "name": "healing-agent",
+    "url": "https://github.com/matebenyovszky/healing-agent",
+    "reason": "Small Python self-healing agent with auto-fix and backup behavior, suitable for Aether mutation integration."
+  },
+  "arms": [
+    {
+      "name": "raw_healing",
+      "description": "Baseline autonomous repair using raw generated source or diff mutation."
+    },
+    {
+      "name": "aether_healing",
+      "description": "Aether-assisted autonomous repair using validated JSON state transitions, sandbox verification, and rollback."
+    }
+  ],
+  "metrics": [
+    "repair_success",
+    "hidden_test_pass",
+    "syntax_valid",
+    "rollback_triggered",
+    "rollback_success",
+    "repository_corrupted_on_failure",
+    "input_tokens",
+    "output_tokens",
+    "latency_ms",
+    "cost_usd",
+    "attempt_count"
+  ],
+  "tasks": [
+    {
+      "task_id": "sh-py-missing-import",
+      "language": "python",
+      "failure_type": "missing_import",
+      "description": "A monitored function fails because a required import is missing.",
+      "expected_repair": "Add the missing import without changing unrelated code.",
+      "hidden_test_command": "python -m unittest"
+    },
+    {
+      "task_id": "sh-py-schema-key",
+      "language": "python",
+      "failure_type": "schema_mismatch",
+      "description": "A service receives a new telemetry key and rejects otherwise valid input.",
+      "expected_repair": "Update the allowed key handling while preserving strict validation.",
+      "hidden_test_command": "python -m unittest"
+    },
+    {
+      "task_id": "sh-js-invalid-rollback",
+      "language": "javascript",
+      "failure_type": "invalid_patch",
+      "description": "The agent proposes an invalid JavaScript repair that must be rejected or rolled back.",
+      "expected_repair": "No committed mutation; repository state should match the pre-attempt snapshot.",
+      "hidden_test_command": "node --check app.js"
+    }
+  ]
+}
