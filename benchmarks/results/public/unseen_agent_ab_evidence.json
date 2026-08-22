@@ -32,6 +32,26 @@
   ],
   "manifest": "benchmarks/tasks/unseen_agent_smoke.json",
   "manifest_sha256": "413ccb5a0ca268477fb88bedb51b893920e62ab7a32f328416f0a71f9e2f784a",
+  "paired_success": {
+    "aether_only_pass": 0,
+    "both_pass": 2,
+    "neither_pass": 0,
+    "pairs": 2,
+    "raw_only_pass": 0
+  },
+  "quality_efficiency_gate": {
+    "criteria": {
+      "aether_output_token_savings_pct_gte": 20,
+      "aether_success_delta_percentage_points_gte": 0,
+      "raw_only_pass_eq": 0
+    },
+    "observed": {
+      "aether_output_token_savings_pct": 69.417476,
+      "aether_success_delta_percentage_points": 0.0,
+      "raw_only_pass": 0
+    },
+    "passed": true
+  },
   "records": [
     {
       "arm": "raw_full_file",
@@ -70,7 +90,7 @@
       "trial": 1
     }
   ],
-  "report_version": "unseen-agent-ab-evidence-v1",
+  "report_version": "unseen-agent-ab-evidence-v2",
   "task_count": 2,
   "trials": 1
 }

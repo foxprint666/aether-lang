@@ -6,6 +6,8 @@
 - Success delta: `0.0` percentage points.
 - Aether output-token savings: `69.417476%`.
 - Aether output-byte savings: `57.772996%`.
+- Paired outcomes: both pass `2`, Aether-only `0`, raw-only `0`, neither `0`.
+- Quality-efficiency gate passed: `True`.
 - Raw mean total task time: `134.286 ms`.
 - Aether mean total task time: `401.31635 ms`.
 - Original revisions already passing hidden checks: `0`.
