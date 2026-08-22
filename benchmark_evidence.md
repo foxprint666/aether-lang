@@ -16,6 +16,7 @@ Latest local verification during this development session:
 | `real-repository` | `aether` | 6 | 6 passed |
 | `external-repository` | `all-modes`, three trials | 132 | 132 passed |
 | `external-agent` blind generation | `all-modes`, three trials | 96 | 64 passed (16/24 generated patches) |
+| `paired blind agent generation` | Aether patch vs full file, three trials | 42 | Aether patches 10/21; full files 17/21 |
 | `all` | `both` | 50 | 50 passed |
 | `all` | `all-modes` | 85 | 85 passed |
 
@@ -67,6 +68,8 @@ Latest live Gemini smoke run:
 - Blind external-agent evidence, `blind-external-agent-trials3-v1`, evaluated 24 independently generated patches over eight previously unpublished tasks in five pinned repositories. The agents received source-only packets without tests, expected output, or reference patches. Sixteen of 24 patches passed hidden behavior tests (`66.667%`); replaying each patch through control, state, Aether, and hybrid produced 64/96 successful records with identical outcomes in every mode. All 24 prompt and patch hash groups matched across modes, all 96 records were marked blind, and zero records reported oracle use.
 - In that blind run, structured patches used 78.231% fewer estimated output tokens and 82.802% fewer emitted bytes than full-file output. Mean edit-to-verified time was 228.433 ms for direct control, 224.467 ms for state, 339.777 ms for Aether, and 194.897 ms for hybrid. Thus Aether was 48.743% slower than control, state was 1.736% faster, and hybrid was 14.681% faster in this small local run. These timings exclude live model generation and should not be generalized beyond this workload.
 - The eight failed generations were preserved: four contained malformed Python body indentation and four failed hidden behavior. During calibration, valid agent payloads also exposed and led to fixes for Python common-indentation handling and JavaScript private-field parsing. Calibration outputs are excluded from the final result.
+- Paired blind agent-generation evidence, `paired-blind-agent-trials3-v1`, evaluated matched Aether-patch and full-file outputs over seven hidden-test tasks, four pinned repositories, and three trials. Original revisions passed zero hidden checks, so all tasks required a real change. Aether patches succeeded 10/21 (`47.619%`), while full-file outputs succeeded 17/21 (`80.952%`). Full-file-only wins were 7, Aether-only wins were 0, exact McNemar p was `0.015625`, and the task-clustered bootstrap interval for Aether minus full-file success was `-47.619` to `-19.048` percentage points.
+- In the paired blind run, Aether patch outputs used 3,999 estimated tokens versus 22,658 for full files: `82.351%` output-token savings and `86.118%` emitted-byte savings. Mean local application time was 188.996 ms for Aether patch application versus 0.721 ms for full-file overwrite; mean verification time was similar at 52.517 ms versus 54.050 ms. Generation used fresh stateless Codex subagents with prompt-enforced source-only restrictions, not OS-enforced denial.
 
 ## What This Proves So Far
 
@@ -89,6 +92,7 @@ In the tested configuration:
 - The Phase 4/5/6 acceptance gates are machine-checkable and currently pass for the local reproducible benchmark scope.
 - External git repository manifests, immutable checkout caching, full-file control baselines, state/Aether/hybrid matching, and per-repository efficiency reporting are supported behind `--allow-network-repos`. The current five-repository matrix passed 132/132; broader project and task distributions remain future work.
 - Source-only blind-agent packets, hash-locked generated-patch replay, hidden tests, and a manual CI workflow now provide leak-resistant unseen-task evidence. The first final run passed 16/24 independent generations without answer-key normalization.
+- A matched blind full-file-generation control arm now exists. On the first 7-task run, full-file generation was more successful than Aether patch generation, while Aether retained large output-token savings. This proves the token-efficiency mechanism but shows agent-facing patch generation needs more reliability work before claiming success-rate gains.
 - The result schema now includes retry, token, tool-call, latency, and cost fields for live/provider adapters.
 - The result schema now also supports offline estimated-token fields without mixing them into provider-reported billing telemetry.
 - Python import insertion now preserves module docstrings and `from __future__` ordering in the tested AST and real-repository cases.
@@ -98,7 +102,7 @@ In the tested configuration:
 
 These claims remain outside the Phase 4/5/6 local completion gates and should be handled in Phase 7/public replication:
 
-- Whether Aether makes agents more successful than a matched full-file-generation control. The blind run measures structured-patch generation and matched application, but all four modes apply the same generated patch.
+- Whether Aether makes agents more successful than a matched full-file-generation control. The first paired blind run showed the opposite on this small task set: full-file output was more successful, while Aether patch output was much smaller.
 - Whether the observed external token savings hold beyond the current five repositories and ten valid edit tasks.
 - Whether the expanded A/B agent result holds for external live providers rather than local replay/mock providers.
 - Whether the measured external latency tradeoff remains favorable with real model generation, retries, and provider billing.
@@ -107,6 +111,7 @@ These claims remain outside the Phase 4/5/6 local completion gates and should be
 - Whether JavaScript rollback safety is broadly comparable to Python across larger external repositories and still more failure classes.
 - Whether broader external git repository benchmarks remain stable across CI/network environments.
 - Whether blind generation results reproduce under an OS-enforced agent sandbox; the current source-only restriction was enforced by prompts and independently checked packet contents.
+- Whether better patch schemas, examples, constrained decoding, or repair loops can close the paired blind success gap without giving back the observed output-token savings.
 
 ## Issue Found And Fixed During Real-Repo Smoke Work
 

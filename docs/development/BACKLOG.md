@@ -36,6 +36,7 @@
 - M6: Added external git repository manifest support behind `--allow-network-repos`.
 - M7: Expanded external validation to five pinned Python/JavaScript repositories, twelve tasks, cached checkouts, full-file control baselines, three-trial efficiency reporting, and external rollback cases.
 - M7: Added eight previously unpublished external-agent tasks, source-only blind packets, hidden tests, hash-locked replay, three independent generation trials, and a manual CI workflow. The first final run passed 16/24 generated patches without oracle normalization.
+- M7: Added paired blind agent-generation evidence comparing source-only Aether patch outputs against matched full-file outputs. The first 7-task run passed 10/21 Aether patch outputs and 17/21 full-file outputs; Aether used 82.351% fewer estimated output tokens.
 - M6: Added broader CI workflow for Rust, focused Python, and focused Node checks.
 - M6: Added Codex session evidence documenting real AI-agent work performed in this development session.
 
@@ -50,7 +51,7 @@
 - Add provider-specific command wrappers for Anthropic/local agents.
 - Expand live/provider matched control-vs-Aether experiments beyond the current Gemini smoke record.
 - Add dependency-installed external project test suites and multi-file tasks beyond the current pinned matrix.
-- Add fresh unpublished blind tasks, OS-enforced agent isolation, and a matched full-file-generation agent control arm.
+- Add fresh unpublished blind tasks, OS-enforced agent isolation, and patch-generation repair loops to close the paired blind success gap versus full-file generation.
 
 ## Epic A - Benchmark Infrastructure
 

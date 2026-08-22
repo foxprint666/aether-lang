@@ -63,6 +63,7 @@ The public benchmark bundle now reports:
 - Tested proof scope: `321/321`, `100%`
 - External repository matrix: `132/132`, `100%`
 - Blind agent-generated patches: `16/24`, `66.67%`
+- Paired blind Aether patches vs full files: `10/21` vs `17/21`
 - Phase 7 readiness: `true`
 
 The external matrix uses immutable commits from MarkupSafe, Packaging, Requests, escape-string-regexp, and yocto-queue. It contains ten valid edit tasks and two rollback tasks across Python and JavaScript, repeated over three trials. Of the 132 records, 96 use behavior-level checks, 24 use syntax-level checks, and 12 exercise guarded rollback.
@@ -70,6 +71,8 @@ The external matrix uses immutable commits from MarkupSafe, Packaging, Requests,
 This matters because it moves the work beyond synthetic-only tests.
 
 We also ran a stricter blind track. Three independent coding-agent trials received only an opaque task description, the target source file, and Aether's public patch contract. They did not receive hidden tests, expected output, or reference patches. Across eight previously unpublished tasks, 16 of 24 generated patches passed hidden behavior tests. The failures remain in the public evidence: four malformed structured bodies and four behavior mistakes. This is a more realistic result than a perfect reference-patch replay, and it identifies agent patch generation as a real remaining bottleneck.
+
+Then we ran the harder comparison: paired blind Aether-patch generation versus paired blind full-file generation. On seven source-only tasks across four pinned repositories, original code passed zero hidden tests, so every task required a real fix. Aether patches passed 10 of 21 attempts. Full-file outputs passed 17 of 21 attempts. That is not the result we would choose for marketing, but it is the result we should publish: the current patch interface is much cheaper in tokens, but full-file generation was more reliable in this small blind agent test.
 
 ## Efficiency Results
 
@@ -91,6 +94,8 @@ In the three-trial external matrix, hybrid versus full-file control measured:
 These are offline `tiktoken:cl100k_base` estimates, not provider billing telemetry. The control prompt asks for a complete updated file; the state/Aether prompt asks for structured patch JSON. No model generation latency was invented.
 
 For the blind generated patches, structured output was `78.23%` smaller in estimated output tokens and `82.80%` smaller in bytes than full-file output. Direct control averaged `228.43 ms` edit-to-verified, state `224.47 ms`, Aether `339.78 ms`, and hybrid `194.90 ms`. Full Aether was `48.74%` slower than direct control in this local application-only comparison; hybrid was `14.68%` faster. Those figures exclude model generation and come from only 24 generation events, so they are evidence, not a universal performance promise.
+
+In the paired blind Aether-vs-full-file run, Aether patch outputs used `3,999` estimated output tokens versus `22,658` for full files. That is `82.35%` output-token savings and `86.12%` emitted-byte savings. But success was lower: Aether was `33.33` percentage points behind full-file generation, with no Aether-only wins and seven full-file-only wins. In plain English: Aether currently proves a strong cost-saving mechanism, while the agent-facing patch generation UX still needs work.
 
 For very small files, structured patch JSON can be larger than rewriting the whole file. That is expected. Aether has fixed metadata overhead.
 
@@ -184,6 +189,7 @@ Current limitations:
 
 - Live provider token/cost evidence is still small.
 - External repository coverage is five repositories and twelve tasks, still not a representative sample of all projects.
+- In the first paired blind comparison, full-file generation was more successful than Aether patch generation.
 - State mode is faster but does not include full validation/snapshot/rollback safety.
 - Hybrid routing is a practical threshold policy, not a universally optimal policy.
 - More real-world agent trials are needed.

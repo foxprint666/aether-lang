@@ -1,0 +1,70 @@
+{
+  "by_arm": {
+    "aether_patch": {
+      "applicable_rate": 0.571429,
+      "format_valid_rate": 0.666667,
+      "hidden_test_pass_rate": 0.47619,
+      "mean_application_time_ms": 188.995681,
+      "mean_verification_time_ms": 52.516676,
+      "output_bytes": 12587,
+      "output_tokens": 3999,
+      "records": 21,
+      "success_rate": 0.47619,
+      "successes": 10,
+      "syntax_valid_rate": 1.0
+    },
+    "full_file": {
+      "applicable_rate": 1.0,
+      "format_valid_rate": 1.0,
+      "hidden_test_pass_rate": 0.809524,
+      "mean_application_time_ms": 0.72081,
+      "mean_verification_time_ms": 54.050157,
+      "output_bytes": 90669,
+      "output_tokens": 22658,
+      "records": 21,
+      "success_rate": 0.809524,
+      "successes": 17,
+      "syntax_valid_rate": 1.0
+    }
+  },
+  "efficiency": {
+    "aether_output_byte_savings_pct": 86.117637,
+    "aether_output_token_savings_pct": 82.350605
+  },
+  "evidence": {
+    "baseline_original_passes": [],
+    "pairs": 21,
+    "prompt_core_sha256": "7b524fec78ef04ceba0769edad515538a42e91f2ce69abb44c960c7294170944",
+    "repositories": [
+      "pallets-markupsafe",
+      "pypa-packaging",
+      "sindresorhus-escape-string-regexp",
+      "sindresorhus-yocto-queue"
+    ],
+    "tasks": 7,
+    "trials": [
+      1,
+      2,
+      3
+    ]
+  },
+  "limitations": [
+    "Generation used fresh stateless Codex subagents with prompt-enforced source-only restrictions, not OS-enforced filesystem denial.",
+    "Offline token counts are tiktoken estimates; provider generation latency, retries, and monetary cost were not available.",
+    "The 7 tasks come from 4 pinned repositories and are not representative of all coding-agent workloads.",
+    "These tasks became public with this evidence and must not be reused as unseen tasks."
+  ],
+  "paired_success": {
+    "aether_minus_full_percentage_points": -33.3334,
+    "aether_only_pass": 0,
+    "bootstrap_95pct_percentage_points": [
+      -47.619048,
+      -19.047619
+    ],
+    "both_pass": 10,
+    "full_file_only_pass": 7,
+    "mcnemar_exact_two_sided_p": 0.015625,
+    "neither_pass": 4
+  },
+  "report_version": "paired-blind-agent-v1"
+}

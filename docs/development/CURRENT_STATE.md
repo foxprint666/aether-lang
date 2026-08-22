@@ -124,6 +124,7 @@ Current benchmark evidence is useful for hypothesis generation but is not yet a 
 - Dedicated external efficiency analysis with tokenizer estimates, emitted bytes, setup/apply/verification timing, bootstrap intervals, hybrid routing, and source-size buckets.
 - Manual GitHub Actions workflow for cached three-trial external validation and artifact publication.
 - Blind external-agent protocol with source-only packets, hidden behavior checks, immutable descriptor/patch hashes, three independent agent trials, and a manual CI evidence workflow.
+- Paired blind agent-generation protocol comparing Aether structured patches against matched full-file outputs on the same source-only tasks, with task/trial pair ids, hidden tests, estimated token/byte metrics, exact McNemar reporting, and task-clustered bootstrap intervals.
 - Benchmark smoke CI workflow.
 - Documentation for adding benchmarks and language adapters.
 
@@ -132,7 +133,7 @@ Current benchmark evidence is useful for hypothesis generation but is not yet a 
 - Repeated live/provider benchmark records across larger task sets with configured cost rates.
 - Live-provider A/B runs on the expanded Phase 6 agent task set. The expanded A/B task set has passed the local command/mock completion gate, but it has not yet been repeated against live Gemini/OpenRouter after expansion.
 - External coverage beyond the current five repositories and twelve tasks, including dependency-installed project test suites, TypeScript, and multi-file changes.
-- A matched blind full-file-generation control arm, fresh unpublished tasks for every public rerun, and OS-enforced filesystem isolation during generation.
+- Fresh unpublished tasks for every public rerun, OS-enforced filesystem isolation during generation, and improved Aether patch-generation reliability versus full-file agent output.
 - CI coverage for full SDK unit tests and full benchmark suites.
 
 ## Risks
@@ -180,4 +181,4 @@ benchmarks/
   run.py
 ```
 
-The runner now covers deterministic correctness, cross-language failure injection, expanded A/B agent replay, command-agent provider ingestion, live provider smoke runs, source-only blind subagent generation, local real-repository fixtures, and a five-repository external matrix with matched efficiency and rollback evidence. The first blind run passed 16/24 independently generated patches over eight hidden-test tasks, while preserving all failed patches. Later milestones should add a blind full-file control arm, OS-enforced generation isolation, repeated live-provider runs, dependency-installed external suites, broader task coverage, and multi-file transitions.
+The runner now covers deterministic correctness, cross-language failure injection, expanded A/B agent replay, command-agent provider ingestion, live provider smoke runs, source-only blind subagent generation, local real-repository fixtures, a five-repository external matrix with matched efficiency and rollback evidence, and paired blind Aether-patch versus full-file generation. The first blind patch run passed 16/24 independently generated patches over eight hidden-test tasks, while preserving all failed patches. The first paired blind run passed 10/21 Aether patch outputs versus 17/21 full-file outputs, while Aether used 82.351% fewer estimated output tokens. Later milestones should add OS-enforced generation isolation, repeated live-provider runs, dependency-installed external suites, broader task coverage, multi-file transitions, and patch-generation repair loops.
