@@ -1,0 +1,41 @@
+{
+  "questions": [
+    {
+      "id": "rag-goal",
+      "question": "What is the goal of the Aether-style RAG path?",
+      "required_terms": ["reduce", "reads", "writes", "quality"],
+      "expected_citations": ["engineering_playbook.md#rag-goal"]
+    },
+    {
+      "id": "token-saving",
+      "question": "How much context input did graph-scoped Aether save versus raw source?",
+      "required_terms": ["75.590258", "context", "tokens"],
+      "expected_citations": ["aether_overview.md#token-results"]
+    },
+    {
+      "id": "correctness",
+      "question": "What was the best graph-scoped contract result compared with raw-source patches?",
+      "required_terms": ["21", "21", "12", "21"],
+      "expected_citations": ["aether_overview.md#agent-efficiency"]
+    },
+    {
+      "id": "generator",
+      "question": "Why does the JavaScript engine need to handle generator method bodies?",
+      "required_terms": ["yield", "Queue.drain", "generator"],
+      "expected_citations": ["release_notes.md#javascript-engine"]
+    },
+    {
+      "id": "hybrid",
+      "question": "When should Aether prefer transitions over raw generation?",
+      "required_terms": ["larger", "patch", "symbol-local"],
+      "expected_citations": ["engineering_playbook.md#hybrid-policy"]
+    },
+    {
+      "id": "limitations",
+      "question": "Name two limitations of the current benchmark evidence.",
+      "required_terms": ["Prompt-level", "offline", "token"],
+      "expected_citations": ["engineering_playbook.md#limitations"]
+    }
+  ]
+}
+

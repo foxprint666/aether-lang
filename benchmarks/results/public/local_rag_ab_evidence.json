@@ -1,0 +1,36 @@
+{
+  "commit_sha": "5a739b56c19d04771def3272211936e57161a083",
+  "experiment_id": "local-rag-ab-v1",
+  "limitations": [
+    "The chatbot is deterministic and extractive; it does not call a live LLM.",
+    "Token counts are local lexical estimates, not provider billing telemetry.",
+    "The corpus is a focused local benchmark corpus, not yet a broad external RAG suite."
+  ],
+  "questions": 6,
+  "report_version": "local-rag-ab-evidence-v1",
+  "summary": {
+    "aether": {
+      "context_tokens": 440,
+      "expected_citation_rate": 1.0,
+      "latency_ms": 3.406,
+      "output_tokens": 440,
+      "quality_score": 0.877778,
+      "total_tokens": 880
+    },
+    "efficiency": {
+      "context_token_savings_pct": 65.354331,
+      "latency_savings_pct": -190.688743,
+      "output_token_savings_pct": -26.801153,
+      "quality_delta": 0.011111,
+      "total_token_savings_pct": 45.578231
+    },
+    "raw": {
+      "context_tokens": 1270,
+      "expected_citation_rate": 1.0,
+      "latency_ms": 1.1717,
+      "output_tokens": 347,
+      "quality_score": 0.866667,
+      "total_tokens": 1617
+    }
+  }
+}
