@@ -1,18 +1,26 @@
 # Aether → AI-Safe Execution Infrastructure
 
+[![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Python](https://img.shields.io/badge/Python-%E2%89%A5%203.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-AGPLv3-4CAF50?style=for-the-badge)](LICENSE)
+[![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=for-the-badge)](#requirements)
+
+> [!NOTE]
 > **This repository has evolved from a Cranelift-based systems language compiler into an AI-Safe Execution Infrastructure — a structured, sandboxed, and reversible runtime for AI-driven code modification.**
 
 ---
 
-## What is this?
+## 🚀 What is this?
 
-AI coding agents (LLMs, Copilots, AutoGPT, etc.) currently modify codebases by generating raw text diffs or source code and applying them directly. This approach—relying entirely on **token generation**—is fundamentally expensive, brittle, and unsafe:
+AI coding agents (LLMs, Copilots, AutoGPT, etc.) currently modify codebases by generating raw text diffs or source code and applying them directly. 
 
-- **Expensive Token Generation:** Agents waste context window and compute re-generating entire files or large chunks of code just to change a few lines.
-- **No Schema:** The change is freeform text with no verifiable structure.
-- **No Isolation:** The change executes in the live process with full filesystem access.
-- **No Rollback:** Recovery depends on `git reset` or manual intervention.
-- **No Contract:** Ambiguity about what the agent intended vs. what it wrote.
+> [!WARNING]
+> This approach—relying entirely on **token generation**—is fundamentally expensive, brittle, and unsafe:
+> - **Expensive Token Generation:** Agents waste context window and compute re-generating entire files or large chunks of code just to change a few lines.
+> - **No Schema:** The change is freeform text with no verifiable structure.
+> - **No Isolation:** The change executes in the live process with full filesystem access.
+> - **No Rollback:** Recovery depends on `git reset` or manual intervention.
+> - **No Contract:** Ambiguity about what the agent intended vs. what it wrote.
 
 **Aether's AI-Safe Execution Infrastructure** introduces a massive architectural shift: **moving from token generation to AST-based state transitions.**
 
@@ -20,26 +28,27 @@ Instead of asking an LLM to "write code", you ask it to output a compact JSON pa
 
 This fixes the fundamental flaws of token-based generation by treating code modification as a **controlled state transition**:
 
-```
+```text
 ❌ Before (Token Generation):  AI agent ──(raw text/diff)──▶ git apply ──▶ hope it works
 
 ✅ After (AST State Transition): AI agent ──(JSON AST Patch)──▶ Validate ──▶ Snapshot ──▶ Sandbox ──▶ Commit/Rollback
 ```
 
-**Why this matters for your Agents:**
-- **Massive Cost Efficiency:** You only pay to generate the exact AST instructions needed in a compact JSON payload, not entire files. 
-- **Deterministic and Verifiable:** Changes are applied via exact AST transformations (using tools like `libcst`), ensuring syntax is always perfectly valid.
-- **Atomic & Reversible:** Because patches are structured state transitions, they can be flawlessly snapshotted and rolled back if sandbox execution fails.
+> [!TIP]
+> **Why this matters for your Agents:**
+> - **Massive Cost Efficiency:** You only pay to generate the exact AST instructions needed in a compact JSON payload, not entire files. 
+> - **Deterministic and Verifiable:** Changes are applied via exact AST transformations (using tools like `libcst`), ensuring syntax is always perfectly valid.
+> - **Atomic & Reversible:** Because patches are structured state transitions, they can be flawlessly snapshotted and rolled back if sandbox execution fails.
 
-### Benchmark Status
+### 📊 Benchmark Status
 
 The repository now includes a reproducible benchmark program under [`benchmarks/`](benchmarks/). It records raw JSON and CSV results for deterministic correctness checks, failure injection, replay-agent patch ingestion, and a local real-repository smoke fixture.
 
-Current evidence supports the benchmark infrastructure, tested patch/rollback behaviors, and a small live Gemini provider smoke run. Broad LLM-agent success rates, token savings across real repositories, and latency/cost tradeoffs still require repeated provider-backed benchmarks. See [benchmark_evidence.md](benchmark_evidence.md) for the current evidence status and limitations.
+Current evidence supports the benchmark infrastructure, tested patch/rollback behaviors, and a small live Gemini provider smoke run. Broad LLM-agent success rates, token savings across real repositories, and latency/cost tradeoffs still require repeated provider-backed benchmarks. See [`benchmark_evidence.md`](benchmark_evidence.md) for the current evidence status and limitations.
 
 ---
 
-## Repository Layout
+## 📁 Repository Layout
 
 ```mermaid
 graph TD
@@ -66,7 +75,7 @@ graph TD
     D --> D3[ae-syntax - Parser/AST]
 ```
 
-```
+```text
 aether-lang/
 │
 ├── sdk/
@@ -123,7 +132,7 @@ aether-lang/
 
 ---
 
-## System Architecture
+## 🏗️ System Architecture
 
 ```mermaid
 flowchart TD
@@ -175,7 +184,7 @@ flowchart TD
 
 ---
 
-## Python SDK — Quick Start
+## ⚡ Python SDK — Quick Start
 
 ```bash
 pip install ai-safe-runtime
@@ -231,16 +240,17 @@ sb = Sandbox(preferred_tier="t2_wasm")       # Isolated — Wasmtime WASI sandbo
 sb = Sandbox(preferred_tier="t3_subprocess") # Universal — OS-level subprocess
 ```
 
-**Full SDK documentation:** [`sdk/python/README.md`](sdk/python/README.md)
+> [!NOTE]
+> **Full SDK documentation:** [`sdk/python/README.md`](sdk/python/README.md)
 
 ---
 
-## Patch Schema Reference
+## 📖 Patch Schema Reference
 
 All patches must conform to the JSON Schema at [`sdk/python/ai_runtime/validation/patch_schema.json`](sdk/python/ai_runtime/validation/patch_schema.json).
 
 | Field | Required | Description |
-|:------|:---------|:------------|
+|:---|:---|:---|
 | `schema_version` | ✅ | `"1.0"` |
 | `patch_id` | ✅ | UUID v4 — for idempotency and audit |
 | `action` | ✅ | One of 7 supported actions |
@@ -253,12 +263,15 @@ All patches must conform to the JSON Schema at [`sdk/python/ai_runtime/validatio
 
 ---
 
-## Security Model
+## 🔒 Security Model
 
-Threat model and limitations are documented in [`SECURITY.md`](SECURITY.md). In summary:
+> [!IMPORTANT]
+> Threat model and limitations are documented in [`SECURITY.md`](SECURITY.md).
+
+In summary:
 
 | Sandbox Tier | Isolation | When to Use |
-|:-------------|:----------|:------------|
+|:---|:---|:---|
 | **T1 — Cranelift JIT** | Process-local, zero-syscall | Trusted compiler-verified Aether code only |
 | **T2 — Wasmtime/WASI** | WASM capability sandbox, epoch timeout | Untrusted scripts needing strong isolation |
 | **T3 — Subprocess** | OS resource limits + audit hook | Universal fallback, widest compatibility |
@@ -267,27 +280,28 @@ All results carry an `isolation_level` field for observability and audit.
 
 ---
 
-## Phase 8: T1 Cranelift JIT FFI Integration
+## ⚙️ Phase 8: T1 Cranelift JIT FFI Integration
 
 Phase 8 bridges the Rust Cranelift compiler into the Python/Node SDKs via a **panic-safe C-ABI guard ring**.
 
 ### Architecture
 
-```
-[Python / Node.js SDK]
-         │
-         │  ctypes / N-API
-         ▼
-┌─────────────────────────────────────┐
-│  Panic-Safe ABI Guard Ring          │
-│  extern "C" ae_sandbox_execute()    │  ← std::panic::catch_unwind
-│  extern "C" ae_sandbox_free()       │  ← deterministic heap dealloc
-└─────────────────────────────────────┘
-         │
-         ▼
-  [ae-syntax::parse]  →  [ae-sema::analyze]  →  [Interpreter::run]
-                                                       ↑
-                                               (JIT via cranelift-jit)
+```mermaid
+flowchart TD
+    SDK["Python / Node.js SDK"] -->|ctypes / N-API| GuardRing
+    
+    subgraph GuardRing["🛡️ Panic-Safe ABI Guard Ring"]
+        E1["extern 'C' ae_sandbox_execute()<br>(std::panic::catch_unwind)"]
+        E2["extern 'C' ae_sandbox_free()<br>(deterministic heap dealloc)"]
+    end
+    
+    GuardRing --> Parse
+    
+    subgraph AetherCompiler["📦 Aether Compiler"]
+        Parse["ae-syntax::parse"] --> Analyze["ae-sema::analyze"]
+        Analyze --> Run["Interpreter::run"]
+        Run -.->|JIT via cranelift-jit| JIT["JIT Execution"]
+    end
 ```
 
 ### Build
@@ -317,7 +331,7 @@ print(result.success, result.isolation_level, result.elapsed_ms)
 ### Safety Contract
 
 | Property | Implementation |
-|:---------|:---------------|
+|:---|:---|
 | **No Rust panics cross FFI boundary** | `std::panic::catch_unwind` wraps all execution |
 | **No memory leaks** | `ae_sandbox_free` reclaims every `ae_sandbox_execute` result |
 | **NULL safety** | NULL input returns JSON error; NULL free is a no-op |
@@ -326,7 +340,7 @@ print(result.success, result.isolation_level, result.elapsed_ms)
 
 ---
 
-## T2 Sandbox: Wasmtime/WASI
+## 📦 T2 Sandbox: Wasmtime/WASI
 
 Phase 7 implemented epoch-based timeout control (not instruction-fuel) for accurate wall-clock enforcement:
 
@@ -343,11 +357,11 @@ result = sb.run(python_script, timeout_ms=5000)
 
 ---
 
-## Shared Security Rules
+## 🛡️ Shared Security Rules
 
 Both the Python and Node.js SDKs load security patterns from a single canonical file:
 
-```
+```text
 sdk/security_rules.json
 ```
 
@@ -357,11 +371,12 @@ This file controls:
 - `max_payload_size_bytes` — maximum patch payload size (default: 64 KB)
 - `run_script_requires_trust` — whether `run_script` actions require explicit trust elevation
 
-To add or update a security rule, edit `security_rules.json` once — both SDKs pick it up automatically.
+> [!TIP]
+> To add or update a security rule, edit `security_rules.json` once — both SDKs pick it up automatically.
 
 ---
 
-## Test Suite
+## 🧪 Test Suite
 
 ```bash
 # Rust tests (FFI guard ring + JIT — 8 tests)
@@ -377,9 +392,9 @@ cd sdk/node
 npm test
 ```
 
-### Rust (ae-codegen)
+### Rust (`ae-codegen`)
 
-```
+```text
 running 8 tests
 test ffi::tests::ffi_free_null_is_noop              ... ok
 test ffi::tests::ffi_null_pointer_returns_error     ... ok
@@ -395,7 +410,7 @@ test result: ok. 8 passed; 0 failed
 
 ### Python SDK
 
-```
+```text
 174 tests collected (8 passed, 1 xfailed)
 ├── test_validation.py            34 tests  (Phase 1: Validation Layer)
 ├── test_sandbox.py               26 tests  (Phase 2: Sandbox T3)
@@ -411,10 +426,10 @@ test result: ok. 8 passed; 0 failed
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap
 
 | Phase | Component | Status |
-|:------|:----------|:-------|
+|:---|:---|:---|
 | 1 | Validation Layer (JSON Schema + Rules) | ✅ Complete |
 | 2 | T3 Sandbox (subprocess + OS limits) | ✅ Complete |
 | 3 | Snapshot System (tar.gz + SQLite + locks) | ✅ Complete |
@@ -432,7 +447,7 @@ test result: ok. 8 passed; 0 failed
 
 ---
 
-## Requirements
+## 💻 Requirements
 
 - **Python SDK**: Python ≥ 3.11, no Docker, no root
 - **Rust compiler**: Required to build `crates/ae-codegen` for T1 (`rustup target add x86_64-pc-windows-msvc`)
@@ -440,7 +455,7 @@ test result: ok. 8 passed; 0 failed
 
 ---
 
-## License
+## 📜 License
 
 Aether is provided under a **Dual License** model:
 - **Open Source:** [GNU AGPLv3](LICENSE) for open-source, personal, educational, or internal non-networked use.
@@ -448,4 +463,4 @@ Aether is provided under a **Dual License** model:
 
 For commercial licensing and other inquiries, please contact: **ashallt232005@gmail.com**
 
-See the [LICENSE](LICENSE) file for full details.
+See the [`LICENSE`](LICENSE) file for full details.

@@ -4,16 +4,21 @@ This note extends Aether beyond "patch JSON" into a compiler-style method planne
 
 ## Research Inputs
 
-- Graphify maps code, docs, SQL schemas, configs, and media into a queryable graph. Its README says code is parsed locally with tree-sitter, graph edges are tagged as extracted or inferred, and it avoids vector-store-only retrieval. It also reports code-intelligence work on ERPNext where a graph tool improved key-fact coverage and avoided packing whole repos into context.
-- Salsa models compiler work as memoized, demand-driven queries. Inputs change, revisions advance, and dependent functions are reused when their inputs are unchanged.
-- Rowan/rust-analyzer use lossless green/red syntax trees: immutable green nodes store syntax, while red nodes provide parent/offset views. This makes source structure cheap to share between versions.
-- Egg/e-graphs support equality saturation: many equivalent rewrites can coexist, then an extractor chooses the best form for a cost function.
+- **Graphify**: Maps code, docs, SQL schemas, configs, and media into a queryable graph. Its README says code is parsed locally with tree-sitter, graph edges are tagged as extracted or inferred, and it avoids vector-store-only retrieval. It also reports code-intelligence work on ERPNext where a graph tool improved key-fact coverage and avoided packing whole repos into context.
+- **Salsa**: Models compiler work as memoized, demand-driven queries. Inputs change, revisions advance, and dependent functions are reused when their inputs are unchanged.
+- **Rowan / rust-analyzer**: Use lossless green/red syntax trees. Immutable green nodes store syntax, while red nodes provide parent/offset views. This makes source structure cheap to share between versions.
+- **Egg / e-graphs**: Support equality saturation. Many equivalent rewrites can coexist, then an extractor chooses the best form for a cost function.
 
 These tools point at a larger Aether architecture:
 
-```text
-graph-scoped context -> transition planner -> wire format -> persistent syntax tree
-                     -> incremental validation -> candidate rewrite search -> verification
+```mermaid
+flowchart LR
+    A[Graph-Scoped Context] --> B[Transition Planner]
+    B --> C[Wire Format]
+    C --> D[Persistent Syntax Tree]
+    D --> E[Incremental Validation]
+    E --> F[Candidate Rewrite Search]
+    F --> G[Verification]
 ```
 
 ## Why Small Programs Expose JSON Overhead
@@ -22,18 +27,29 @@ Small files are the weak case for structured patch JSON. If the whole target fil
 
 That does not invalidate the mechanism. It means the planner must route small safe work differently:
 
-- Tiny first draft or tiny safe edit: full-file generation can win.
-- Focused edit in medium/large file: state transition usually wins on output tokens.
-- Risky/security/failure-sensitive edit: guarded Aether wins on recovery and auditability.
-- Repo-understanding task: graph-scoped context should reduce input tokens before any edit method is chosen.
-- Optimization or equivalent rewrite task: e-graph search can explore candidates without forcing the agent to guess one perfect rewrite.
+- **Tiny first draft or tiny safe edit**: full-file generation can win.
+- **Focused edit in medium/large file**: state transition usually wins on output tokens.
+- **Risky/security/failure-sensitive edit**: guarded Aether wins on recovery and auditability.
+- **Repo-understanding task**: graph-scoped context should reduce input tokens before any edit method is chosen.
+- **Optimization or equivalent rewrite task**: e-graph search can explore candidates without forcing the agent to guess one perfect rewrite.
 
 ## Dynamic Method Set
 
-The planner should choose among these methods:
+The planner should choose among these methods based on context and risk:
+
+```mermaid
+flowchart TD
+    Start[Transition Request] --> SizeCheck{Is the file tiny or<br/>a greenfield prototype?}
+    SizeCheck -->|Yes| FullFile[<code>full_file</code>]
+    SizeCheck -->|No| ScopeCheck{Is this a repo-understanding<br/>or cross-file task?}
+    ScopeCheck -->|Yes| GraphScoped[<code>graph_scoped_*</code>]
+    ScopeCheck -->|No| RiskCheck{Is the edit sensitive<br/>or prone to failure?}
+    RiskCheck -->|Yes| GuardedAether[<code>guarded_aether</code>]
+    RiskCheck -->|No| StateTransition[<code>state_transition</code>]
+```
 
 | Method | Best Use | Main Cost | Safety |
-| --- | --- | --- | --- |
+| :--- | :--- | :--- | :--- |
 | `full_file` | Tiny files, greenfield prototypes, agent patch-format uncertainty | Output grows with file size | Depends on verifier |
 | `state_transition` | Focused edits where patch output is smaller than file rewrite | Schema envelope + AST apply | Verification only |
 | `guarded_aether` | Sensitive changes, rollback cases, invalid patch defense | Validation + snapshot + rollback overhead | Strongest current path |
@@ -45,13 +61,14 @@ The planner should choose among these methods:
 
 The first practical planner can use a simple objective:
 
-```text
-score =
-  input_tokens
-  + output_tokens
-  + local_latency_ms * latency_weight
-  + failure_risk_penalty
-  + safety_required_penalty_if_missing
+```python
+score = (
+    input_tokens +
+    output_tokens +
+    (local_latency_ms * latency_weight) +
+    failure_risk_penalty +
+    safety_required_penalty_if_missing
+)
 ```
 
 Measured fields already present in benchmark records:
@@ -63,51 +80,39 @@ Measured fields already present in benchmark records:
 - `task_success`
 - `hybrid_selected_mode`
 
-The new `benchmarks/analysis/transition_planner.py` uses those fields to estimate dynamic method selection and can apply a configurable graph-context savings factor.
+> [!NOTE]
+> The new `benchmarks/analysis/transition_planner.py` uses those fields to estimate dynamic method selection and can apply a configurable graph-context savings factor.
 
 ## Graphify-Style Input Savings
 
 Graph retrieval affects input tokens, not output patch size. In a large codebase, the agent should not read every relevant-looking file. It should ask the graph for the smallest connected subgraph that explains the task, then choose an edit method.
 
 Expected effect:
-
 ```text
 without graph = broad search + many raw file reads + edit output
 with graph    = graph query result + selected source slices + edit output
 ```
 
 This can compound with Aether:
-
 ```text
-total savings ~= input-context savings + output-transition savings
+total savings ≈ input-context savings + output-transition savings
 ```
 
-But these savings are not additive in a naive way. A run with 80% input savings and 80% output savings does not automatically mean 160% total savings. The correct formula is:
+> [!WARNING]
+> These savings are not additive in a naive way. A run with 80% input savings and 80% output savings does not automatically mean 160% total savings.
 
+The correct formula is:
 ```text
 total_savings = 1 - ((new_input + new_output) / (old_input + old_output))
 ```
 
 ## Compiler-Theoretic Roadmap
 
-Short term:
-
-- Keep the existing threshold hybrid mode for production-like routing.
-- Add benchmark-only transition planner analysis across old runs.
-- Add graph-context fields to future benchmark descriptors: graph query tokens, raw file read tokens avoided, graph build/update time, and graph hit confidence.
-- Improve Aether patch generation reliability with examples, stricter schemas, repair loops, and smaller wire forms.
-
-Medium term:
-
-- Add compact wire forms beyond JSON for small programs: CST paths, S-expressions, or a binary/CBOR-like internal transport when the caller is trusted.
-- Add persistent syntax-tree snapshots for memory-backed rollback in local sessions, while retaining disk snapshots for durable safety.
-- Add incremental invalidation metrics: affected functions, reused parse nodes, reused semantic queries, and recomputed query count.
-
-Long term:
-
-- Use Salsa-like query invalidation for semantic checks.
-- Use Rowan-like green/red trees for O(depth) structural edits and cheap snapshots.
-- Use e-graphs for bounded rewrite bundles where the agent submits alternatives and Aether extracts the cheapest verified form.
+| Phase | Key Deliverables |
+| :--- | :--- |
+| **Short Term** | • Keep the existing threshold hybrid mode for production-like routing.<br>• Add benchmark-only transition planner analysis across old runs.<br>• Add graph-context fields to future benchmark descriptors.<br>• Improve Aether patch generation reliability with examples, stricter schemas, and smaller wire forms. |
+| **Medium Term** | • Add compact wire forms beyond JSON for small programs (e.g., CST paths, S-expressions).<br>• Add persistent syntax-tree snapshots for memory-backed rollback in local sessions.<br>• Add incremental invalidation metrics (e.g., affected functions, reused parse nodes). |
+| **Long Term** | • Use Salsa-like query invalidation for semantic checks.<br>• Use Rowan-like green/red trees for `O(depth)` structural edits and cheap snapshots.<br>• Use e-graphs for bounded rewrite bundles to extract the cheapest verified form. |
 
 ## Current Evidence Interpretation
 

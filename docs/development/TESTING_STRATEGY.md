@@ -1,6 +1,6 @@
-# Testing Strategy
+# 🧪 Testing Strategy
 
-## Principles
+## 🏛️ Principles
 
 - Prefer executable tests and benchmarks over claims in prose.
 - Record raw results from actual executions only.
@@ -9,59 +9,71 @@
 - Report limitations beside every benchmark family.
 - Treat absence of observed failure as an observation, not a guarantee.
 
-## Layers
+## 🥞 Layers
 
-Unit tests:
+```mermaid
+flowchart TD
+    A[Testing Strategy] --> B[Unit Tests]
+    A --> C[Benchmark Smoke Tests]
+    A --> D[Full Benchmarks]
+    
+    B --> B1[Rust Crates]
+    B --> B2[Python SDK]
+    B --> B3[Node SDK]
+    
+    C --> C1[Fast CI Runs]
+    C --> C2[Temp Directories]
+    
+    D --> D1[Failure-Injection Suite]
+    D --> D2[Agent Replay Suite]
+    D --> D3[Command/Provider Agent Suite]
+    D --> D4[External Repository Suite]
+```
 
+### Unit tests:
 - Rust crate tests for parser, semantic analysis, code generation, FFI, and CLI behavior.
 - Python SDK tests for validation, AST patching, sandboxing, snapshots, rollback, observability, and orchestrator behavior.
 - Node SDK tests for validation, AST patching, sandboxing, snapshots, rollback, semantic gate, and security behavior.
 
-Benchmark smoke tests:
-
+### Benchmark smoke tests:
 - Live in `benchmarks/`.
 - Use temp working directories.
 - Produce JSON and CSV records.
 - Run quickly enough for CI once workflows are added.
 - Avoid network, external LLM calls, and unpinned repositories.
 
-Full benchmarks:
-
+### Full benchmarks:
 - Use pinned repository and task manifests.
 - May invoke agent adapters and repeated trials.
 - Are manually triggerable or scheduled.
 - Must preserve raw output under `benchmarks/results/raw/`.
 
-Failure-injection suite:
-
+### Failure-injection suite:
 - Runs deterministic injected failures without an LLM.
 - Covers initial syntax, runtime, broken import, sensitive path, and AST-apply failure cases.
 - Covers timeout cases for Python and JavaScript.
 - Records `failure_type`, `failure_detected`, rollback fields, and final repository corruption state.
 - Does not yet cover process crash, command failure, destructive modification, partial patch, or dependency installation failures.
 
-Agent replay suite:
-
+### Agent replay suite:
 - Runs deterministic file-based patch emission without an external LLM.
 - Exercises benchmark agent ingestion, patch metadata, unchecked control application, Aether validation, snapshot, rollback, and Aether application.
 - Records the `replay-agent` adapter in benchmark configuration.
 - Does not itself measure model quality or provider cost.
 
-Command/provider agent suite:
-
+### Command/provider agent suite:
 - Uses `benchmarks/agents/command_agent.py` to run an external provider command.
 - Includes `benchmarks/agents/openai_provider.py` for OpenAI Responses API runs when credentials and model configuration are provided.
 - Includes `benchmarks/agents/gemini_provider.py` for Gemini `generateContent` runs when credentials and model configuration are provided.
 - Records retry count, adapter latency, token usage, tool calls, model, and cost when the provider command reports them.
 - Keeps live/provider calls out of default smoke runs.
 
-External repository suite:
-
+### External repository suite:
 - Supports local worktree fixtures by default.
 - Supports external git manifests only when `--allow-network-repos` is explicitly passed.
 - External git manifests must use immutable commit SHAs.
 
-## M1/M2 Correctness Suite
+## 🎯 M1/M2 Correctness Suite
 
 The initial correctness suite validates the benchmark harness and a small set of implemented Python behaviors rather than making broad claims about Aether. It checks:
 
@@ -78,43 +90,23 @@ The initial correctness suite validates the benchmark harness and a small set of
 - Agent replay tasks run through the same Aether path after a deterministic adapter emits patch JSON.
 - `benchmarks/analysis/summarize.py` computes N, mean, median, standard deviation, minimum, and maximum for numeric fields from raw JSON.
 
-Current limitation: JavaScript benchmark cases do not yet exercise snapshot-backed rollback because the benchmark adapter calls the Node AST engine directly.
+> [!NOTE]
+> **Current limitation:** JavaScript benchmark cases do not yet exercise snapshot-backed rollback because the benchmark adapter calls the Node AST engine directly.
 
-## Metric Definitions
+## 📊 Metric Definitions
 
-Transformation success rate:
+| Metric | Formula |
+|---|---|
+| **Transformation success rate** | `successful transformations / attempted transformations` |
+| **Invalid patch detection rate** | `invalid patches rejected / invalid patches submitted` |
+| **Snapshot integrity rate** | `snapshots restorable to expected state / snapshot restore attempts` |
+| **Rollback success rate** | `successful rollbacks / rollback attempts` |
+| **False acceptance rate** | `bad patches accepted / bad patches generated` |
 
-```text
-successful transformations / attempted transformations
-```
+> [!IMPORTANT]
+> These metrics only describe the tested task distribution and configuration.
 
-Invalid patch detection rate:
-
-```text
-invalid patches rejected / invalid patches submitted
-```
-
-Snapshot integrity rate:
-
-```text
-snapshots restorable to expected state / snapshot restore attempts
-```
-
-Rollback success rate:
-
-```text
-successful rollbacks / rollback attempts
-```
-
-False acceptance rate:
-
-```text
-bad patches accepted / bad patches generated
-```
-
-These metrics only describe the tested task distribution and configuration.
-
-## Control vs Aether Design
+## ⚖️ Control vs Aether Design
 
 The central experiment should compare:
 
@@ -124,7 +116,6 @@ aether:  agent -> Aether -> repository
 ```
 
 Hold constant:
-
 - model
 - prompt
 - temperature
@@ -136,13 +127,13 @@ Hold constant:
 
 The presence of Aether should be the primary independent variable.
 
-## CI Plan
+## 🚀 CI Plan
 
 When CI is added, every pull request should run:
+1. Rust unit tests.
+2. Python SDK unit tests.
+3. Node SDK unit tests through Jest or an updated `npm test` script.
+4. Benchmark smoke suite.
 
-- Rust unit tests.
-- Python SDK unit tests.
-- Node SDK unit tests through Jest or an updated `npm test` script.
-- Benchmark smoke suite.
-
-Full agent and real-repository benchmarks should not block pull requests.
+> [!TIP]
+> Full agent and real-repository benchmarks should not block pull requests.
