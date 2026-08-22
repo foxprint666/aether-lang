@@ -1,0 +1,54 @@
+{
+  "build_modes": {
+    "aether": "compact state transitions compiled into source files",
+    "raw": "full source files emitted directly"
+  },
+  "commit_sha": "8a30c43cce94f74a93726064374f571a5f3dc5b2",
+  "experiment_id": "weather-project-ab-v1",
+  "records": [
+    {
+      "build_ms": 4.8776,
+      "cli_stderr": "",
+      "cli_stdout": "mae=1.9867 rmse=2.5342",
+      "generated_bytes": 5547,
+      "generated_tokens": 1350,
+      "mae": 1.9867,
+      "mode": "raw",
+      "project_tokens": 1338,
+      "rmse": 2.5342,
+      "success": true,
+      "test_stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.083s\n\nOK",
+      "test_stdout": "",
+      "verify_ms": 335.3728,
+      "workdir": "C:\\Users\\ASHLEY~1\\AppData\\Local\\Temp\\weather-raw-4et2vboh"
+    },
+    {
+      "build_ms": 3.8173,
+      "cli_stderr": "",
+      "cli_stdout": "mae=1.9867 rmse=2.5342",
+      "generated_bytes": 518,
+      "generated_tokens": 173,
+      "mae": 1.9867,
+      "mode": "aether",
+      "project_tokens": 1331,
+      "rmse": 2.5342,
+      "success": true,
+      "test_stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.084s\n\nOK",
+      "test_stdout": "",
+      "verify_ms": 337.5519,
+      "workdir": "C:\\Users\\ASHLEY~1\\AppData\\Local\\Temp\\weather-aether-rbr0n6j0"
+    }
+  ],
+  "report_version": "weather-project-ab-v1",
+  "summary": {
+    "aether_mae": 1.9867,
+    "aether_success": true,
+    "build_time_savings_pct": 21.73815,
+    "generated_byte_savings_pct": 90.661619,
+    "generated_token_savings_pct": 87.185185,
+    "project_token_delta_pct": 0.523169,
+    "raw_mae": 1.9867,
+    "raw_success": true,
+    "verify_time_savings_pct": -0.649755
+  }
+}

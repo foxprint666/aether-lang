@@ -1,0 +1,3 @@
+mode,success,mae,rmse,build_ms,verify_ms,generated_tokens,generated_bytes,project_tokens
+raw,True,1.9867,2.5342,4.8776,335.3728,1350,5547,1338
+aether,True,1.9867,2.5342,3.8173,337.5519,173,518,1331

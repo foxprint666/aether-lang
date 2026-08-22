@@ -1,0 +1,25 @@
+{
+  "build_modes": {
+    "aether": "compact state transitions compiled into source files",
+    "raw": "full source files emitted directly"
+  },
+  "commit_sha": "8a30c43cce94f74a93726064374f571a5f3dc5b2",
+  "experiment_id": "weather-project-ab-v1",
+  "limitations": [
+    "This is a deterministic local project build benchmark, not a live LLM generation study.",
+    "The Aether path uses compact state transitions compiled into code, so it measures architecture leverage rather than prompt-only behavior.",
+    "Token counts use a local code-token estimate, not provider billing tokens."
+  ],
+  "report_version": "weather-project-ab-evidence-v1",
+  "summary": {
+    "aether_mae": 1.9867,
+    "aether_success": true,
+    "build_time_savings_pct": 21.73815,
+    "generated_byte_savings_pct": 90.661619,
+    "generated_token_savings_pct": 87.185185,
+    "project_token_delta_pct": 0.523169,
+    "raw_mae": 1.9867,
+    "raw_success": true,
+    "verify_time_savings_pct": -0.649755
+  }
+}

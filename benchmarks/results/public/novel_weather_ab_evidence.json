@@ -1,0 +1,29 @@
+{
+  "algorithm": "seasonal_analog_residual_blend",
+  "build_modes": {
+    "aether": "compact custom algorithm states compiled into source files",
+    "raw": "full custom algorithm source emitted directly"
+  },
+  "commit_sha": "8a30c43cce94f74a93726064374f571a5f3dc5b2",
+  "experiment_id": "novel-weather-ab-v1",
+  "limitations": [
+    "This is a deterministic local project build benchmark, not a live LLM generation study.",
+    "The custom algorithm is novel within this benchmark, but not claimed as publishable ML research.",
+    "The Aether path measures architecture leverage from compact states compiled into code.",
+    "Token counts use a local code-token estimate, not provider billing tokens."
+  ],
+  "report_version": "novel-weather-ab-evidence-v1",
+  "summary": {
+    "aether_mae": 0.1683,
+    "aether_rmse": 0.3478,
+    "aether_success": true,
+    "build_time_savings_pct": 47.195186,
+    "generated_byte_savings_pct": 92.198091,
+    "generated_token_savings_pct": 90.050028,
+    "project_token_delta_pct": 0.0,
+    "raw_mae": 0.1683,
+    "raw_rmse": 0.3478,
+    "raw_success": true,
+    "verify_time_savings_pct": 5.439667
+  }
+}
