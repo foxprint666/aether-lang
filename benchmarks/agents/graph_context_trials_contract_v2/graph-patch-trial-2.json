@@ -1,0 +1,125 @@
+{
+  "arm": "aether_patch",
+  "records": [
+    {
+      "patch": {
+        "action": "modify_function",
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    return (\n        s.replace(\"&\", \"&amp;\")\n        .replace(\">\", \"&gt;\")\n        .replace(\"<\", \"&lt;\")\n        .replace(\"'\", \"&#39;\")\n        .replace('\"', \"&#34;\")\n        .replace(\"=\", \"&#61;\")\n    )"
+        },
+        "patch_id": "0a9e2b2f-e92d-4913-b6d7-e1d85a9801d6",
+        "schema_version": "1.0",
+        "target": {
+          "file": "src/markupsafe/_native.py",
+          "symbol": "_escape_inner",
+          "symbol_type": "function"
+        }
+      },
+      "task": "mx-7c11"
+    },
+    {
+      "patch": {
+        "action": "modify_function",
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    \"\"\"\n    Check if a name is a normalized project name (i.e. a valid name that\n    :func:`canonicalize_name` would roundtrip to the same value).\n\n    The roundtrip only characterizes normalized names for *valid* names. A name\n    must start and end with an ASCII letter or digit, which\n    :func:`canonicalize_name` does not enforce: it leaves a leading or trailing\n    hyphen in place, so such a name roundtrips without being normalized.\n\n    :param str name: The name to check.\n\n    >>> from packaging.utils import canonicalize_name, is_normalized_name\n    >>> is_normalized_name(\"requests\")\n    True\n    >>> is_normalized_name(\"Django\")\n    False\n    >>> canonicalize_name(\"_not_legal\")\n    '-not-legal'\n    >>> is_normalized_name(\"-not-legal\")  # roundtrips, but not a valid name\n    False\n\n    .. versionadded:: 23.2\n    \"\"\"\n    if not isinstance(name, str):\n        return False\n\n    return _normalized_regex.fullmatch(name) is not None"
+        },
+        "patch_id": "018a2ec1-6feb-46f9-9247-a279af74c79b",
+        "schema_version": "1.0",
+        "target": {
+          "file": "src/packaging/utils.py",
+          "symbol": "is_normalized_name",
+          "symbol_type": "function"
+        }
+      },
+      "task": "mx-2a84"
+    },
+    {
+      "patch": {
+        "action": "modify_function",
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    \"\"\"\n    This function takes the filename of a sdist file (as specified\n    in the `Source distribution format`_ documentation), and parses\n    it, returning a tuple of the normalized name and version as\n    represented by an instance of :class:`~packaging.version.Version`.\n\n    :param str filename: The name of the sdist file.\n    :raises InvalidSdistFilename: If the filename does not end\n        with an sdist extension (``.zip`` or ``.tar.gz``), if it does not\n        contain a dash separating the name and the version of the distribution,\n        if the project name is empty, or if the version portion is not a valid\n        version.\n\n    >>> from packaging.utils import parse_sdist_filename\n    >>> from packaging.version import Version\n    >>> name, ver = parse_sdist_filename(\"foo-1.0.tar.gz\")\n    >>> name\n    'foo'\n    >>> ver == Version('1.0')\n    True\n\n    .. versionadded:: 20.9\n\n    .. versionchanged:: 21.0\n       Added support for ``.zip`` source distributions.\n\n    .. versionchanged:: 23.2\n       Raises :class:`InvalidSdistFilename` when the version component is invalid.\n\n    .. versionchanged:: 26.3\n       Raises :class:`InvalidSdistFilename` on an empty project name.\n\n    .. _Source distribution format: https://packaging.python.org/specifications/source-distribution-format/#source-distribution-file-name\n    \"\"\"\n    if filename.endswith(\".tar.gz\"):\n        file_stem = filename[: -len(\".tar.gz\")]\n    elif filename.endswith(\".tgz\"):\n        file_stem = filename[: -len(\".tgz\")]\n    elif filename.endswith(\".zip\"):\n        file_stem = filename[: -len(\".zip\")]\n    else:\n        raise InvalidSdistFilename(\n            f\"Invalid sdist filename (extension must be '.tar.gz', '.tgz', or '.zip'):\"\n            f\" {filename!r}\"\n        )\n\n    # We are requiring a PEP 440 version, which cannot contain dashes,\n    # so we split on the last dash.\n    name_part, sep, version_part = file_stem.rpartition(\"-\")\n    if not sep:\n        raise InvalidSdistFilename(f\"Invalid sdist filename: {filename!r}\")\n    if not name_part:\n        raise InvalidSdistFilename(\n            f\"Invalid sdist filename (empty project name): {filename!r}\"\n        )\n\n    name = canonicalize_name(name_part)\n\n    try:\n        version = Version(version_part)\n    except InvalidVersion as e:\n        raise InvalidSdistFilename(\n            f\"Invalid sdist filename (invalid version): {filename!r}\"\n        ) from e\n\n    return (name, version)"
+        },
+        "patch_id": "8df125d0-6ef8-4769-809d-63cc4e8974cc",
+        "schema_version": "1.0",
+        "target": {
+          "file": "src/packaging/utils.py",
+          "symbol": "parse_sdist_filename",
+          "symbol_type": "function"
+        }
+      },
+      "task": "mx-b390"
+    },
+    {
+      "patch": {
+        "action": "modify_function",
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\tif (typeof string !== 'string') {\n\t\tthrow new TypeError('Expected a string');\n\t}\n\n\t// Escape characters with special meaning either inside or outside character sets.\n\t// Use a simple backslash escape when it\u2019s always valid, and a `\\xnn` escape when the simpler form would be disallowed by Unicode patterns\u2019 stricter grammar.\n\treturn string\n\t\t.replace(/[|\\\\{}()[\\]^$+*?.]/g, '\\\\$&')\n\t\t.replace(/\\//g, '\\\\x2f')\n\t\t.replace(/-/g, '\\\\x2d');"
+        },
+        "patch_id": "f5a25ec8-e1fb-4504-8931-19be5f9891e0",
+        "schema_version": "1.0",
+        "target": {
+          "file": "index.js",
+          "symbol": "escapeStringRegexp",
+          "symbol_type": "function"
+        }
+      },
+      "task": "mx-8f22"
+    },
+    {
+      "patch": {
+        "action": "modify_function",
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\t\tconst node = new Node(value);\n\n\t\tif (this.#head) {\n\t\t\tthis.#tail.next = node;\n\t\t\tthis.#tail = node;\n\t\t} else {\n\t\t\tthis.#head = node;\n\t\t\tthis.#tail = node;\n\t\t}\n\n\t\tthis.#size++;\n\t\treturn this.#size;"
+        },
+        "patch_id": "70c7d2b8-a3e6-4f04-b0c9-6cb61d88411e",
+        "schema_version": "1.0",
+        "target": {
+          "file": "index.js",
+          "symbol": "enqueue",
+          "symbol_type": "method"
+        }
+      },
+      "task": "mx-d605"
+    },
+    {
+      "patch": {
+        "action": "modify_function",
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\t\tconst limit = arguments.length === 0 ? Number.POSITIVE_INFINITY : arguments[0];\n\n\t\tif (limit < 0) {\n\t\t\tthrow new RangeError('Expected `limit` to be non-negative');\n\t\t}\n\n\t\tlet count = 0;\n\t\twhile (this.#head && count < limit) {\n\t\t\tcount++;\n\t\t\tyield this.dequeue();\n\t\t}"
+        },
+        "patch_id": "de0834cd-8df4-4929-b784-c06315926feb",
+        "schema_version": "1.0",
+        "target": {
+          "file": "index.js",
+          "symbol": "drain",
+          "symbol_type": "method"
+        }
+      },
+      "task": "mx-19ab"
+    },
+    {
+      "patch": {
+        "action": "modify_function",
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\t\tif (!this.#head) {\n\t\t\treturn null;\n\t\t}\n\n\t\treturn this.#head.value;\n\n\t\t// TODO: Node.js 18.\n\t\t// return this.#head?.value;"
+        },
+        "patch_id": "653a1ab8-307d-4889-9e59-c3195af4f099",
+        "schema_version": "1.0",
+        "target": {
+          "file": "index.js",
+          "symbol": "peek",
+          "symbol_type": "method"
+        }
+      },
+      "task": "mx-e473"
+    }
+  ],
+  "trial": 2
+}

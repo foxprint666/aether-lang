@@ -45,7 +45,7 @@
       "fixture": "repo:git:sindresorhus-escape-string-regexp",
       "source_file": "index.js",
       "description": "Update escapeStringRegexp so forward slashes are escaped as \\x2f, while preserving every existing escape and TypeError behavior.",
-      "test_command": "node --input-type=module -e \"import escape from './index.js'; if (escape('a/b') !== 'a\\\\x2fb') process.exit(1); if (escape('a-b') !== 'a\\\\x2db') process.exit(2); let rejected=false; try { escape(2); } catch (error) { rejected=error instanceof TypeError; } if (!rejected) process.exit(3)\""
+      "test_command": "node --input-type=module -e \"import escape from './index.js'; if (escape('a/b') !== String.raw`a\\x2fb`) process.exit(1); if (escape('a-b') !== String.raw`a\\x2db`) process.exit(2); let rejected=false; try { escape(2); } catch (error) { rejected=error instanceof TypeError; } if (!rejected) process.exit(3)\""
     },
     {
       "task_id": "mx-d605",

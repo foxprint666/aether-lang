@@ -8,28 +8,44 @@ function getParser() {
 }
 
 function parseReplacementBody(payload: string): any {
-    const dummyCode = `function dummy() {\n${payload}\n}`;
-    try {
-        const dummyAst = recast.parse(dummyCode, { parser: getParser() });
-        return dummyAst.program.body[0].body;
-    } catch (functionError: any) {
-        const privateNames = Array.from(
-            new Set(Array.from(payload.matchAll(/this\.#([A-Za-z_$][\w$]*)/g), match => match[1])),
-        );
-        if (privateNames.length === 0) {
-            throw functionError;
-        }
-
-        const declarations = privateNames.map(name => `#${name};`).join("\n");
-        const dummyClassCode = `class Dummy {\n${declarations}\ndummy() {\n${payload}\n}\n}`;
-        const dummyAst = recast.parse(dummyClassCode, { parser: getParser() });
-        const classBody = dummyAst.program.body[0].body.body;
-        const dummyMethod = classBody.find((node: any) => node.key?.name === "dummy");
-        if (!dummyMethod) {
-            throw new Error("Could not extract dummy class method body");
-        }
-        return dummyMethod.body;
+    const candidates = [`function dummy() {\n${payload}\n}`];
+    if (/\byield\b/.test(payload)) {
+        candidates.push(`function* dummy() {\n${payload}\n}`);
     }
+    let firstError: any = null;
+    for (const dummyCode of candidates) {
+        try {
+            const dummyAst = recast.parse(dummyCode, { parser: getParser() });
+            return dummyAst.program.body[0].body;
+        } catch (error: any) {
+            firstError = firstError ?? error;
+        }
+    }
+
+    const privateNames = Array.from(
+        new Set(Array.from(payload.matchAll(/this\.#([A-Za-z_$][\w$]*)/g), match => match[1])),
+    );
+    if (privateNames.length === 0) {
+        throw firstError;
+    }
+
+    const declarations = privateNames.map(name => `#${name};`).join("\n");
+    const methodForms = ["dummy", ...(/\byield\b/.test(payload) ? ["* dummy"] : [])];
+    for (const method of methodForms) {
+        try {
+            const dummyClassCode = `class Dummy {\n${declarations}\n${method}() {\n${payload}\n}\n}`;
+            const dummyAst = recast.parse(dummyClassCode, { parser: getParser() });
+            const classBody = dummyAst.program.body[0].body.body;
+            const dummyMethod = classBody.find((node: any) => node.key?.name === "dummy");
+            if (!dummyMethod) {
+                throw new Error("Could not extract dummy class method body");
+            }
+            return dummyMethod.body;
+        } catch (error: any) {
+            firstError = firstError ?? error;
+        }
+    }
+    throw firstError;
 }
 
 export function applyPatch(patch: any, projectRoot: string): void {

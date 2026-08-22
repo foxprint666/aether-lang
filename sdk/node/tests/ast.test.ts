@@ -129,6 +129,30 @@ describe('AST Engine', () => {
         expect(content).not.toContain('clear() { return 0; }');
     });
 
+    test('modify_function generator method accepts yield body', () => {
+        fs.writeFileSync(
+            testFilePath,
+            'class Queue {\n    * drain() {\n        yield 1;\n    }\n}',
+            'utf-8',
+        );
+
+        const patch = {
+            action: 'modify_function',
+            target: { file: testFile, symbol: 'drain', symbol_type: 'method' },
+            changes: {
+                operation: 'replace_body',
+                payload: 'let remaining = 2;\nwhile (remaining > 0) {\n    remaining--;\n    yield remaining;\n}'
+            }
+        };
+
+        applyPatch(patch, testDir);
+
+        const content = fs.readFileSync(testFilePath, 'utf-8');
+        expect(content).toContain('* drain()');
+        expect(content).toContain('yield remaining;');
+        expect(content).not.toContain('yield 1;');
+    });
+
     test('remove_function with arrow function', () => {
         fs.writeFileSync(testFilePath, 'const test = () => { return 42; };\nconst other = 1;', 'utf-8');
 

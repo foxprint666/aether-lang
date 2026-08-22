@@ -50,6 +50,28 @@ class Queue {
     assert {symbol.name for symbol in symbols} >= {"Queue", "enqueue", "peek"}
 
 
+def test_javascript_graph_selects_generator_method_from_member_reference() -> None:
+    source = """
+class Queue {
+  * drain() {
+    yield 1;
+  }
+}
+""".strip()
+    task = {
+        "task_id": "one",
+        "language": "javascript",
+        "repository": "repo",
+        "source_file": "index.js",
+        "description": "Extend Queue.drain with an optional nonnegative limit.",
+    }
+
+    packet = build_graph_packet(task, source)
+
+    assert [item["name"] for item in packet["selected_symbols"]] == ["drain"]
+    assert packet["selected_symbols"][0]["kind"] == "method"
+
+
 def test_graph_packet_can_be_smaller_than_raw_packet_for_focused_context() -> None:
     source = "\n".join([
         "def target():",

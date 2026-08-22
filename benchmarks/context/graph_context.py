@@ -114,7 +114,7 @@ def extract_javascript_symbols(source: str) -> list[Symbol]:
     for class_name, start, end in class_ranges:
         for index in range(start + 1, end):
             line = lines[index - 1]
-            match = re.match(r"\s*([A-Za-z_$][\w$]*)\s*\([^)]*\)\s*\{", line)
+            match = re.match(r"\s*\*?\s*([A-Za-z_$][\w$]*)\s*\([^)]*\)\s*\{", line)
             if match and match.group(1) not in {"if", "for", "while", "switch", "catch"}:
                 method_end = block_end(lines, index)
                 symbols.append(Symbol(
@@ -159,6 +159,18 @@ def import_edges(source: str, language: str) -> list[dict[str, str]]:
 
 def select_symbols(description: str, symbols: list[Symbol]) -> list[Symbol]:
     tokens = {token.lower() for token in re.findall(r"[A-Za-z_$][\w$]*", description)}
+    member_refs = [
+        (left.lower(), right.lower())
+        for left, right in re.findall(
+            r"\b([A-Za-z_$][\w$]*)\.([A-Za-z_$][\w$]*)\b",
+            description,
+        )
+    ]
+    if member_refs:
+        member_names = {right for _, right in member_refs}
+        members = [symbol for symbol in symbols if symbol.name.lower() in member_names]
+        if members:
+            return sorted(members, key=lambda symbol: (symbol.kind != "method", symbol.start_line))
     exact = [symbol for symbol in symbols if symbol.name.lower() in tokens]
     if exact:
         return exact

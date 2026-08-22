@@ -1,0 +1,214 @@
+{
+  "arm": "aether_patch",
+  "contract": {
+    "output": "Return one JSON envelope exactly: {\"trial\": N, \"arm\": \"aether_patch\", \"records\": [{\"task\": task_id, \"patch\": patch_object}, ...]}",
+    "patch_rules": [
+      "Use fresh UUID4 strings.",
+      "Never put replace_body in action; use action=modify_function for functions and methods, or action=modify_class for classes.",
+      "Always include target.symbol_type copied from the selected symbol kind.",
+      "target.file must equal source_file.",
+      "target.symbol must be the bare selected symbol name.",
+      "changes must be an object like {\"operation\": \"replace_body\", \"payload\": \"...\"}, not a list.",
+      "Do not include unknown top-level patch keys.",
+      "For replace_body, payload is the function/method body text only; do not include a function or method signature.",
+      "If the selected symbol is a generator method, payload may contain yield statements but still omits the method signature.",
+      "Honor every semantic constraint in the description; if it says nonnegative, reject negative values.",
+      "When only a method body can be changed and a new parameter is needed, read it from arguments.",
+      "Preserve indentation style from selected_symbols text.",
+      "Do not invent tests or expected answers."
+    ],
+    "required": [
+      "schema_version",
+      "patch_id",
+      "action",
+      "target",
+      "changes"
+    ],
+    "schema_version": "1.0"
+  },
+  "instruction": "For every task, infer the minimal Aether patch from description and selected_symbols. Return only valid JSON, no markdown.",
+  "role": "You are an isolated coding agent generating Aether structured patches from graph-scoped context only.",
+  "tasks": [
+    {
+      "context_strategy": "graph_scoped",
+      "description": "Update _escape_inner so equals signs are escaped as &#61; while preserving every existing escaping rule.",
+      "graph": {
+        "edge_count": 0,
+        "node_count": 1,
+        "selected_names": [
+          "_escape_inner"
+        ]
+      },
+      "language": "python",
+      "repository": "pallets-markupsafe",
+      "selected_symbols": [
+        {
+          "end_line": 8,
+          "kind": "function",
+          "name": "_escape_inner",
+          "start_line": 1,
+          "text": "def _escape_inner(s: str, /) -> str:\n    return (\n        s.replace(\"&\", \"&amp;\")\n        .replace(\">\", \"&gt;\")\n        .replace(\"<\", \"&lt;\")\n        .replace(\"'\", \"&#39;\")\n        .replace('\"', \"&#34;\")\n    )"
+        }
+      ],
+      "source_file": "src/markupsafe/_native.py",
+      "source_sha256": "8522ecf099b3e5aa9acae7a780927791d4f93f0369056a4aae6412762a67742f",
+      "task_id": "mx-7c11"
+    },
+    {
+      "context_strategy": "graph_scoped",
+      "description": "Make is_normalized_name return False for non-string values instead of raising, while preserving current behavior for strings.",
+      "graph": {
+        "edge_count": 5,
+        "node_count": 9,
+        "selected_names": [
+          "is_normalized_name"
+        ]
+      },
+      "language": "python",
+      "repository": "pypa-packaging",
+      "selected_symbols": [
+        {
+          "end_line": 151,
+          "kind": "function",
+          "name": "is_normalized_name",
+          "start_line": 127,
+          "text": "def is_normalized_name(name: str) -> bool:\n    \"\"\"\n    Check if a name is a normalized project name (i.e. a valid name that\n    :func:`canonicalize_name` would roundtrip to the same value).\n\n    The roundtrip only characterizes normalized names for *valid* names. A name\n    must start and end with an ASCII letter or digit, which\n    :func:`canonicalize_name` does not enforce: it leaves a leading or trailing\n    hyphen in place, so such a name roundtrips without being normalized.\n\n    :param str name: The name to check.\n\n    >>> from packaging.utils import canonicalize_name, is_normalized_name\n    >>> is_normalized_name(\"requests\")\n    True\n    >>> is_normalized_name(\"Django\")\n    False\n    >>> canonicalize_name(\"_not_legal\")\n    '-not-legal'\n    >>> is_normalized_name(\"-not-legal\")  # roundtrips, but not a valid name\n    False\n\n    .. versionadded:: 23.2\n    \"\"\"\n    return _normalized_regex.fullmatch(name) is not None"
+        }
+      ],
+      "source_file": "src/packaging/utils.py",
+      "source_sha256": "ba6bf332779835fe3ca10f8821201a822ad14284eadb3b589187a765a1ee90e5",
+      "task_id": "mx-2a84"
+    },
+    {
+      "context_strategy": "graph_scoped",
+      "description": "Extend parse_sdist_filename to accept .tgz as an alias for .tar.gz, preserving all existing validation and return types.",
+      "graph": {
+        "edge_count": 5,
+        "node_count": 9,
+        "selected_names": [
+          "parse_sdist_filename"
+        ]
+      },
+      "language": "python",
+      "repository": "pypa-packaging",
+      "selected_symbols": [
+        {
+          "end_line": 370,
+          "kind": "function",
+          "name": "parse_sdist_filename",
+          "start_line": 306,
+          "text": "def parse_sdist_filename(filename: str) -> tuple[NormalizedName, Version]:\n    \"\"\"\n    This function takes the filename of a sdist file (as specified\n    in the `Source distribution format`_ documentation), and parses\n    it, returning a tuple of the normalized name and version as\n    represented by an instance of :class:`~packaging.version.Version`.\n\n    :param str filename: The name of the sdist file.\n    :raises InvalidSdistFilename: If the filename does not end\n        with an sdist extension (``.zip`` or ``.tar.gz``), if it does not\n        contain a dash separating the name and the version of the distribution,\n        if the project name is empty, or if the version portion is not a valid\n        version.\n\n    >>> from packaging.utils import parse_sdist_filename\n    >>> from packaging.version import Version\n    >>> name, ver = parse_sdist_filename(\"foo-1.0.tar.gz\")\n    >>> name\n    'foo'\n    >>> ver == Version('1.0')\n    True\n\n    .. versionadded:: 20.9\n\n    .. versionchanged:: 21.0\n       Added support for ``.zip`` source distributions.\n\n    .. versionchanged:: 23.2\n       Raises :class:`InvalidSdistFilename` when the version component is invalid.\n\n    .. versionchanged:: 26.3\n       Raises :class:`InvalidSdistFilename` on an empty project name.\n\n    .. _Source distribution format: https://packaging.python.org/specifications/source-distribution-format/#source-distribution-file-name\n    \"\"\"\n    if filename.endswith(\".tar.gz\"):\n        file_stem = filename[: -len(\".tar.gz\")]\n    elif filename.endswith(\".zip\"):\n        file_stem = filename[: -len(\".zip\")]\n    else:\n        raise InvalidSdistFilename(\n            f\"Invalid sdist filename (extension must be '.tar.gz' or '.zip'):\"\n            f\" {filename!r}\"\n        )\n\n    # We are requiring a PEP 440 version, which cannot contain dashes,\n    # so we split on the last dash.\n    name_part, sep, version_part = file_stem.rpartition(\"-\")\n    if not sep:\n        raise InvalidSdistFilename(f\"Invalid sdist filename: {filename!r}\")\n    if not name_part:\n        raise InvalidSdistFilename(\n            f\"Invalid sdist filename (empty project name): {filename!r}\"\n        )\n\n    name = canonicalize_name(name_part)\n\n    try:\n        version = Version(version_part)\n    except InvalidVersion as e:\n        raise InvalidSdistFilename(\n            f\"Invalid sdist filename (invalid version): {filename!r}\"\n        ) from e\n\n    return (name, version)"
+        }
+      ],
+      "source_file": "src/packaging/utils.py",
+      "source_sha256": "ba6bf332779835fe3ca10f8821201a822ad14284eadb3b589187a765a1ee90e5",
+      "task_id": "mx-b390"
+    },
+    {
+      "context_strategy": "graph_scoped",
+      "description": "Update escapeStringRegexp so forward slashes are escaped as \\x2f, while preserving every existing escape and TypeError behavior.",
+      "graph": {
+        "edge_count": 0,
+        "node_count": 1,
+        "selected_names": [
+          "escapeStringRegexp"
+        ]
+      },
+      "language": "javascript",
+      "repository": "sindresorhus-escape-string-regexp",
+      "selected_symbols": [
+        {
+          "end_line": 11,
+          "kind": "function",
+          "name": "escapeStringRegexp",
+          "start_line": 1,
+          "text": "export default function escapeStringRegexp(string) {\n\tif (typeof string !== 'string') {\n\t\tthrow new TypeError('Expected a string');\n\t}\n\n\t// Escape characters with special meaning either inside or outside character sets.\n\t// Use a simple backslash escape when it\u2019s always valid, and a `\\xnn` escape when the simpler form would be disallowed by Unicode patterns\u2019 stricter grammar.\n\treturn string\n\t\t.replace(/[|\\\\{}()[\\]^$+*?.]/g, '\\\\$&')\n\t\t.replace(/-/g, '\\\\x2d');\n}"
+        }
+      ],
+      "source_file": "index.js",
+      "source_sha256": "af2065ad2f2d2b91946c2121e21618daa3f4b18787af9226f8c953ca54cca2f5",
+      "task_id": "mx-8f22"
+    },
+    {
+      "context_strategy": "graph_scoped",
+      "description": "Make Queue.enqueue return the queue's new size after insertion, preserving all queue behavior.",
+      "graph": {
+        "edge_count": 0,
+        "node_count": 9,
+        "selected_names": [
+          "enqueue"
+        ]
+      },
+      "language": "javascript",
+      "repository": "sindresorhus-yocto-queue",
+      "selected_symbols": [
+        {
+          "end_line": 36,
+          "kind": "method",
+          "name": "enqueue",
+          "start_line": 24,
+          "text": "\tenqueue(value) {\n\t\tconst node = new Node(value);\n\n\t\tif (this.#head) {\n\t\t\tthis.#tail.next = node;\n\t\t\tthis.#tail = node;\n\t\t} else {\n\t\t\tthis.#head = node;\n\t\t\tthis.#tail = node;\n\t\t}\n\n\t\tthis.#size++;\n\t}"
+        }
+      ],
+      "source_file": "index.js",
+      "source_sha256": "2eabf3096793c43934ef127fb50238dcba93074fb54f943fc62aeab616769dfc",
+      "task_id": "mx-d605"
+    },
+    {
+      "context_strategy": "graph_scoped",
+      "description": "Extend Queue.drain with an optional nonnegative limit. It must yield at most that many items and leave the rest queued; with no limit it must retain current drain-all behavior.",
+      "graph": {
+        "edge_count": 0,
+        "node_count": 9,
+        "selected_names": [
+          "drain"
+        ]
+      },
+      "language": "javascript",
+      "repository": "sindresorhus-yocto-queue",
+      "selected_symbols": [
+        {
+          "end_line": 89,
+          "kind": "method",
+          "name": "drain",
+          "start_line": 85,
+          "text": "\t* drain() {\n\t\twhile (this.#head) {\n\t\t\tyield this.dequeue();\n\t\t}\n\t}"
+        }
+      ],
+      "source_file": "index.js",
+      "source_sha256": "2eabf3096793c43934ef127fb50238dcba93074fb54f943fc62aeab616769dfc",
+      "task_id": "mx-19ab"
+    },
+    {
+      "context_strategy": "graph_scoped",
+      "description": "Change Queue.peek so an empty queue returns null instead of undefined, preserving non-empty behavior.",
+      "graph": {
+        "edge_count": 0,
+        "node_count": 9,
+        "selected_names": [
+          "peek"
+        ]
+      },
+      "language": "javascript",
+      "repository": "sindresorhus-yocto-queue",
+      "selected_symbols": [
+        {
+          "end_line": 64,
+          "kind": "method",
+          "name": "peek",
+          "start_line": 55,
+          "text": "\tpeek() {\n\t\tif (!this.#head) {\n\t\t\treturn;\n\t\t}\n\n\t\treturn this.#head.value;\n\n\t\t// TODO: Node.js 18.\n\t\t// return this.#head?.value;\n\t}"
+        }
+      ],
+      "source_file": "index.js",
+      "source_sha256": "2eabf3096793c43934ef127fb50238dcba93074fb54f943fc62aeab616769dfc",
+      "task_id": "mx-e473"
+    }
+  ],
+  "trial": 3,
+  "withheld": [
+    "hidden tests",
+    "reference solutions",
+    "full source outside selected symbols"
+  ]
+}

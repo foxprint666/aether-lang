@@ -1,0 +1,57 @@
+{
+  "by_strategy": {
+    "graph_scoped": {
+      "applicable_rate": 1.0,
+      "context_input_tokens": 7878,
+      "estimated_output_tokens": 6767,
+      "format_valid_rate": 1.0,
+      "hidden_test_pass_rate": 1.0,
+      "records": 21,
+      "success_rate": 1.0,
+      "successes": 21,
+      "total_estimated_tokens": 14645
+    },
+    "raw_source": {
+      "applicable_rate": 0.666667,
+      "context_input_tokens": 32274,
+      "estimated_output_tokens": 4614,
+      "format_valid_rate": 0.666667,
+      "hidden_test_pass_rate": 0.571429,
+      "records": 21,
+      "success_rate": 0.571429,
+      "successes": 12,
+      "total_estimated_tokens": 36888
+    }
+  },
+  "commit_sha": "b291ea81cf68ff8687b15299a5d051b655215c76",
+  "efficiency": {
+    "graph_context_input_token_savings_pct": 75.590258,
+    "graph_output_token_delta_pct": -46.662332,
+    "graph_total_token_savings_pct": 60.298742
+  },
+  "evidence": {
+    "baseline_original_passes": [],
+    "pairs": 21,
+    "tasks": 7,
+    "trials": [
+      1,
+      2,
+      3
+    ]
+  },
+  "experiment_id": "graph-agent-ab-contract-v2",
+  "limitations": [
+    "Graph-scoped generation used fresh stateless Codex subagents with prompt-enforced source-only restrictions, not OS-enforced filesystem denial.",
+    "Raw-source comparison reuses the prior paired blind patch trials; graph-scoped trials are newly generated.",
+    "Token counts are offline tiktoken estimates, not provider billing telemetry."
+  ],
+  "paired_success": {
+    "both_pass": 12,
+    "graph_minus_raw_percentage_points": 42.8571,
+    "graph_only_pass": 9,
+    "mcnemar_exact_two_sided_p": 0.003906,
+    "neither_pass": 0,
+    "raw_only_pass": 0
+  },
+  "report_version": "graph-agent-ab-v1"
+}
