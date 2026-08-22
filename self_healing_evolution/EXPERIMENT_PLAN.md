@@ -149,9 +149,9 @@ The likely near-term outcome:
 - Aether will perform best when files are medium/large and changes are localized.
 - Aether will be much safer on invalid or risky patches because failed mutations can be rejected or rolled back deterministically.
 
-## Next Implementation Step
+## Implemented First Local Runner
 
-Add a runner:
+The first deterministic local runner now exists:
 
 ```text
 benchmarks/run_self_healing_ab.py
@@ -166,4 +166,22 @@ The runner should:
 5. verify rollback
 6. emit raw JSON, processed CSV, and public evidence
 
-This can then be extended to clone and adapt `matebenyovszky/healing-agent`.
+Current evidence:
+
+- `benchmarks/results/raw/self-healing-ab-v1.json`
+- `benchmarks/results/processed/self-healing-ab-v1.csv`
+- `benchmarks/results/public/SELF_HEALING_AB_REPORT.md`
+- `benchmarks/results/public/self_healing_ab_evidence.json`
+
+Observed first-run result:
+
+- Raw repair success rate: `1.0`
+- Aether repair success rate: `1.0`
+- Raw safety success rate on invalid repair: `0.0`
+- Aether safety success rate on invalid repair: `1.0`
+- Raw corruptions after failed attempts: `1`
+- Aether corruptions after failed attempts: `0`
+- Aether output-token savings: `57.921811%`
+- Self-healing gate passed: `true`
+
+Next step: extend the runner to clone and adapt `matebenyovszky/healing-agent`.

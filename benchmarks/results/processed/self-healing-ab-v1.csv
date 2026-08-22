@@ -1,0 +1,15 @@
+task_id,pair_id,trial,arm,language,failure_type,invalid_repair,repair_success,safety_success,outcome_success,applicable,validation_failed,rollback_triggered,syntax_valid,hidden_test_pass,repository_corrupted_on_failure,output_tokens,output_bytes,token_estimator,application_time_ms,verification_time_ms,total_task_time_ms,artifact_sha256,error_type,error_detail
+sh-js-schema-key,sh-js-schema-key:trial-1,1,raw_healing,javascript,schema_mismatch,False,True,False,True,True,False,False,True,True,False,332,1365,heuristic:regex-v1,1.1155,71.5594,175.7618,58f76fa4340b73b9662797033461345a66ae1b73dccd78b67e66457a1f006193,,
+sh-js-schema-key,sh-js-schema-key:trial-1,1,aether_healing,javascript,schema_mismatch,False,True,False,True,True,False,False,True,True,False,154,470,heuristic:regex-v1,581.4314,86.433,776.8293,447314d03c83e7d1dac835626a95a024ecd791d5edb8686e5b6b503d79d1f521,,
+sh-js-null-user,sh-js-null-user:trial-1,1,raw_healing,javascript,none_handling,False,True,False,True,True,False,False,True,True,False,335,1366,heuristic:regex-v1,0.9329,83.6235,185.6247,778e04cd4876f7e46645ec85cf7cad71c3a67ef51c7bb777fc9e58aecfc3e7d6,,
+sh-js-null-user,sh-js-null-user:trial-1,1,aether_healing,javascript,none_handling,False,True,False,True,True,False,False,True,True,False,138,412,heuristic:regex-v1,469.8759,76.8211,633.9639,3dc4f283bb2bc6026c4ff0eeb66823b935cd849a9079129f467996e8b0b85070,,
+sh-js-invalid-rollback,sh-js-invalid-rollback:trial-1,1,raw_healing,javascript,invalid_patch,True,False,False,False,True,False,False,False,False,True,305,1260,heuristic:regex-v1,0.706,77.1672,163.1858,255da6a3348c759edcb96eaf3f65a78f01b96d3c85d7ce81a74c0c46fb1a63e8,syntax_error,"C:\Users\ASHLEY~1\AppData\Local\Temp\aether-healing-sh-js-invalid-rollback-raw_healing-zi6l1pdv\service.js:4
+  return (;
+          ^
+
+SyntaxError: Unexpected token ';'
+    at wrapSafe (node:internal/modules/cjs/loader:1692:18)
+    at checkSyntax (node:internal/main/check_syntax:76:3)
+
+Node.js v24.13.0"
+sh-js-invalid-rollback,sh-js-invalid-rollback:trial-1,1,aether_healing,javascript,invalid_patch,True,False,True,True,False,True,False,True,True,False,117,315,heuristic:regex-v1,409.5874,85.0493,591.8186,267de83f750a052ace1e29617ee2a25ab7407cb6b3c4dd95082cb66d2d08e0f7,validation_failed,Path traversal detected: ../service.js

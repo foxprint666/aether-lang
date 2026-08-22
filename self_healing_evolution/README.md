@@ -116,6 +116,31 @@ Success threshold for a serious claim:
 
 > Aether-assisted healing must match or beat raw repair success while reducing output tokens and reducing or eliminating corruption after failed repair attempts.
 
+## First Executable Evidence
+
+The first deterministic local self-healing A/B benchmark is now implemented:
+
+```text
+benchmarks/run_self_healing_ab.py
+```
+
+Public report:
+
+```text
+benchmarks/results/public/SELF_HEALING_AB_REPORT.md
+```
+
+Current result:
+
+- Raw repair success rate: `1.0`
+- Aether repair success rate: `1.0`
+- Raw safety success rate on invalid repair: `0.0`
+- Aether safety success rate on invalid repair: `1.0`
+- Raw corruptions after failed attempts: `1`
+- Aether corruptions after failed attempts: `0`
+- Aether output-token savings: `57.921811%`
+- Self-healing gate passed: `true`
+
 ## Folder Map
 
 - `AETHER_HEALING_LOOP.md` - detailed architecture for Aether-backed self-healing loops.

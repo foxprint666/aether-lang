@@ -1,0 +1,122 @@
+{
+  "baseline_original_failures": [
+    "sh-js-schema-key",
+    "sh-js-null-user"
+  ],
+  "by_arm": {
+    "aether_healing": {
+      "corruptions": 0,
+      "mean_total_task_time_ms": 667.537267,
+      "output_bytes": 1197,
+      "output_tokens": 409,
+      "records": 3,
+      "repair_success_rate": 1.0,
+      "repair_successes": 2,
+      "safety_success_rate": 1.0,
+      "safety_successes": 1
+    },
+    "raw_healing": {
+      "corruptions": 1,
+      "mean_total_task_time_ms": 174.857433,
+      "output_bytes": 3991,
+      "output_tokens": 972,
+      "records": 3,
+      "repair_success_rate": 1.0,
+      "repair_successes": 2,
+      "safety_success_rate": 0.0,
+      "safety_successes": 0
+    }
+  },
+  "commit_sha": "5647666c3aa0c15976e4dd6ebab0ce9ebcc06e05",
+  "efficiency": {
+    "aether_corruption_reduction": 1,
+    "aether_output_byte_savings_pct": 70.007517,
+    "aether_output_token_savings_pct": 57.921811,
+    "aether_repair_success_delta_percentage_points": 0.0
+  },
+  "experiment_id": "self-healing-ab-v1",
+  "interpretation": [
+    "Valid repair tasks measure whether the healing loop can restore expected behavior.",
+    "The invalid repair task measures whether failed autonomous mutation leaves the repository corrupted.",
+    "Aether's advantage should be judged by repair quality plus corruption prevention plus token efficiency, not token savings alone."
+  ],
+  "limitations": [
+    "This is a deterministic local self-healing benchmark, not a live LLM study.",
+    "The benchmark models a self-healing loop around a JavaScript service so it can run without Python SDK dependency friction.",
+    "Raw healing intentionally represents direct full-file mutation; Aether healing represents structured patch mutation through validation and snapshot rollback."
+  ],
+  "records": [
+    {
+      "arm": "raw_healing",
+      "error_type": null,
+      "output_tokens": 332,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-schema-key"
+    },
+    {
+      "arm": "aether_healing",
+      "error_type": null,
+      "output_tokens": 154,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-schema-key"
+    },
+    {
+      "arm": "raw_healing",
+      "error_type": null,
+      "output_tokens": 335,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-null-user"
+    },
+    {
+      "arm": "aether_healing",
+      "error_type": null,
+      "output_tokens": 138,
+      "repair_success": true,
+      "repository_corrupted_on_failure": false,
+      "safety_success": false,
+      "task_id": "sh-js-null-user"
+    },
+    {
+      "arm": "raw_healing",
+      "error_type": "syntax_error",
+      "output_tokens": 305,
+      "repair_success": false,
+      "repository_corrupted_on_failure": true,
+      "safety_success": false,
+      "task_id": "sh-js-invalid-rollback"
+    },
+    {
+      "arm": "aether_healing",
+      "error_type": "validation_failed",
+      "output_tokens": 117,
+      "repair_success": false,
+      "repository_corrupted_on_failure": false,
+      "safety_success": true,
+      "task_id": "sh-js-invalid-rollback"
+    }
+  ],
+  "report_version": "self-healing-ab-evidence-v1",
+  "self_healing_gate": {
+    "criteria": {
+      "aether_corruptions_eq": 0,
+      "aether_safety_success_rate_eq": 1.0,
+      "output_token_savings_pct_gte": 20,
+      "repair_success_delta_gte": 0
+    },
+    "observed": {
+      "aether_corruptions": 0,
+      "aether_safety_success_rate": 1.0,
+      "output_token_savings_pct": 57.921811,
+      "repair_success_delta": 0.0
+    },
+    "passed": true
+  },
+  "task_count": 3,
+  "trials": 1
+}
