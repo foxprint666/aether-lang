@@ -38,6 +38,7 @@
 - M7: Added eight previously unpublished external-agent tasks, source-only blind packets, hidden tests, hash-locked replay, three independent generation trials, and a manual CI workflow. The first final run passed 16/24 generated patches without oracle normalization.
 - M7: Added paired blind agent-generation evidence comparing source-only Aether patch outputs against matched full-file outputs. The first 7-task run passed 10/21 Aether patch outputs and 17/21 full-file outputs; Aether used 82.351% fewer estimated output tokens.
 - M7: Added compiler-transition planner documentation and a benchmark analyzer that estimates dynamic full-file/state/Aether/hybrid/graph-scoped method selection. On the external matrix, measured token-first routing projected 28.964% total-token savings; synthetic 80% graph-context reduction projected 74.479% total-token savings.
+- M7: Added raw-source versus graph-scoped context A/B evidence. The first 7-task run reduced visible input context by 59.245%, preserved 100% target-symbol selection, and measured 1.013 ms mean graph build time.
 - M6: Added broader CI workflow for Rust, focused Python, and focused Node checks.
 - M6: Added Codex session evidence documenting real AI-agent work performed in this development session.
 
@@ -54,6 +55,7 @@
 - Add dependency-installed external project test suites and multi-file tasks beyond the current pinned matrix.
 - Add fresh unpublished blind tasks, OS-enforced agent isolation, and patch-generation repair loops to close the paired blind success gap versus full-file generation.
 - Add real graph-context integration to measure Graphify-style input savings rather than relying on synthetic planner projections.
+- Add matched live/subagent generation from graph-scoped packets versus raw-source packets, with hidden-test correctness and token/time telemetry.
 - Add latency-weighted planner benchmarks so the system can choose speed-first, cost-first, or safety-first methods dynamically.
 
 ## Epic A - Benchmark Infrastructure

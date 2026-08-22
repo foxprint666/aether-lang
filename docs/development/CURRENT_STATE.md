@@ -126,6 +126,7 @@ Current benchmark evidence is useful for hypothesis generation but is not yet a 
 - Blind external-agent protocol with source-only packets, hidden behavior checks, immutable descriptor/patch hashes, three independent agent trials, and a manual CI evidence workflow.
 - Paired blind agent-generation protocol comparing Aether structured patches against matched full-file outputs on the same source-only tasks, with task/trial pair ids, hidden tests, estimated token/byte metrics, exact McNemar reporting, and task-clustered bootstrap intervals.
 - Benchmark-only transition planner analysis for full-file, state, guarded Aether, existing hybrid, and synthetic graph-scoped variants, documented in `docs/development/COMPILER_TRANSITION_PLANNER.md`.
+- Lightweight graph-scoped context A/B runner measuring raw-source versus selected-symbol packets, input-token savings, target-symbol hit rate, and graph build time.
 - Benchmark smoke CI workflow.
 - Documentation for adding benchmarks and language adapters.
 
@@ -135,7 +136,8 @@ Current benchmark evidence is useful for hypothesis generation but is not yet a 
 - Live-provider A/B runs on the expanded Phase 6 agent task set. The expanded A/B task set has passed the local command/mock completion gate, but it has not yet been repeated against live Gemini/OpenRouter after expansion.
 - External coverage beyond the current five repositories and twelve tasks, including dependency-installed project test suites, TypeScript, and multi-file changes.
 - Fresh unpublished tasks for every public rerun, OS-enforced filesystem isolation during generation, and improved Aether patch-generation reliability versus full-file agent output.
-- Real graph-context measurement in the benchmark harness: graph build/update time, graph query token cost, raw file-read tokens avoided, scoped-context correctness, and planner decisions with latency weighting.
+- Live-agent graph-context correctness A/B: graph-scoped packets now measure input savings, but they still need matched agent generation and hidden-test scoring against raw-source packets.
+- Full Graphify-style repository graph integration: graph update time, query token cost, raw file-read tokens avoided, scoped-context correctness, and planner decisions with latency weighting.
 - CI coverage for full SDK unit tests and full benchmark suites.
 
 ## Risks

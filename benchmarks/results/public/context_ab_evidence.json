@@ -1,0 +1,73 @@
+{
+  "by_language": {
+    "javascript": {
+      "context_token_savings_pct": 0.749688,
+      "mean_graph_build_time_ms": 0.452575,
+      "records": 4,
+      "target_hit_rate": 1.0
+    },
+    "python": {
+      "context_token_savings_pct": 78.784085,
+      "mean_graph_build_time_ms": 1.7605,
+      "records": 3,
+      "target_hit_rate": 1.0
+    }
+  },
+  "by_repository": {
+    "pallets-markupsafe": {
+      "context_token_savings_pct": -27.751196,
+      "mean_graph_build_time_ms": 0.2845,
+      "records": 1,
+      "target_hit_rate": 1.0
+    },
+    "pypa-packaging": {
+      "context_token_savings_pct": 81.974495,
+      "mean_graph_build_time_ms": 2.4985,
+      "records": 2,
+      "target_hit_rate": 1.0
+    },
+    "sindresorhus-escape-string-regexp": {
+      "context_token_savings_pct": -23.134328,
+      "mean_graph_build_time_ms": 1.0893,
+      "records": 1,
+      "target_hit_rate": 1.0
+    },
+    "sindresorhus-yocto-queue": {
+      "context_token_savings_pct": 3.750586,
+      "mean_graph_build_time_ms": 0.240333,
+      "records": 3,
+      "target_hit_rate": 1.0
+    }
+  },
+  "commit_sha": "667b50ab60b512e76aaed360f24061b8ce07e859",
+  "context_efficiency": {
+    "context_byte_savings_pct": 63.932042,
+    "context_token_savings_pct": 59.244968,
+    "graph_context_bytes": 12398,
+    "graph_context_tokens": 3908,
+    "mean_graph_build_time_ms": 1.013114,
+    "raw_context_bytes": 34374,
+    "raw_context_tokens": 9589
+  },
+  "evidence": {
+    "languages": [
+      "javascript",
+      "python"
+    ],
+    "records": 7,
+    "repositories": [
+      "pallets-markupsafe",
+      "pypa-packaging",
+      "sindresorhus-escape-string-regexp",
+      "sindresorhus-yocto-queue"
+    ],
+    "target_hit_rate": 1.0
+  },
+  "experiment_id": "context-ab-paired-v1",
+  "limitations": [
+    "This measures context packets and target selection, not a live agent's correctness from graph-scoped context.",
+    "The graph extractor is lightweight and local; it is not yet a full Graphify integration.",
+    "The task set is seven focused single-file tasks and does not cover whole-feature construction."
+  ],
+  "report_version": "context-ab-v1"
+}

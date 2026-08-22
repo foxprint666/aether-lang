@@ -72,6 +72,13 @@ python benchmarks/analysis/transition_planner.py benchmarks/results/raw/<run>.js
 python benchmarks/analysis/transition_planner.py benchmarks/results/raw/<run>.json --graph-context-savings-pct 80
 ```
 
+Measure raw-source versus graph-scoped context packets:
+
+```bash
+python benchmarks/run_context_ab.py --experiment-id context-ab-local --allow-network-repos
+python benchmarks/analysis/context_ab_evidence.py benchmarks/results/raw/context-ab-local.json
+```
+
 Calculate conservative evidence maturity across one or more raw runs:
 
 ```bash
