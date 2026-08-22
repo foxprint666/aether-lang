@@ -17,6 +17,7 @@ Latest local verification during this development session:
 | `external-repository` | `all-modes`, three trials | 132 | 132 passed |
 | `external-agent` blind generation | `all-modes`, three trials | 96 | 64 passed (16/24 generated patches) |
 | `paired blind agent generation` | Aether patch vs full file, three trials | 42 | Aether patches 10/21; full files 17/21 |
+| `transition planner projection` | external matrix, graph input-savings model | 30 task/trial groups | 28.964% token savings measured-routing; 74.479% with synthetic 80% graph-context savings |
 | `all` | `both` | 50 | 50 passed |
 | `all` | `all-modes` | 85 | 85 passed |
 
@@ -70,6 +71,8 @@ Latest live Gemini smoke run:
 - The eight failed generations were preserved: four contained malformed Python body indentation and four failed hidden behavior. During calibration, valid agent payloads also exposed and led to fixes for Python common-indentation handling and JavaScript private-field parsing. Calibration outputs are excluded from the final result.
 - Paired blind agent-generation evidence, `paired-blind-agent-trials3-v1`, evaluated matched Aether-patch and full-file outputs over seven hidden-test tasks, four pinned repositories, and three trials. Original revisions passed zero hidden checks, so all tasks required a real change. Aether patches succeeded 10/21 (`47.619%`), while full-file outputs succeeded 17/21 (`80.952%`). Full-file-only wins were 7, Aether-only wins were 0, exact McNemar p was `0.015625`, and the task-clustered bootstrap interval for Aether minus full-file success was `-47.619` to `-19.048` percentage points.
 - In the paired blind run, Aether patch outputs used 3,999 estimated tokens versus 22,658 for full files: `82.351%` output-token savings and `86.118%` emitted-byte savings. Mean local application time was 188.996 ms for Aether patch application versus 0.721 ms for full-file overwrite; mean verification time was similar at 52.517 ms versus 54.050 ms. Generation used fresh stateless Codex subagents with prompt-enforced source-only restrictions, not OS-enforced denial.
+- Transition planner analysis is now implemented in `benchmarks/analysis/transition_planner.py`. On the external matrix, a token-first dynamic planner selected full-file generation for 12/30 task-trial groups, state transitions for 7/30, guarded Aether for 8/30, and existing hybrid-state for 3/30. It preserved 100% success and reduced estimated total tokens from 36,069 to 25,622 (`28.964%` savings), while increasing local edit-to-verified time from 2,165.703 ms to 4,183.745 ms.
+- A graph-context projection using a synthetic 80% input-token reduction selected full-file generation for 3/30 groups, graph-scoped state transitions for 15/30, and graph-scoped guarded Aether for 12/30. It preserved 100% success and reduced estimated total tokens from 36,069 to 9,205 (`74.479%` savings), while increasing local edit-to-verified time to 5,729.297 ms. This is a projection from existing records, not a measured Graphify-integrated run.
 
 ## What This Proves So Far
 
@@ -87,6 +90,7 @@ In the tested configuration:
 - Command/provider task descriptors no longer include the reference patch, so live provider runs are not handed the answer key.
 - Users can choose a raw state-transition path when they need the base mechanism without the full validation/snapshot/rollback envelope.
 - Users can choose a hybrid threshold policy that routes tiny first-draft/safe edits to control, token-efficient focused edits to state, and safety-sensitive edits to full Aether.
+- A benchmark-only transition planner can now estimate dynamic method selection across full-file, state, guarded Aether, existing hybrid, and graph-scoped variants with configurable graph context savings and latency weighting.
 - Local real-repository fixtures copied from this repository can be patched and verified in isolated temp projects across Python and JavaScript files.
 - The expanded local benchmark can be repeated over three trials with 100% task success, 100% Aether invalid-patch detection, 0% false acceptance, and 100% rollback success for rollback-triggering cases.
 - The Phase 4/5/6 acceptance gates are machine-checkable and currently pass for the local reproducible benchmark scope.
@@ -112,6 +116,7 @@ These claims remain outside the Phase 4/5/6 local completion gates and should be
 - Whether broader external git repository benchmarks remain stable across CI/network environments.
 - Whether blind generation results reproduce under an OS-enforced agent sandbox; the current source-only restriction was enforced by prompts and independently checked packet contents.
 - Whether better patch schemas, examples, constrained decoding, or repair loops can close the paired blind success gap without giving back the observed output-token savings.
+- Whether a real Graphify-style code graph, measured inside the benchmark harness, delivers the projected input-token savings once graph build/update time and query accuracy are included.
 
 ## Issue Found And Fixed During Real-Repo Smoke Work
 

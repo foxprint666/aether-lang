@@ -65,6 +65,13 @@ Summarize hybrid routing decisions:
 python benchmarks/analysis/hybrid_policy.py benchmarks/results/raw/<run>.json
 ```
 
+Estimate dynamic method selection across full-file, state, guarded Aether, hybrid, and graph-scoped variants:
+
+```bash
+python benchmarks/analysis/transition_planner.py benchmarks/results/raw/<run>.json
+python benchmarks/analysis/transition_planner.py benchmarks/results/raw/<run>.json --graph-context-savings-pct 80
+```
+
 Calculate conservative evidence maturity across one or more raw runs:
 
 ```bash
