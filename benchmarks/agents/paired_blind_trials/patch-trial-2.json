@@ -1,0 +1,125 @@
+{
+  "trial": 2,
+  "arm": "aether_patch",
+  "records": [
+    {
+      "task": "mx-7c11",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "ebcc5fc0-927b-4a2c-8c12-9b0cb91bec83",
+        "action": "modify_function",
+        "target": {
+          "file": "src/markupsafe/_native.py",
+          "symbol": "_escape_inner",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    return (\n        s.replace(\"&\", \"&amp;\")\n        .replace(\">\", \"&gt;\")\n        .replace(\"<\", \"&lt;\")\n        .replace(\"'\", \"&#39;\")\n        .replace('\"', \"&#34;\")\n        .replace(\"=\", \"&#61;\")\n    )"
+        }
+      }
+    },
+    {
+      "task": "mx-2a84",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "8734d351-cec7-435d-b1d9-46b73230f8ae",
+        "action": "modify_function",
+        "target": {
+          "file": "src/packaging/utils.py",
+          "symbol": "is_normalized_name",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    if not isinstance(name, str):\n        return False\n    return _normalized_regex.fullmatch(name) is not None"
+        }
+      }
+    },
+    {
+      "task": "mx-b390",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "8cc5492d-1a5c-42df-b44f-172f387d9245",
+        "action": "modify_function",
+        "target": {
+          "file": "src/packaging/utils.py",
+          "symbol": "parse_sdist_filename",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "    if filename.endswith(\".tar.gz\"):\n        file_stem = filename[: -len(\".tar.gz\")]\n    elif filename.endswith(\".tgz\"):\n        file_stem = filename[: -len(\".tgz\")]\n    elif filename.endswith(\".zip\"):\n        file_stem = filename[: -len(\".zip\")]\n    else:\n        raise InvalidSdistFilename(\n            f\"Invalid sdist filename (extension must be '.tar.gz', '.tgz', or '.zip'):\"\n            f\" {filename!r}\"\n        )\n\n    # We are requiring a PEP 440 version, which cannot contain dashes,\n    # so we split on the last dash.\n    name_part, sep, version_part = file_stem.rpartition(\"-\")\n    if not sep:\n        raise InvalidSdistFilename(f\"Invalid sdist filename: {filename!r}\")\n    if not name_part:\n        raise InvalidSdistFilename(\n            f\"Invalid sdist filename (empty project name): {filename!r}\"\n        )\n\n    name = canonicalize_name(name_part)\n\n    try:\n        version = Version(version_part)\n    except InvalidVersion as e:\n        raise InvalidSdistFilename(\n            f\"Invalid sdist filename (invalid version): {filename!r}\"\n        ) from e\n\n    return (name, version)"
+        }
+      }
+    },
+    {
+      "task": "mx-8f22",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "2d01cf2f-d6e4-42de-b97d-f0db4d23bd6c",
+        "action": "modify_function",
+        "target": {
+          "file": "index.js",
+          "symbol": "escapeStringRegexp",
+          "symbol_type": "function"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\tif (typeof string !== 'string') {\n\t\tthrow new TypeError('Expected a string');\n\t}\n\n\t// Escape characters with special meaning either inside or outside character sets.\n\t// Use a simple backslash escape when it\u2019s always valid, and a `\\xnn` escape when the simpler form would be disallowed by Unicode patterns\u2019 stricter grammar.\n\treturn string\n\t\t.replace(/[|\\\\{}()[\\]^$+*?.]/g, '\\\\$&')\n\t\t.replace(/-/g, '\\\\x2d')\n\t\t.replace(/\\//g, '\\\\x2f');"
+        }
+      }
+    },
+    {
+      "task": "mx-d605",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "6687c324-bcae-41bf-9514-2645955ad414",
+        "action": "modify_function",
+        "target": {
+          "file": "index.js",
+          "symbol": "enqueue",
+          "symbol_type": "method"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\t\tconst node = new Node(value);\n\n\t\tif (this.#head) {\n\t\t\tthis.#tail.next = node;\n\t\t\tthis.#tail = node;\n\t\t} else {\n\t\t\tthis.#head = node;\n\t\t\tthis.#tail = node;\n\t\t}\n\n\t\tthis.#size++;\n\t\treturn this.#size;"
+        }
+      }
+    },
+    {
+      "task": "mx-19ab",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "940e325f-a8a9-4ed3-a121-aa63be51b378",
+        "action": "modify_function",
+        "target": {
+          "file": "index.js",
+          "symbol": "drain",
+          "symbol_type": "method"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\t\tconst limit = arguments.length === 0 ? Infinity : arguments[0];\n\t\tif (!Number.isInteger(limit) || limit < 0) {\n\t\t\tthrow new TypeError('Expected limit to be a nonnegative integer');\n\t\t}\n\n\t\tlet count = 0;\n\t\twhile (this.#head && count < limit) {\n\t\t\tcount++;\n\t\t\tyield this.dequeue();\n\t\t}"
+        }
+      }
+    },
+    {
+      "task": "mx-e473",
+      "patch": {
+        "schema_version": "1.0",
+        "patch_id": "b7865b7e-bb8c-4567-9205-070e2647510f",
+        "action": "modify_function",
+        "target": {
+          "file": "index.js",
+          "symbol": "peek",
+          "symbol_type": "method"
+        },
+        "changes": {
+          "operation": "replace_body",
+          "payload": "\t\tif (!this.#head) {\n\t\t\treturn null;\n\t\t}\n\n\t\treturn this.#head.value;"
+        }
+      }
+    }
+  ]
+}

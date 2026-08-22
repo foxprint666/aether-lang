@@ -1,0 +1,84 @@
+{
+  "suite": "paired-agent-generation",
+  "version": "0.1.0",
+  "description": "Fresh hidden-test tasks generated before this evaluator manifest was published.",
+  "tasks": [
+    {
+      "task_id": "mx-7c11",
+      "source_id": "native",
+      "language": "python",
+      "repository": "pallets-markupsafe",
+      "repository_manifest": "benchmarks/repositories/markupsafe_pinned.json",
+      "fixture": "repo:git:pallets-markupsafe",
+      "source_file": "src/markupsafe/_native.py",
+      "description": "Update _escape_inner so equals signs are escaped as &#61; while preserving every existing escaping rule.",
+      "test_command": "python -c \"import sys; sys.path.insert(0, 'src'); from markupsafe._native import _escape_inner; assert _escape_inner('a=b') == 'a&#61;b'; assert _escape_inner('&<>') == '&amp;&lt;&gt;'; assert _escape_inner(chr(39)) == '&#39;'\""
+    },
+    {
+      "task_id": "mx-2a84",
+      "source_id": "packaging",
+      "language": "python",
+      "repository": "pypa-packaging",
+      "repository_manifest": "benchmarks/repositories/packaging_pinned.json",
+      "fixture": "repo:git:pypa-packaging",
+      "source_file": "src/packaging/utils.py",
+      "description": "Make is_normalized_name return False for non-string values instead of raising, while preserving current behavior for strings.",
+      "test_command": "python -c \"import sys; sys.path.insert(0, 'src'); from packaging.utils import is_normalized_name; assert is_normalized_name(42) is False; assert is_normalized_name(None) is False; assert is_normalized_name('requests') is True; assert is_normalized_name('Django') is False\""
+    },
+    {
+      "task_id": "mx-b390",
+      "source_id": "packaging",
+      "language": "python",
+      "repository": "pypa-packaging",
+      "repository_manifest": "benchmarks/repositories/packaging_pinned.json",
+      "fixture": "repo:git:pypa-packaging",
+      "source_file": "src/packaging/utils.py",
+      "description": "Extend parse_sdist_filename to accept .tgz as an alias for .tar.gz, preserving all existing validation and return types.",
+      "test_command": "python -c \"import sys; sys.path.insert(0, 'src'); from packaging.utils import parse_sdist_filename; from packaging.version import Version; assert parse_sdist_filename('demo_pkg-1.2.tgz') == ('demo-pkg', Version('1.2')); assert parse_sdist_filename('demo_pkg-1.2.tar.gz') == ('demo-pkg', Version('1.2'))\""
+    },
+    {
+      "task_id": "mx-8f22",
+      "source_id": "escape",
+      "language": "javascript",
+      "repository": "sindresorhus-escape-string-regexp",
+      "repository_manifest": "benchmarks/repositories/escape_string_regexp_pinned.json",
+      "fixture": "repo:git:sindresorhus-escape-string-regexp",
+      "source_file": "index.js",
+      "description": "Update escapeStringRegexp so forward slashes are escaped as \\x2f, while preserving every existing escape and TypeError behavior.",
+      "test_command": "node --input-type=module -e \"import escape from './index.js'; if (escape('a/b') !== 'a\\\\x2fb') process.exit(1); if (escape('a-b') !== 'a\\\\x2db') process.exit(2); let rejected=false; try { escape(2); } catch (error) { rejected=error instanceof TypeError; } if (!rejected) process.exit(3)\""
+    },
+    {
+      "task_id": "mx-d605",
+      "source_id": "queue",
+      "language": "javascript",
+      "repository": "sindresorhus-yocto-queue",
+      "repository_manifest": "benchmarks/repositories/yocto_queue_pinned.json",
+      "fixture": "repo:git:sindresorhus-yocto-queue",
+      "source_file": "index.js",
+      "description": "Make Queue.enqueue return the queue's new size after insertion, preserving all queue behavior.",
+      "test_command": "node --input-type=module -e \"import Queue from './index.js'; const q=new Queue(); if (q.enqueue('a') !== 1 || q.enqueue('b') !== 2 || q.size !== 2) process.exit(1); if (q.dequeue() !== 'a' || q.size !== 1) process.exit(2)\""
+    },
+    {
+      "task_id": "mx-19ab",
+      "source_id": "queue",
+      "language": "javascript",
+      "repository": "sindresorhus-yocto-queue",
+      "repository_manifest": "benchmarks/repositories/yocto_queue_pinned.json",
+      "fixture": "repo:git:sindresorhus-yocto-queue",
+      "source_file": "index.js",
+      "description": "Extend Queue.drain with an optional nonnegative limit. It must yield at most that many items and leave the rest queued; with no limit it must retain current drain-all behavior.",
+      "test_command": "node --input-type=module -e \"import Queue from './index.js'; const q=new Queue(); [1,2,3].forEach(x=>q.enqueue(x)); if (JSON.stringify([...q.drain(2)]) !== '[1,2]' || q.size !== 1 || q.peek() !== 3) process.exit(1); if ([...q.drain(0)].length !== 0 || q.size !== 1) process.exit(2); if (JSON.stringify([...q.drain()]) !== '[3]' || q.size !== 0) process.exit(3); let rejected=false; try { [...q.drain(-1)]; } catch { rejected=true; } if (!rejected) process.exit(4)\""
+    },
+    {
+      "task_id": "mx-e473",
+      "source_id": "queue",
+      "language": "javascript",
+      "repository": "sindresorhus-yocto-queue",
+      "repository_manifest": "benchmarks/repositories/yocto_queue_pinned.json",
+      "fixture": "repo:git:sindresorhus-yocto-queue",
+      "source_file": "index.js",
+      "description": "Change Queue.peek so an empty queue returns null instead of undefined, preserving non-empty behavior.",
+      "test_command": "node --input-type=module -e \"import Queue from './index.js'; const q=new Queue(); if (q.peek() !== null) process.exit(1); q.enqueue('value'); if (q.peek() !== 'value' || q.size !== 1) process.exit(2)\""
+    }
+  ]
+}
