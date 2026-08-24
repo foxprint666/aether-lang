@@ -46,6 +46,10 @@ The repository now includes a reproducible benchmark program under [`benchmarks/
 
 Current evidence supports the benchmark infrastructure, tested patch/rollback behaviors, and a small live Gemini provider smoke run. Broad LLM-agent success rates, token savings across real repositories, and latency/cost tradeoffs still require repeated provider-backed benchmarks. See [`benchmark_evidence.md`](benchmark_evidence.md) for the current evidence status and limitations.
 
+### 🔌 Healing Agent Integration
+
+Aether includes a check-only adapter for [Healing Agent](https://github.com/matebenyovszky/healing-agent)'s `propose -> verify -> apply` pipeline. Healing Agent can run Aether as a `VERIFY_COMMAND` before live files are changed, while Aether reports a compact JSON verdict and exits `0`/nonzero for pass/fail. See [`integrations/healing_agent/`](integrations/healing_agent/) for the adapter.
+
 ---
 
 ## 📁 Repository Layout

@@ -6,7 +6,7 @@ Target repository:
 https://github.com/matebenyovszky/healing-agent
 ```
 
-This folder contains a ready upstream contribution proposal for adding an optional safe mutation backend to Healing Agent.
+This folder contains the revised upstream contribution proposal for adding an optional `VERIFY_COMMAND` gate to Healing Agent.
 
 ## Why this contribution fits
 
@@ -16,35 +16,36 @@ Healing Agent already has a self-healing loop:
 exception -> AI-generated fixed function -> backup -> replace function -> reload
 ```
 
-Aether's benchmark evidence suggests a useful next layer:
+Aether's benchmark evidence suggests a useful verification layer:
 
 ```text
-exception -> AI-generated repair -> safe mutation backend -> validate/sandbox/rollback -> reload
+exception -> AI-generated repair -> isolated candidate -> Aether verify gate -> apply/reload
 ```
 
-The patch in this folder does **not** import Aether or add Aether as a dependency. It adds a generic command backend so safe mutation systems such as Aether can be plugged in externally while preserving Healing Agent's default behavior.
+The patch in this folder does **not** import Aether or add Aether as a dependency. It adds a generic command verifier so safety systems such as Aether can be plugged in externally while preserving Healing Agent's default behavior.
 
 ## Files
 
-- `optional-safe-mutation-backend.patch` - complete upstream patch.
+- `verify-command-gate.patch` - complete upstream patch.
 - `ISSUE_PROPOSAL.md` - issue text to open first.
 - `PR_DESCRIPTION.md` - pull request description if the maintainer is receptive.
 
 ## Local validation performed
 
-The local environment did not include `pytest`, so the full upstream test suite could not be run here.
-
 Passed:
 
 ```text
-python -m py_compile healing_agent/mutation_backend.py healing_agent/healing_agent.py healing_agent/config_template.py tests/test_mutation_backend.py
+uv run --extra dev pytest tests/test_verify_gate.py --basetemp=<outside-repo> -p no:cacheprovider
+uv run --extra dev pytest tests/test_verify_gate.py tests/test_restore_on_failure.py tests/test_git_patch_saver.py -m "not live" --basetemp=<outside-repo> -p no:cacheprovider
+uv run --extra dev pytest -m "not live" --basetemp=<outside-repo> -p no:cacheprovider
 ```
+
+Result: `106 passed, 1 skipped, 11 deselected`.
 
 ## Suggested upstream flow
 
-1. Open the issue using `ISSUE_PROPOSAL.md`.
-2. Wait for maintainer preference.
-3. If accepted, fork `matebenyovszky/healing-agent`.
-4. Apply `optional-safe-mutation-backend.patch`.
-5. Run `python -m pytest`.
-6. Open the PR using `PR_DESCRIPTION.md`.
+1. Keep the existing PR open.
+2. Replace the mutation-backend hook with `verify-command-gate.patch`.
+3. Run the non-live test suite.
+4. If a live provider is configured, run `tests/test_data_drift.py` with Aether as `VERIFY_COMMAND`.
+5. Update the PR using `PR_DESCRIPTION.md`.

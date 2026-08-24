@@ -1,8 +1,8 @@
-# Proposal: optional safe mutation backend for AUTO_FIX
+# Proposal: optional command VERIFY gate
 
 Hi! First, thank you for making Healing Agent intentionally small and transparent. I like the thesis in the README: intelligence lives in the model and trust lives in the tests.
 
-I would like to propose a small optional extension point for the file mutation step.
+I would like to propose a small optional extension point for the `VERIFY` stage in the `propose -> verify -> apply` design.
 
 ## Motivation
 
@@ -12,38 +12,36 @@ Healing Agent currently has a clear repair loop:
 exception -> generated fixed function -> backup -> replace function -> reload
 ```
 
-That is a good minimal baseline. The risk is that when an AI-generated repair is wrong, the mutation may still touch the source file before the repaired module fails to reload or fails behavior checks.
+That is a good minimal baseline. The next safety step is to reject bad candidates before the live source file is touched.
 
-For self-healing systems, this mutation step is where a safety backend can help:
+For self-healing systems, a command verifier gives external engines a narrow and testable role:
 
 ```text
-exception -> generated repair -> validate/sandbox/apply/verify -> commit or rollback
+exception -> generated repair -> isolated candidate -> command verify gate -> apply/reload
 ```
 
 ## Proposal
 
-Add an optional mutation backend configuration:
+Add an optional command verification configuration:
 
 ```python
-MUTATION_BACKEND = "direct"   # default, current behavior
-MUTATION_BACKEND = "command"  # delegate mutation to an external command
-MUTATION_COMMAND = "python path/to/safe_mutation_adapter.py"
+VERIFY_COMMAND = None  # default, current behavior
+VERIFY_COMMAND = "python path/to/aether_verify_gate.py"
+VERIFY_TIMEOUT_SECONDS = 120
 ```
 
-The command backend would receive JSON on stdin:
+The command would run in an isolated workspace where the candidate has already been applied. It would receive context through `HEALING_AGENT_CANDIDATE`:
 
 ```json
 {
-  "protocol_version": "healing-agent-mutation-v1",
-  "source_file": "path/to/module.py",
-  "function_name": "broken_function",
-  "fixed_code": "def broken_function(...): ...",
-  "error": {},
-  "function_info": {}
+  "protocol": "healing-agent-candidate-v1",
+  "source_file": "path/to/temp/module.py",
+  "original_file": "path/to/live/module.py",
+  "context": {}
 }
 ```
 
-It would return:
+It may return JSON detail:
 
 ```json
 {"ok": true}
@@ -52,12 +50,14 @@ It would return:
 or:
 
 ```json
-{"ok": false, "rolled_back": true, "error": "hidden test failed"}
+{"ok": false, "error": "hidden test failed"}
 ```
+
+Exit code `0` passes; any nonzero exit rejects the candidate.
 
 ## Why command-based?
 
-This keeps Healing Agent dependency-light and license-simple. It does not need to import any particular safe mutation system. Aether, a custom sandbox runner, or another verifier can sit outside the package.
+This keeps Healing Agent dependency-light and license-simple. It does not need to import any particular safe mutation system. Aether, pytest, a custom sandbox runner, or another verifier can sit outside the package.
 
 ## Related benchmark evidence
 
@@ -69,11 +69,11 @@ In a deterministic local self-healing A/B benchmark from Aether:
 - output-token savings were `80.35%`
 - output-byte savings were `85.44%`
 
-This is not a production proof, but it suggests the mutation step is worth making pluggable.
+This is not a production proof, but it suggests the verification step is worth making pluggable before apply.
 
 Would you be open to a small PR that:
 
-- preserves the existing direct replacer as default
-- adds a generic command mutation backend
-- adds tests for direct and command backends
-- adds docs for Aether-style safe mutation integration?
+- preserves the current default behavior
+- adds a generic command verify gate
+- adds a real subprocess round-trip test
+- adds docs for Aether-style verify-only integration?

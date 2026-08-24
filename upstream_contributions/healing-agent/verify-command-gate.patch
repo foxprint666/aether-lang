@@ -1,0 +1,327 @@
+diff --git a/docs/aether-verify-gate.md b/docs/aether-verify-gate.md
+new file mode 100644
+index 0000000..b70b0de
+--- /dev/null
++++ b/docs/aether-verify-gate.md
+@@ -0,0 +1,25 @@
++# Aether as a VERIFY command gate
++
++Healing Agent can run Aether as a check-only verifier before a generated repair
++touches the live source file:
++
++```python
++VERIFY_COMMAND = "python path/to/aether_healing_agent_verify.py"
++```
++
++The command runs inside a temporary workspace where the candidate function has
++already been applied. The live file is unchanged while the gate runs.
++
++The gate contract is intentionally small:
++
++- exit code `0` accepts the candidate;
++- any nonzero exit code rejects it;
++- protocol-aware gates may read the `HEALING_AGENT_CANDIDATE` environment
++  variable;
++- stdout may contain JSON detail, such as
++  `{"ok": false, "error": "hidden test failed"}`, but the exit code decides.
++
++This gives Aether the role that fits the 0.4 pipeline best: validate, sandbox,
++and report structured failure detail without taking ownership of Healing
++Agent's final write step. Aether can still be used later as an `APPLY="command"`
++engine where snapshot-backed, multi-file, transactional mutation is needed.
+diff --git a/healing_agent/config_loader.py b/healing_agent/config_loader.py
+index 40e59bf..2d05db2 100644
+--- a/healing_agent/config_loader.py
++++ b/healing_agent/config_loader.py
+@@ -257,6 +257,14 @@ def validate_config(config):
+             raise ValueError("GIT_MODE must be one of: off, patch, apply")
+         if config.get('GIT_PATCH_DIR') is not None and not isinstance(config.get('GIT_PATCH_DIR'), (str, os.PathLike)):
+             raise ValueError("GIT_PATCH_DIR must be a path string or None")
++        if config.get('VERIFY_COMMAND') is not None and not isinstance(config.get('VERIFY_COMMAND'), (str, list, tuple)):
++            raise ValueError("VERIFY_COMMAND must be a command string, argument list, or None")
++        if (
++            isinstance(config.get('VERIFY_TIMEOUT_SECONDS'), bool)
++            or not isinstance(config.get('VERIFY_TIMEOUT_SECONDS', 120), (int, float))
++            or config.get('VERIFY_TIMEOUT_SECONDS', 120) <= 0
++        ):
++            raise ValueError("VERIFY_TIMEOUT_SECONDS must be a positive number")
+     
+         return config
+         
+diff --git a/healing_agent/config_template.py b/healing_agent/config_template.py
+index 698f520..fe964b3 100644
+--- a/healing_agent/config_template.py
++++ b/healing_agent/config_template.py
+@@ -114,6 +114,15 @@ GIT_MODE = "off"
+ GIT_PATCH_DIR = None  # Optional directory for patch + JSON provenance artifacts
+ GIT_STAGE = False  # If GIT_MODE="apply", also stage the applied file
+ 
++# Verification gate configuration
++# -------------------------------
++# Optional ordered command gates run on an isolated candidate copy BEFORE the
++# live source file is changed. Exit code 0 means pass; any nonzero exit rejects
++# the candidate. Protocol-aware tools may read HEALING_AGENT_CANDIDATE and print
++# JSON detail to stdout, but the exit code decides.
++VERIFY_COMMAND = None  # e.g. "pytest tests/test_loader.py" or ["python", "check.py"]
++VERIFY_TIMEOUT_SECONDS = 120
++
+ # GitHub Integration
+ # ------------------
+ # Escalation for failures healing could not repair: an issue in your own
+diff --git a/healing_agent/healing_agent.py b/healing_agent/healing_agent.py
+index 7f23c31..6323e4a 100644
+--- a/healing_agent/healing_agent.py
++++ b/healing_agent/healing_agent.py
+@@ -16,6 +16,7 @@ from .github_issue import open_issue_for_failure
+ from .log_buffer import arm_from_config_if_requested, recent_records
+ from .redactor import redact
+ from .console import emit
++from .verify_gate import verify_candidate
+ from . import usage_ledger
+ 
+ 
+@@ -281,6 +282,13 @@ def _attempt_healing(
+     if not config.get("AUTO_FIX", True) or not fixed_code:
+         return False, None
+ 
++    if config.get("DEBUG"):
++        emit(f"♣ Attempting to update file: {context['error']['file']}")
++        emit(f"♣ Replacing function: {context['error']['function_name']}")
++
++    if not verify_candidate(context, fixed_code, config):
++        return False, None
++
+     if config.get("BACKUP_ENABLED", True):
+         saved_backup = create_backup(context)
+         context["backup_path"] = saved_backup
+@@ -290,10 +298,6 @@ def _attempt_healing(
+         if config.get("DEBUG"):
+             emit(f"♣ Created backup in backup folder: {saved_backup}")
+ 
+-    if config.get("DEBUG"):
+-        emit(f"♣ Attempting to update file: {context['error']['file']}")
+-        emit(f"♣ Replacing function: {context['error']['function_name']}")
+-
+     if git_mode == "apply":
+         if not context.get("git_patch_path"):
+             emit("♣ Git patch was not generated or did not pass git apply --check.")
+diff --git a/healing_agent/verify_gate.py b/healing_agent/verify_gate.py
+new file mode 100644
+index 0000000..ff0d0ba
+--- /dev/null
++++ b/healing_agent/verify_gate.py
+@@ -0,0 +1,131 @@
++import json
++import os
++import shlex
++import shutil
++import subprocess
++import tempfile
++from pathlib import Path
++from typing import Any, Dict, Iterable, List, Sequence
++
++from .code_replacer import function_replacer
++from .console import emit
++
++
++def verify_candidate(context: Dict[str, Any], fixed_code: str, config: Dict[str, Any]) -> bool:
++    """Run configured verification gates before mutating the live file."""
++    commands = _verify_commands(config.get("VERIFY_COMMAND"))
++    if not commands:
++        return True
++
++    source = Path(context["error"]["file"])
++    if not source.exists():
++        emit(f"♣ Verify gate skipped missing source file: {source}")
++        return False
++
++    with tempfile.TemporaryDirectory(prefix="healing-agent-verify-") as workspace:
++        workspace_path = Path(workspace)
++        candidate_path = workspace_path / source.name
++        shutil.copy2(source, candidate_path)
++
++        candidate_context = dict(context)
++        candidate_context["error"] = dict(context.get("error", {}))
++        candidate_context["error"]["file"] = str(candidate_path)
++        candidate_context["fixed_code"] = fixed_code
++
++        if not function_replacer(candidate_context, fixed_code):
++            emit("♣ Verify gate could not apply candidate in isolated workspace.")
++            return False
++
++        env = os.environ.copy()
++        env["HEALING_AGENT_CANDIDATE"] = json.dumps(
++            {
++                "protocol": "healing-agent-candidate-v1",
++                "source_file": str(candidate_path),
++                "original_file": str(source),
++                "context": candidate_context,
++            },
++            default=str,
++        )
++
++        for command in commands:
++            if not _run_command_gate(command, workspace_path, env, config):
++                return False
++
++    return True
++
++
++def _verify_commands(value: Any) -> List[Any]:
++    if value in (None, "", False):
++        return []
++    if isinstance(value, (str, bytes)):
++        return [value]
++    if isinstance(value, Sequence):
++        if all(isinstance(part, (str, os.PathLike)) for part in value):
++            return [value]
++        return list(value)
++    return [value]
++
++
++def _argv(command: Any) -> List[str]:
++    if isinstance(command, (list, tuple)):
++        return [str(part) for part in command]
++    if isinstance(command, str):
++        return [_strip_outer_quotes(part) for part in shlex.split(command, posix=(os.name != "nt"))]
++    if isinstance(command, Iterable):
++        return [str(part) for part in command]
++    raise TypeError("VERIFY_COMMAND entries must be strings or argument lists")
++
++
++def _strip_outer_quotes(value: str) -> str:
++    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
++        return value[1:-1]
++    return value
++
++
++def _run_command_gate(
++    command: Any,
++    workspace: Path,
++    env: Dict[str, str],
++    config: Dict[str, Any],
++) -> bool:
++    argv = _argv(command)
++    if not argv:
++        return True
++
++    try:
++        result = subprocess.run(
++            argv,
++            cwd=workspace,
++            env=env,
++            capture_output=True,
++            text=True,
++            timeout=float(config.get("VERIFY_TIMEOUT_SECONDS", 120)),
++            check=False,
++        )
++    except subprocess.TimeoutExpired:
++        emit(f"♣ Verify gate timed out: {argv[0]}")
++        return False
++    except OSError as exc:
++        emit(f"♣ Verify gate could not start {argv[0]!r}: {exc}")
++        return False
++
++    detail = _json_detail(result.stdout)
++    if result.returncode == 0:
++        if config.get("DEBUG") and detail:
++            emit(f"♣ Verify gate detail: {detail}")
++        return True
++
++    message = detail.get("error") if detail else (result.stderr or result.stdout).strip()
++    emit(f"♣ Verify gate rejected candidate: {message or 'command failed'}")
++    return False
++
++
++def _json_detail(stdout: str) -> Dict[str, Any]:
++    text = stdout.strip()
++    if not text:
++        return {}
++    try:
++        detail = json.loads(text)
++    except json.JSONDecodeError:
++        return {}
++    return detail if isinstance(detail, dict) else {}
+diff --git a/tests/test_verify_gate.py b/tests/test_verify_gate.py
+new file mode 100644
+index 0000000..1a0bde0
+--- /dev/null
++++ b/tests/test_verify_gate.py
+@@ -0,0 +1,77 @@
++import json
++import sys
++import textwrap
++
++import healing_agent.verify_gate as verify_gate
++from healing_agent.verify_gate import _argv, verify_candidate
++
++
++def _context(source):
++    return {
++        "error": {
++            "file": str(source),
++            "function_name": "broken",
++            "line_number": 1,
++            "error_line": "return 1",
++        },
++        "function_info": {"name": "broken", "starting_line_number": 1},
++    }
++
++
++def test_command_gate_runs_against_isolated_candidate(tmp_path):
++    source = tmp_path / "demo.py"
++    source.write_text("def broken():\n    return 1\n", encoding="utf-8")
++    probe = tmp_path / "probe.py"
++    seen = tmp_path / "seen.json"
++    probe.write_text(
++        textwrap.dedent(
++            f"""
++            import json
++            import os
++            from pathlib import Path
++
++            payload = json.loads(os.environ["HEALING_AGENT_CANDIDATE"])
++            candidate = Path(payload["source_file"])
++            assert candidate.exists()
++            assert "return 2" in candidate.read_text(encoding="utf-8")
++            assert Path(payload["original_file"]).read_text(encoding="utf-8").endswith("return 1\\n")
++            Path({str(seen)!r}).write_text(json.dumps({{"ok": True}}), encoding="utf-8")
++            print(json.dumps({{"ok": True}}))
++            """
++        ),
++        encoding="utf-8",
++    )
++
++    assert verify_candidate(
++        _context(source),
++        "def broken():\n    return 2\n",
++        {"VERIFY_COMMAND": [sys.executable, str(probe)]},
++    )
++    assert source.read_text(encoding="utf-8").endswith("return 1\n")
++    assert json.loads(seen.read_text(encoding="utf-8")) == {"ok": True}
++
++
++def test_command_gate_rejects_nonzero_exit_with_json_detail(tmp_path):
++    source = tmp_path / "demo.py"
++    source.write_text("def broken():\n    return 1\n", encoding="utf-8")
++    probe = tmp_path / "reject.py"
++    probe.write_text(
++        "import json, sys\nprint(json.dumps({'ok': False, 'error': 'nope'}))\nsys.exit(3)\n",
++        encoding="utf-8",
++    )
++
++    assert not verify_candidate(
++        _context(source),
++        "def broken():\n    return 2\n",
++        {"VERIFY_COMMAND": [sys.executable, str(probe)]},
++    )
++    assert source.read_text(encoding="utf-8").endswith("return 1\n")
++
++
++def test_command_string_uses_windows_safe_split(monkeypatch):
++    monkeypatch.setattr(verify_gate.os, "name", "nt")
++
++    assert _argv('"C:\\Program Files\\Aether\\aether.exe" check') == [
++        "C:\\Program Files\\Aether\\aether.exe",
++        "check",
++    ]

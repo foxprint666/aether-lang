@@ -1,49 +1,45 @@
-# Add optional command-based safe mutation backend
+# Add optional command-based VERIFY gate
 
 ## Summary
 
-This PR adds an optional mutation backend hook for the file-replacement step used by `AUTO_FIX`.
+This PR adds an optional command verifier for the `VERIFY` stage described in `docs/apply-verify-design.md`.
 
 Default behavior is unchanged:
 
 ```python
-MUTATION_BACKEND = "direct"
+VERIFY_COMMAND = None
 ```
 
 New optional behavior:
 
 ```python
-MUTATION_BACKEND = "command"
-MUTATION_COMMAND = "python path/to/safe_mutation_adapter.py"
-MUTATION_TIMEOUT_SECONDS = 120
+VERIFY_COMMAND = "python path/to/aether_verify_gate.py"
+VERIFY_TIMEOUT_SECONDS = 120
 ```
 
-The command backend lets external safe-mutation systems validate, sandbox, apply, verify, and roll back a generated repair without becoming Healing Agent package dependencies.
+The command gate runs against an isolated candidate copy before Healing Agent changes the live source file. Exit code `0` accepts the candidate; any nonzero exit rejects it. Protocol-aware engines can read `HEALING_AGENT_CANDIDATE` and print JSON detail to stdout.
 
 ## Why
 
-Healing Agent already backs up sources and validates generated functions. This PR adds a small extension point for users who want an extra safety layer around mutation itself.
+This matches the 0.4 `propose -> verify -> apply` direction from the maintainer discussion: Aether and similar tools can provide sandbox/hidden-test validation without taking over Healing Agent's write path.
 
 Example use cases:
 
-- Aether-style structured patch validation
-- sandboxed mutation
+- Aether check mode
 - hidden test verification before accepting a repair
-- snapshot rollback if a repair fails after apply
-- external mutation evidence logs
+- repository-specific pytest/ruff gates
+- structured JSON failure detail for logs
 
 ## Design
 
-The backend receives JSON on stdin:
+The command receives candidate context via `HEALING_AGENT_CANDIDATE`:
 
 ```json
 {
-  "protocol_version": "healing-agent-mutation-v1",
-  "source_file": "path/to/module.py",
-  "function_name": "broken_function",
-  "fixed_code": "def broken_function(...): ...",
-  "error": {},
-  "function_info": {}
+  "protocol": "healing-agent-candidate-v1",
+  "source_file": "path/to/temp/module.py",
+  "original_file": "path/to/live/module.py",
+  "context": {}
 }
 ```
 
@@ -56,34 +52,35 @@ It returns:
 or:
 
 ```json
-{"ok": false, "rolled_back": true, "error": "hidden test failed"}
+{"ok": false, "error": "hidden test failed"}
 ```
+
+The exit code, not the JSON body, decides pass/fail.
 
 ## Files changed
 
-- `healing_agent/mutation_backend.py`
+- `healing_agent/verify_gate.py`
 - `healing_agent/healing_agent.py`
 - `healing_agent/config_template.py`
-- `tests/test_mutation_backend.py`
-- `docs/aether-mutation-backend.md`
+- `healing_agent/config_loader.py`
+- `tests/test_verify_gate.py`
+- `docs/aether-verify-gate.md`
 
 ## Compatibility
 
-- Default behavior remains `direct`.
+- Default behavior remains unchanged when `VERIFY_COMMAND = None`.
 - No Aether dependency is added.
 - No provider dependency is added.
-- Command backend is opt-in only.
+- Command verification is opt-in only.
 
 ## Validation
 
-Syntax checks passed locally:
+Passed locally:
 
 ```bash
-python -m py_compile healing_agent/mutation_backend.py healing_agent/healing_agent.py healing_agent/config_template.py tests/test_mutation_backend.py
+uv run --extra dev pytest tests/test_verify_gate.py --basetemp=<outside-repo> -p no:cacheprovider
+uv run --extra dev pytest tests/test_verify_gate.py tests/test_restore_on_failure.py tests/test_git_patch_saver.py -m "not live" --basetemp=<outside-repo> -p no:cacheprovider
+uv run --extra dev pytest -m "not live" --basetemp=<outside-repo> -p no:cacheprovider
 ```
 
-Full pytest validation should be run in the upstream development environment:
-
-```bash
-python -m pytest
-```
+Full non-live result: `106 passed, 1 skipped, 11 deselected`.
