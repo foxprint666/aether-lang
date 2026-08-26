@@ -1,0 +1,58 @@
+{
+  "build_modes": {
+    "aether": "compact state transitions compiled into package source",
+    "raw": "full package source emitted directly"
+  },
+  "commit_sha": "b5a608d2bfbd576727e0f7fb1cf77e042f54cd41",
+  "experiment_id": "risk-project-ab-v1",
+  "records": [
+    {
+      "accuracy": 0.7361,
+      "build_ms": 10.862,
+      "cli_stderr": "",
+      "cli_stdout": "accuracy=0.7361 precision=0.5581 recall=1.0000",
+      "generated_bytes": 7853,
+      "generated_tokens": 1739,
+      "mode": "raw",
+      "precision": 0.5581,
+      "project_tokens": 1727,
+      "recall": 1.0,
+      "success": true,
+      "test_stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.021s\n\nOK",
+      "test_stdout": "",
+      "verify_ms": 384.9735,
+      "workdir": "C:\\Users\\ASHLEY~1\\AppData\\Local\\Temp\\risk-raw-1pn5_z_e"
+    },
+    {
+      "accuracy": 0.7361,
+      "build_ms": 5.8607,
+      "cli_stderr": "",
+      "cli_stdout": "accuracy=0.7361 precision=0.5581 recall=1.0000",
+      "generated_bytes": 675,
+      "generated_tokens": 213,
+      "mode": "aether",
+      "precision": 0.5581,
+      "project_tokens": 1727,
+      "recall": 1.0,
+      "success": true,
+      "test_stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.021s\n\nOK",
+      "test_stdout": "",
+      "verify_ms": 414.4235,
+      "workdir": "C:\\Users\\ASHLEY~1\\AppData\\Local\\Temp\\risk-aether-x_dcwloi"
+    }
+  ],
+  "report_version": "risk-project-ab-v1",
+  "summary": {
+    "aether_accuracy": 0.7361,
+    "aether_recall": 1.0,
+    "aether_success": true,
+    "build_time_savings_pct": 46.044007,
+    "generated_byte_savings_pct": 91.404559,
+    "generated_token_savings_pct": 87.751581,
+    "project_token_delta_pct": 0.0,
+    "raw_accuracy": 0.7361,
+    "raw_recall": 1.0,
+    "raw_success": true,
+    "verify_time_savings_pct": -7.649877
+  }
+}

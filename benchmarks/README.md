@@ -79,6 +79,14 @@ python benchmarks/run_context_ab.py --experiment-id context-ab-local --allow-net
 python benchmarks/analysis/context_ab_evidence.py benchmarks/results/raw/context-ab-local.json
 ```
 
+Run a from-scratch Python module build A/B benchmark:
+
+```bash
+python benchmarks/run_risk_project_ab.py --experiment-id risk-project-ab-v1
+```
+
+This builds the same transaction-risk scoring package through a full-source baseline and compact Aether-style state transitions, then records correctness and generated-token/byte efficiency.
+
 Calculate conservative evidence maturity across one or more raw runs:
 
 ```bash
