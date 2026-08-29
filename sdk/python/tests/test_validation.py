@@ -106,11 +106,26 @@ class TestValidPatches:
             changes={
                 "operation": "context_replace",
                 "context_before": "# old block start",
+                "context_after": "# old block end",
                 "payload": "# new block content",
             },
         )
         report = engine.validate(patch)
         assert report.ok, report.first_error
+
+    def test_replace_block_requires_context_after(self, engine):
+        patch = make_patch(
+            action="replace_block",
+            target={"file": "src/app.py"},
+            changes={
+                "operation": "context_replace",
+                "context_before": "# old block start",
+                "payload": "# new block content",
+            },
+        )
+        report = engine.validate(patch)
+        assert not report.ok
+        assert "context_after" in report.first_error
 
     def test_run_script_elevated(self, engine):
         patch = make_patch(

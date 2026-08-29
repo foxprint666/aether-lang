@@ -6,7 +6,7 @@ Cross-platform advisory file lock for snapshot write serialization.
 Concurrency model (per plan §Gap-3):
   - validate() calls are fully parallel-safe (read-only, no locking needed).
   - capture() and restore() acquire an exclusive write lock on a per-project
-    lock file (.ai_runtime/snapshot.lock) before touching the archive or index.
+    lock file before touching the archive or index.
   - No two agents can checkpoint the same project simultaneously.
   - Lock is always released — even on exception — via context manager.
 
@@ -40,6 +40,8 @@ def project_write_lock(
     project_root: Path,
     timeout_s: float = 10.0,
     poll_interval_s: float = 0.05,
+    *,
+    store_dir: Path | None = None,
 ) -> Generator[None, None, None]:
     """
     Context manager that acquires an exclusive write lock for the project.
@@ -52,12 +54,14 @@ def project_write_lock(
         project_root:    The project directory being snapshotted.
         timeout_s:       Max seconds to wait for lock before raising TimeoutError.
         poll_interval_s: Windows polling interval (not used on Unix).
+        store_dir:       Optional runtime store directory. Defaults to
+                         ``project_root/.ai_runtime``.
 
     Raises:
         TimeoutError: If the lock cannot be acquired within timeout_s.
         OSError:      If the lock file cannot be created.
     """
-    lock_dir  = project_root / ".ai_runtime"
+    lock_dir = store_dir if store_dir is not None else project_root / ".ai_runtime"
     lock_dir.mkdir(parents=True, exist_ok=True)
     lock_path = lock_dir / "snapshot.lock"
 

@@ -50,10 +50,15 @@ Use a real UUID v4 for `patch_id`.
 
 ## Operation Selection
 
+- Prefer symbol-level operations whenever a clear target exists:
+  `modify_function`, `modify_class`, `add_function`, `remove_function`, or
+  `update_import`.
 - Use `modify_function` + `replace_body` for focused function repairs.
 - Use `modify_class` + `replace_body` for class-level replacement.
 - Use `update_import` + `add_import` or `remove_import` for imports.
-- Use `replace_block` + `context_replace` only when no symbol-level edit fits.
+- Use `replace_block` + `context_replace` only when no symbol-level edit fits;
+  context anchors are less robust than CST symbol matching. Include both
+  `context_before` and `context_after`, and make `context_before` unique.
 - Use `run_script` + `run` only for trusted scripts or explicit maintenance
   tasks, and keep `allow_network` false unless the user explicitly needs it.
 
@@ -63,6 +68,9 @@ Use a real UUID v4 for `patch_id`.
 - Never target `.env`, `.git`, credentials, SSH keys, token files, or secrets.
 - Keep payloads minimal.
 - Include `constraints.timeout_ms` for executable changes.
+- In OneDrive, Dropbox, or other cloud-synced workspaces, prefer a runtime
+  directory outside the synced project:
+  `aether --runtime-dir ~/.cache/aether/<project> apply patch.json`.
 - Let Aether reject invalid or unsafe patches. Do not bypass validation by
   falling back to raw writes unless the user explicitly asks.
 - If Aether rejects the patch, report the structured error and produce a

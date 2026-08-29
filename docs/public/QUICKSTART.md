@@ -28,6 +28,15 @@ aether validate patch.json --json
 aether apply patch.json --json
 ```
 
+Cloud-synced folders can hold locks open briefly. In OneDrive/Dropbox-style
+workspaces, point Aether runtime state at a local cache directory:
+
+```bash
+aether --runtime-dir ~/.cache/aether/my-project apply patch.json
+aether --runtime-dir ~/.cache/aether/my-project snapshots
+aether --runtime-dir ~/.cache/aether/my-project rollback <snapshot-id>
+```
+
 Install the bundled skill for Codex:
 
 ```bash
@@ -77,6 +86,13 @@ Use Aether when the agent can describe the change as a state transition:
 - update imports
 - replace a contextual block
 - run a constrained script only with elevated trust
+
+Prefer `modify_function`, `modify_class`, `add_function`, `remove_function`, and
+`update_import` when a clear symbol exists. Use `replace_block` only as a
+fallback for edits that do not map cleanly to a symbol, because context anchors
+are easier to make ambiguous.
+When `replace_block` is necessary, include both `context_before` and
+`context_after`, and make `context_before` unique in the target file.
 
 Use ordinary text editing for tiny one-off files where schema overhead is larger
 than the change itself.

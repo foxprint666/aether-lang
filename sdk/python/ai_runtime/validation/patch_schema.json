@@ -220,9 +220,10 @@
             "properties": {
               "operation": { "const": "context_replace" },
               "context_before": { "minLength": 1 },
+              "context_after": { "minLength": 1 },
               "payload": { "minLength": 1 }
             },
-            "required": ["operation", "payload", "context_before"]
+            "required": ["operation", "payload", "context_before", "context_after"]
           }
         }
       }

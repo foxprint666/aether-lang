@@ -134,7 +134,7 @@ class SnapshotStore:
         snap_id = str(uuid.uuid4())
         archive_path = self._archive_dir / f"{snap_id}.tar.gz"
 
-        with project_write_lock(self.project_root):
+        with project_write_lock(self.project_root, store_dir=self._store_dir):
             file_count, size_bytes, rel_files = self._write_archive(archive_path)
             self._db_insert(
                 snap_id=snap_id,
@@ -180,7 +180,7 @@ class SnapshotStore:
                 "It may have been pruned or the snapshot was never fully committed."
             )
 
-        with project_write_lock(self.project_root):
+        with project_write_lock(self.project_root, store_dir=self._store_dir):
             # Load manifest of files that were in the snapshot
             manifest_files: set[Path] = self._db_load_manifest(handle.snapshot_id)
 
@@ -257,7 +257,7 @@ class SnapshotStore:
         Returns:
             Number of archives deleted.
         """
-        with project_write_lock(self.project_root):
+        with project_write_lock(self.project_root, store_dir=self._store_dir):
             return self._prune_locked(keep)
 
     def load(self, snapshot_id: str) -> Optional[SnapshotHandle]:

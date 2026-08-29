@@ -71,6 +71,14 @@ aether snapshots
 aether rollback <snapshot-id>
 ```
 
+For cloud-synced workspaces such as OneDrive or Dropbox, keep Aether runtime
+state outside the synced project folder:
+
+```bash
+aether --runtime-dir ~/.cache/aether/my-project apply patch.json
+aether --runtime-dir ~/.cache/aether/my-project rollback <snapshot-id>
+```
+
 Install the bundled Codex skill after `pip install`:
 
 ```bash
@@ -305,6 +313,13 @@ sb = Sandbox(preferred_tier="t3_subprocess") # Universal — OS-level subprocess
 ## 📖 Patch Schema Reference
 
 All patches must conform to the JSON Schema at [`sdk/python/ai_runtime/validation/patch_schema.json`](sdk/python/ai_runtime/validation/patch_schema.json).
+
+Prefer symbol-level AST operations such as `modify_function`, `modify_class`,
+`add_function`, `remove_function`, and `update_import` whenever the target has a
+clear Python symbol. Use `replace_block` only when no symbol-level operation
+fits, because contextual text anchors are less robust than CST symbol matching.
+When `replace_block` is necessary, provide both `context_before` and
+`context_after`, and make the start anchor unique.
 
 | Field | Required | Description |
 |:---|:---|:---|

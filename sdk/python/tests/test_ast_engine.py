@@ -232,3 +232,55 @@ def test_replace_block(tmp_path: Path):
     assert "y = 42" in content
     assert "z = 3" in content
     assert "# A comment" in content
+
+
+def test_replace_block_rejects_missing_context_after(tmp_path: Path):
+    target_file = tmp_path / "target.py"
+    target_file.write_text("def f():\n    x = 1\n    y = 2\n", encoding="utf-8")
+
+    patch = {
+        "action": "replace_block",
+        "target": {
+            "file": "target.py",
+        },
+        "changes": {
+            "operation": "context_replace",
+            "context_before": "    x = 1\n",
+            "payload": "    y = 42",
+        },
+    }
+
+    with pytest.raises(ValueError, match="context_after"):
+        apply_patch(patch, str(tmp_path))
+
+    assert target_file.read_text(encoding="utf-8") == "def f():\n    x = 1\n    y = 2\n"
+
+
+def test_replace_block_rejects_ambiguous_context_before(tmp_path: Path):
+    target_file = tmp_path / "target.py"
+    target_file.write_text(
+        "def f():\n"
+        "    x = 1\n"
+        "    y = 2\n"
+        "    x = 1\n"
+        "    z = 3\n",
+        encoding="utf-8",
+    )
+
+    patch = {
+        "action": "replace_block",
+        "target": {
+            "file": "target.py",
+        },
+        "changes": {
+            "operation": "context_replace",
+            "context_before": "    x = 1\n",
+            "context_after": "    z = 3\n",
+            "payload": "    y = 42",
+        },
+    }
+
+    with pytest.raises(ValueError, match="ambiguous"):
+        apply_patch(patch, str(tmp_path))
+
+    assert "y = 2" in target_file.read_text(encoding="utf-8")

@@ -6,6 +6,7 @@ Command-line interface for the AI-Safe Runtime.
 Commands:
   aether validate <patch.json>   Validate an Aether patch without applying it
   aether apply <patch.json>      Validate, snapshot, apply, and rollback on failure
+  aether --runtime-dir <dir> ... Keep snapshots/audit outside the project tree
   aether rollback <id>           Restore project state to a specific snapshot
   aether status                  Show high-level system status and recent stats
   aether log                     View the audit log of patch events
@@ -39,6 +40,12 @@ def _format_time(ts: float) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description="AI-Safe Runtime CLI")
     parser.add_argument("--project", default=".", help="Project root directory")
+    parser.add_argument(
+        "--runtime-dir",
+        type=Path,
+        default=None,
+        help="Directory for snapshots, audit logs, and locks; defaults to <project>/.ai_runtime",
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     validate_parser = subparsers.add_parser("validate", help="Validate a patch JSON file")
@@ -96,13 +103,19 @@ def main() -> int:
 
     args = parser.parse_args()
     project_root = Path(args.project).resolve()
+    store_subdir = _runtime_store_subdir(args.runtime_dir)
 
     if args.command == "skill":
         return _handle_skill_command(args)
 
     if args.command == "validate":
         patch = _load_patch(args.patch)
-        orch = PatchOrchestrator(project_root=project_root, ae_binary=args.ae_binary, dry_run=True)
+        orch = PatchOrchestrator(
+            project_root=project_root,
+            store_subdir=store_subdir,
+            ae_binary=args.ae_binary,
+            dry_run=True,
+        )
         report = orch.validate_only(patch, trust_level=args.trust_level)
         payload = {
             "ok": report.ok,
@@ -120,7 +133,12 @@ def main() -> int:
 
     if args.command == "apply":
         patch = _load_patch(args.patch)
-        orch = PatchOrchestrator(project_root=project_root, ae_binary=args.ae_binary, dry_run=args.dry_run)
+        orch = PatchOrchestrator(
+            project_root=project_root,
+            store_subdir=store_subdir,
+            ae_binary=args.ae_binary,
+            dry_run=args.dry_run,
+        )
         result = orch.apply(patch, trust_level=args.trust_level)
         payload = {
             "ok": result.ok,
@@ -143,8 +161,8 @@ def main() -> int:
                 print("Rolled back to pre-apply snapshot.", file=sys.stderr)
         return 0 if result.ok else 1
 
-    store = SnapshotStore(project_root)
-    audit = AuditLog(project_root)
+    store = SnapshotStore(project_root, store_subdir=store_subdir)
+    audit = AuditLog(project_root, store_subdir=store_subdir)
 
     if args.command == "status":
         print(f"Project: {project_root}")
@@ -224,6 +242,12 @@ def _load_patch(path: Path) -> dict:
         print(f"Error: patch file must contain one JSON object: {path}", file=sys.stderr)
         raise SystemExit(2)
     return payload
+
+
+def _runtime_store_subdir(runtime_dir: Path | None) -> str:
+    if runtime_dir is None:
+        return ".ai_runtime"
+    return str(runtime_dir.expanduser().resolve())
 
 
 def _first_error(errors: list[str]) -> str:

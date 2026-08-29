@@ -56,6 +56,41 @@ def test_cli_apply_snapshots_and_modifies_file(tmp_path: Path, monkeypatch: pyte
     assert "return sum(items)" in (tmp_path / "src" / "cart.py").read_text(encoding="utf-8")
 
 
+def test_cli_apply_can_keep_runtime_dir_outside_project(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    runtime_dir = tmp_path / "aether-runtime"
+    patch_path = tmp_path / "patch.json"
+    patch_path.write_text(json.dumps(_patch(project)), encoding="utf-8")
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "aether",
+            "--project",
+            str(project),
+            "--runtime-dir",
+            str(runtime_dir),
+            "apply",
+            str(patch_path),
+            "--json",
+        ],
+    )
+
+    assert main() == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["ok"] is True
+    assert payload["snapshot_id"]
+    assert (runtime_dir / "snapshot.lock").exists()
+    assert (runtime_dir / "snapshots.db").exists()
+    assert not (project / ".ai_runtime").exists()
+
+
 def test_cli_rollback_restores_snapshot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     patch_path = tmp_path / "patch.json"
     patch_path.write_text(json.dumps(_patch(tmp_path)), encoding="utf-8")

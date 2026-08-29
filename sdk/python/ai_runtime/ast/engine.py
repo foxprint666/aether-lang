@@ -281,19 +281,22 @@ def _apply_replace_block(module: cst.Module, changes: dict) -> cst.Module:
     
     if not context_before:
         raise ValueError("replace_block requires context_before")
+    if not context_after:
+        raise ValueError("replace_block requires context_after")
         
     source = module.code
+    before_count = source.count(context_before)
+    if before_count > 1:
+        raise ValueError("context_before is ambiguous; expected exactly one match")
+
     before_idx = source.find(context_before)
     if before_idx == -1:
         raise ValueError("context_before not found in source")
         
-    if context_after:
-        after_idx = source.find(context_after, before_idx + len(context_before))
-        if after_idx == -1:
-            raise ValueError("context_after not found in source")
-        new_source = source[:before_idx + len(context_before)] + "\n" + payload + "\n" + source[after_idx:]
-    else:
-        new_source = source[:before_idx + len(context_before)] + "\n" + payload
+    after_idx = source.find(context_after, before_idx + len(context_before))
+    if after_idx == -1:
+        raise ValueError("context_after not found in source")
+    new_source = source[:before_idx + len(context_before)] + "\n" + payload + "\n" + source[after_idx:]
         
     try:
         return cst.parse_module(new_source)
