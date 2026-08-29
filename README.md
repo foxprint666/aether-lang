@@ -50,6 +50,10 @@ Current evidence supports the benchmark infrastructure, tested patch/rollback be
 
 Aether includes a check-only adapter for [Healing Agent](https://github.com/matebenyovszky/healing-agent)'s `propose -> verify -> apply` pipeline. Healing Agent can run Aether as a `VERIFY_COMMAND` before live files are changed, while Aether reports a compact JSON verdict and exits `0`/nonzero for pass/fail. See [`integrations/healing_agent/`](integrations/healing_agent/) for the adapter.
 
+### 🧠 Agent Skill Pack
+
+Aether now includes an agent-facing skill pack under [`agent_skills/aether/`](agent_skills/aether/). It gives coding agents a compact decision policy, patch schema examples, and prompt instructions for choosing structured state transitions instead of raw full-file rewrites when that is cheaper or safer.
+
 ---
 
 ## 📁 Repository Layout

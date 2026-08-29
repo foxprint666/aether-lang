@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "22222222-2222-4222-8222-222222222222",
+  "action": "run_script",
+  "target": {
+    "file": "scripts/normalize_fixture.py"
+  },
+  "changes": {
+    "operation": "run",
+    "payload": "from pathlib import Path\npath = Path('tests/fixtures/input.txt')\npath.write_text(path.read_text(encoding='utf-8').strip() + '\\n', encoding='utf-8')\n"
+  },
+  "constraints": {
+    "timeout_ms": 3000,
+    "memory_limit_mb": 128,
+    "allow_network": false,
+    "allow_filesystem": false,
+    "sandbox_tier": "t3_subprocess"
+  },
+  "metadata": {
+    "agent_id": "example-agent",
+    "model": "example-model",
+    "intent": "Normalize a fixture file in a sandboxed maintenance step."
+  }
+}
