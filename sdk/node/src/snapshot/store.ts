@@ -71,7 +71,7 @@ export class SnapshotStore {
     private writeIndex(records: SnapshotRecord[]): void {
         const tmpPath = `${this.indexPath}.tmp`;
         fs.writeFileSync(tmpPath, `${JSON.stringify(records, null, 2)}\n`);
-        fs.renameSync(tmpPath, this.indexPath);
+        renameWithRetry(tmpPath, this.indexPath);
     }
 
     public async capture(patchId = ''): Promise<SnapshotHandle> {
@@ -238,4 +238,21 @@ export class SnapshotStore {
         const { file_manifest: _fileManifest, ...handle } = row;
         return handle;
     }
+}
+
+function renameWithRetry(src: string, dest: string): void {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 20; attempt++) {
+        try {
+            fs.renameSync(src, dest);
+            return;
+        } catch (error: any) {
+            lastError = error;
+            if (error?.code !== 'EPERM' && error?.code !== 'EBUSY') {
+                throw error;
+            }
+            Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
+        }
+    }
+    throw lastError;
 }

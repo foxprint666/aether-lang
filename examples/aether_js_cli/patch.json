@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "52000000-0000-4000-8000-000000000001",
+  "action": "modify_function",
+  "target": {
+    "file": "cart.js",
+    "symbol": "total",
+    "symbol_type": "function"
+  },
+  "changes": {
+    "operation": "replace_body",
+    "payload": "return items.reduce((sum, item) => sum + item.price * item.quantity, 0);"
+  },
+  "metadata": {
+    "agent_id": "js-example-agent",
+    "model": "example-model",
+    "intent": "Calculate cart totals from price and quantity without rewriting the whole file."
+  }
+}

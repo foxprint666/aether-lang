@@ -54,6 +54,25 @@ Aether includes a check-only adapter for [Healing Agent](https://github.com/mate
 
 Aether now includes an agent-facing skill pack under [`agent_skills/aether/`](agent_skills/aether/). It gives coding agents a compact decision policy, patch schema examples, and prompt instructions for choosing structured state transitions instead of raw full-file rewrites when that is cheaper or safer.
 
+### ⚡ Fast Start
+
+Install the public Python runtime:
+
+```bash
+pip install aether-lang-runtime
+```
+
+Use the agent-facing CLI:
+
+```bash
+aether validate patch.json
+aether apply patch.json
+aether snapshots
+aether rollback <snapshot-id>
+```
+
+For Python and JavaScript examples, see [`docs/public/QUICKSTART.md`](docs/public/QUICKSTART.md).
+
 ---
 
 ## 📁 Repository Layout
@@ -108,7 +127,7 @@ aether-lang/
 │   │   │   └── observability/         ← Audit log (JSONL), diff, structured events
 │   │   └── tests/                   ← 174 tests (all passing, 1 xfailed)
 │   │
-│   ├── node/                    ← AI-Safe Runtime (Node.js SDK)
+│   ├── node/                    ← AI-Safe Runtime (Node.js SDK + aether-js CLI)
 │   │   ├── src/
 │   │   │   ├── security.ts          ← Loads rules from shared security_rules.json
 │   │   │   ├── validation/          ← Ajv JSON Schema + security rules
@@ -249,6 +268,18 @@ aether rollback <snapshot-id>
 `aether apply` runs validation, captures a snapshot, applies the patch, and
 rolls back on failure. The older `ae-safe` command remains available as a
 compatibility alias.
+
+### Node.js CLI
+
+```bash
+cd sdk/node
+npm install
+npm run build
+node dist/cli.js --project ../../examples/aether_js_cli validate ../../examples/aether_js_cli/patch.json
+node dist/cli.js --project ../../examples/aether_js_cli apply ../../examples/aether_js_cli/patch.json
+```
+
+When packaged, the Node CLI is exposed as `aether-js`.
 
 ### Tier Selection
 
@@ -455,7 +486,7 @@ test result: ok. 8 passed; 0 failed
 | 3 | Snapshot System (tar.gz + SQLite + locks) | ✅ Complete |
 | 4 | Observability (audit log, diffs, CLI status) | ✅ Complete |
 | 5 | AST Apply Engine (`modify_function` via LibCST) | ✅ Complete |
-| 6 | Node.js SDK (`sdk/node/`) | ✅ Complete |
+| 6 | Node.js SDK (`sdk/node/`) + `aether-js` CLI | ✅ Complete |
 | 7 | T2 Sandbox (Wasmtime/WASI + epoch timeout) | ✅ Complete |
 | 8 | T1 Sandbox (Cranelift JIT C-ABI FFI) | ✅ Complete |
 | 8.5 | Node.js T1 N-API addon (`ae_sandbox_napi.cpp`) | ✅ Scaffolded |

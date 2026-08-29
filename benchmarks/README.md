@@ -212,6 +212,16 @@ Prefer a pinned `:free` model for evidence runs. Use `openrouter/free` for smoke
 For larger live-agent studies, follow
 [`docs/development/LIVE_AGENT_BENCHMARK_RUNBOOK.md`](../docs/development/LIVE_AGENT_BENCHMARK_RUNBOOK.md).
 
+Recommended local smoke before a live-provider run:
+
+```bash
+python benchmarks/run.py --suite agent --mode all-modes --trials 1 --agent-adapter command --agent-command python benchmarks/agents/mock_provider.py
+```
+
+Use the runbook before publishing live-provider claims, because provider latency,
+retry policy, cache state, and model routing can dominate the result if they are
+not recorded.
+
 For faster JavaScript Aether benchmark runs, build the Node SDK before running the benchmark:
 
 ```bash

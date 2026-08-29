@@ -1,15 +1,19 @@
 {
-  "name": "node",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "aether-lang-node-runtime",
+  "version": "0.1.1",
+  "description": "Node.js runtime for structured, snapshot-backed Aether code patches",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "aether-js": "dist/cli.js"
+  },
   "directories": {
     "test": "tests"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "jest",
-    "test:focused": "jest tests/ast.test.ts tests/rollback-fault.test.ts --runInBand"
+    "test:focused": "jest tests/ast.test.ts tests/rollback-fault.test.ts tests/cli.test.ts --runInBand"
   },
   "keywords": [],
   "author": "",
