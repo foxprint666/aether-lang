@@ -195,7 +195,7 @@ flowchart TD
 ## ⚡ Python SDK — Quick Start
 
 ```bash
-pip install aether-runtime
+pip install aether-lang-runtime
 ```
 
 ```python

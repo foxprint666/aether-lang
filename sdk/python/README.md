@@ -21,7 +21,7 @@ When AI agents generate code and apply it directly to a codebase, several fundam
 | **No rollback path** | Recovery requires manual `git reset` or worse |
 | **Ambiguous intent** | Agent emits free-form diffs, no structured contract |
 
-`aether-runtime` reframes the problem: instead of agents generating raw source code, they emit **structured patch instructions** — a typed JSON contract — that the runtime validates, sandboxes, and commits or rolls back automatically.
+`aether-lang-runtime` reframes the problem: instead of agents generating raw source code, they emit **structured patch instructions** — a typed JSON contract — that the runtime validates, sandboxes, and commits or rolls back automatically.
 
 ---
 
@@ -128,7 +128,7 @@ aether-lang/
 ### Install
 
 ```bash
-pip install aether-runtime
+pip install aether-lang-runtime
 ```
 
 ### Basic usage

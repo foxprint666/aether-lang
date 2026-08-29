@@ -16,7 +16,7 @@ The plugin does not bundle a model. It teaches an agent to use the installed
 Aether runtime:
 
 ```bash
-pip install aether-runtime
+pip install aether-lang-runtime
 aether validate patch.json
 aether apply patch.json
 aether rollback <snapshot-id>

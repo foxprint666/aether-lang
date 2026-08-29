@@ -75,7 +75,7 @@ See `benchmarks/results/public/RISK_PROJECT_AB_REPORT.md`.
 
 ## Install Status
 
-The Python distribution is now named `aether-runtime` and exposes:
+The Python distribution is now named `aether-lang-runtime` and exposes:
 
 ```bash
 aether validate patch.json

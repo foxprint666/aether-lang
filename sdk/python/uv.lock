@@ -10,7 +10,7 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "aether-runtime"
+name = "aether-lang-runtime"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

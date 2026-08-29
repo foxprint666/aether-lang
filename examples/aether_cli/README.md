@@ -5,7 +5,7 @@ This example shows the command surface intended for coding agents.
 Install the Python runtime:
 
 ```bash
-pip install aether-runtime
+pip install aether-lang-runtime
 ```
 
 Validate a patch before touching files:
