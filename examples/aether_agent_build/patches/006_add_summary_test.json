@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "41000000-0000-4000-8000-000000000006",
+  "action": "add_function",
+  "target": {
+    "file": "tests/test_text_metrics.py",
+    "symbol": "test_summarize_text_counts_and_terms",
+    "symbol_type": "function"
+  },
+  "changes": {
+    "operation": "replace_body",
+    "payload": "def test_summarize_text_counts_and_terms():\n    from text_metrics import summarize_text\n\n    summary = summarize_text(\"Aether heals code. Aether saves tokens.\", top_n=2)\n    assert summary[\"characters\"] == 40\n    assert summary[\"words\"] == 6\n    assert summary[\"unique_words\"] == 5\n    assert summary[\"top_terms\"] == [(\"aether\", 2), (\"code\", 1)]\n"
+  },
+  "metadata": {
+    "agent_id": "codex-aether-demo",
+    "model": "gpt-5-codex",
+    "intent": "Add a regression test through the same patch pathway."
+  }
+}

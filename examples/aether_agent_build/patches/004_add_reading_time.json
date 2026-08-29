@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "41000000-0000-4000-8000-000000000004",
+  "action": "add_function",
+  "target": {
+    "file": "text_metrics.py",
+    "symbol": "reading_time_minutes",
+    "symbol_type": "function"
+  },
+  "changes": {
+    "operation": "replace_body",
+    "payload": "def reading_time_minutes(text: str, words_per_minute: int = 200) -> float:\n    \"\"\"Estimate reading time in minutes, rounded to two decimals.\"\"\"\n    if words_per_minute <= 0:\n        raise ValueError(\"words_per_minute must be positive\")\n    word_count = len(normalize_words(text))\n    return round(word_count / words_per_minute, 2)\n"
+  },
+  "metadata": {
+    "agent_id": "codex-aether-demo",
+    "model": "gpt-5-codex",
+    "intent": "Add a small validated metric function."
+  }
+}

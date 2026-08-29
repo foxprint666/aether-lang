@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "41000000-0000-4000-8000-000000000002",
+  "action": "add_function",
+  "target": {
+    "file": "text_metrics.py",
+    "symbol": "term_frequencies",
+    "symbol_type": "function"
+  },
+  "changes": {
+    "operation": "replace_body",
+    "payload": "def term_frequencies(text: str) -> dict[str, int]:\n    \"\"\"Count normalized word frequencies.\"\"\"\n    counts: dict[str, int] = {}\n    for word in normalize_words(text):\n        counts[word] = counts.get(word, 0) + 1\n    return counts\n"
+  },
+  "metadata": {
+    "agent_id": "codex-aether-demo",
+    "model": "gpt-5-codex",
+    "intent": "Add deterministic frequency counting without rewriting the tokenizer."
+  }
+}

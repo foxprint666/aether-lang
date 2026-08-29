@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "41000000-0000-4000-8000-000000000001",
+  "action": "add_function",
+  "target": {
+    "file": "text_metrics.py",
+    "symbol": "normalize_words",
+    "symbol_type": "function"
+  },
+  "changes": {
+    "operation": "replace_body",
+    "payload": "def normalize_words(text: str) -> list[str]:\n    \"\"\"Return lower-cased words, preserving apostrophes inside words.\"\"\"\n    import re\n\n    return re.findall(r\"[A-Za-z]+(?:'[A-Za-z]+)?\", text.lower())\n"
+  },
+  "metadata": {
+    "agent_id": "codex-aether-demo",
+    "model": "gpt-5-codex",
+    "intent": "Create tokenizer foundation for text metric calculations."
+  }
+}

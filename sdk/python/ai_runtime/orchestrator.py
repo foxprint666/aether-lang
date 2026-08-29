@@ -315,7 +315,10 @@ class PatchOrchestrator:
         rules_result = check_rules(patch, trust_level=trust_level)
         if not rules_result.valid:
             elapsed = (time.perf_counter() - t0) * 1000
-            errors.extend(rules_result.violations)
+            errors.extend(
+                f"{violation.rule}: {violation.message}"
+                for violation in rules_result.violations
+            )
             return ValidationReport(
                 ok=False,
                 schema_result=schema_result,

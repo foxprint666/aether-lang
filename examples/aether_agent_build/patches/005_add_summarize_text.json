@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "41000000-0000-4000-8000-000000000005",
+  "action": "add_function",
+  "target": {
+    "file": "text_metrics.py",
+    "symbol": "summarize_text",
+    "symbol_type": "function"
+  },
+  "changes": {
+    "operation": "replace_body",
+    "payload": "def summarize_text(text: str, *, top_n: int = 5, words_per_minute: int = 200) -> dict[str, object]:\n    \"\"\"Return a compact deterministic summary for agent-readable text analysis.\"\"\"\n    words = normalize_words(text)\n    return {\n        \"characters\": len(text),\n        \"words\": len(words),\n        \"unique_words\": len(set(words)),\n        \"reading_time_minutes\": reading_time_minutes(text, words_per_minute),\n        \"top_terms\": top_terms(text, top_n),\n    }\n"
+  },
+  "metadata": {
+    "agent_id": "codex-aether-demo",
+    "model": "gpt-5-codex",
+    "intent": "Compose earlier transitions into a complete public API."
+  }
+}

@@ -147,9 +147,9 @@ def main() -> int:
         if not snapshots:
             print("No snapshots found.")
         for s in snapshots:
-            ts_str = _format_time(s.created_at)
-            size_mb = (s.archive_size_bytes or 0) / (1024 * 1024)
-            print(f"{s.snapshot_id} | {ts_str} | Status: {s.status:12} | {size_mb:.2f} MB")
+            ts_str = _format_time(s["created_at"])
+            size_mb = (s["archive_size_bytes"] or 0) / (1024 * 1024)
+            print(f"{s['id']} | {ts_str} | Status: {s['status']:12} | {size_mb:.2f} MB")
 
     elif args.command == "diff":
         handle = store.load(args.snapshot_id)

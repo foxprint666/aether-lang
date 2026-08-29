@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "41000000-0000-4000-8000-000000000003",
+  "action": "add_function",
+  "target": {
+    "file": "text_metrics.py",
+    "symbol": "top_terms",
+    "symbol_type": "function"
+  },
+  "changes": {
+    "operation": "replace_body",
+    "payload": "def top_terms(text: str, limit: int = 5) -> list[tuple[str, int]]:\n    \"\"\"Return the most common words, tie-breaking alphabetically.\"\"\"\n    if limit < 1:\n        return []\n    counts = term_frequencies(text)\n    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))\n    return ranked[:limit]\n"
+  },
+  "metadata": {
+    "agent_id": "codex-aether-demo",
+    "model": "gpt-5-codex",
+    "intent": "Add ranked term extraction as a separate state transition."
+  }
+}

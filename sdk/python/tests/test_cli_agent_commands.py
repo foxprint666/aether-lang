@@ -68,6 +68,24 @@ def test_cli_rollback_restores_snapshot(tmp_path: Path, monkeypatch: pytest.Monk
     assert "return 0" in (tmp_path / "src" / "cart.py").read_text(encoding="utf-8")
 
 
+def test_cli_snapshots_lists_committed_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    patch_path = tmp_path / "patch.json"
+    patch_path.write_text(json.dumps(_patch(tmp_path)), encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["aether", "--project", str(tmp_path), "apply", str(patch_path), "--json"])
+    assert main() == 0
+    snapshot_id = json.loads(capsys.readouterr().out)["snapshot_id"]
+
+    monkeypatch.setattr(sys, "argv", ["aether", "--project", str(tmp_path), "snapshots"])
+    assert main() == 0
+    output = capsys.readouterr().out
+    assert snapshot_id in output
+    assert "committed" in output
+
+
 def test_cli_validate_rejects_invalid_patch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     patch_path = tmp_path / "bad.json"
     patch_path.write_text(json.dumps({"schema_version": "1.0"}), encoding="utf-8")
@@ -75,3 +93,40 @@ def test_cli_validate_rejects_invalid_patch(tmp_path: Path, monkeypatch: pytest.
 
     assert main() == 1
     assert "REJECTED:" in capsys.readouterr().err
+
+
+def test_cli_validate_serializes_rule_errors(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    patch_path = tmp_path / "bad-rule.json"
+    patch_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "patch_id": "22222222-2222-4222-8222-222222222222",
+                "action": "add_function",
+                "target": {
+                    "file": "demo.py",
+                    "symbol": "demo",
+                    "symbol_type": "function",
+                },
+                "changes": {
+                    "operation": "insert_after",
+                    "payload": "def demo():\n    return 1\n",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["aether", "--project", str(tmp_path), "validate", str(patch_path), "--json"],
+    )
+
+    assert main() == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["ok"] is False
+    assert "operation_allow_list" in payload["errors"][0]

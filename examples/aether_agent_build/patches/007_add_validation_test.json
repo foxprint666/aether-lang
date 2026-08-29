@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "41000000-0000-4000-8000-000000000007",
+  "action": "add_function",
+  "target": {
+    "file": "tests/test_text_metrics.py",
+    "symbol": "test_reading_time_rejects_invalid_speed",
+    "symbol_type": "function"
+  },
+  "changes": {
+    "operation": "replace_body",
+    "payload": "def test_reading_time_rejects_invalid_speed():\n    import pytest\n    from text_metrics import reading_time_minutes\n\n    with pytest.raises(ValueError):\n        reading_time_minutes(\"hello world\", words_per_minute=0)\n"
+  },
+  "metadata": {
+    "agent_id": "codex-aether-demo",
+    "model": "gpt-5-codex",
+    "intent": "Add behavior coverage for invalid reading speed."
+  }
+}
