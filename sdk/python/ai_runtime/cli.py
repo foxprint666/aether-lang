@@ -4,15 +4,18 @@ ai_runtime.cli
 Command-line interface for the AI-Safe Runtime.
 
 Commands:
-  ae-safe status              Show high-level system status and recent stats
-  ae-safe log                 View the audit log of patch events
-  ae-safe snapshots           List available snapshots
-  ae-safe diff <snapshot_id>  View the diff between a snapshot and current state
-  ae-safe rollback <id>       Restore project state to a specific snapshot
-  ae-safe prune               Clean up old snapshots
+  aether validate <patch.json>   Validate an Aether patch without applying it
+  aether apply <patch.json>      Validate, snapshot, apply, and rollback on failure
+  aether rollback <id>           Restore project state to a specific snapshot
+  aether status                  Show high-level system status and recent stats
+  aether log                     View the audit log of patch events
+  aether snapshots               List available snapshots
+  aether diff <snapshot_id>      View the diff between a snapshot and current state
+  aether prune                   Clean up old snapshots
 """
 
 import argparse
+import json
 import sys
 import time
 from datetime import datetime
@@ -20,6 +23,7 @@ from pathlib import Path
 
 from .observability.audit_log import AuditLog
 from .observability.diff import compute_diff
+from .orchestrator import PatchOrchestrator
 from .snapshot.store import SnapshotStore
 
 
@@ -31,6 +35,19 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="AI-Safe Runtime CLI")
     parser.add_argument("--project", default=".", help="Project root directory")
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    validate_parser = subparsers.add_parser("validate", help="Validate a patch JSON file")
+    validate_parser.add_argument("patch", type=Path, help="Patch JSON file")
+    validate_parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    validate_parser.add_argument("--trust-level", default="standard", choices=["standard", "elevated"])
+    validate_parser.add_argument("--ae-binary", default=None, help="Optional ae binary for semantic checks")
+
+    apply_parser = subparsers.add_parser("apply", help="Validate, snapshot, and apply a patch JSON file")
+    apply_parser.add_argument("patch", type=Path, help="Patch JSON file")
+    apply_parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    apply_parser.add_argument("--trust-level", default="standard", choices=["standard", "elevated"])
+    apply_parser.add_argument("--ae-binary", default=None, help="Optional ae binary for semantic checks")
+    apply_parser.add_argument("--dry-run", action="store_true", help="Validate only; do not write")
 
     # status
     subparsers.add_parser("status", help="Show system status and stats")
@@ -56,7 +73,50 @@ def main() -> int:
 
     args = parser.parse_args()
     project_root = Path(args.project).resolve()
-    
+
+    if args.command == "validate":
+        patch = _load_patch(args.patch)
+        orch = PatchOrchestrator(project_root=project_root, ae_binary=args.ae_binary, dry_run=True)
+        report = orch.validate_only(patch, trust_level=args.trust_level)
+        payload = {
+            "ok": report.ok,
+            "patch_id": report.patch_id,
+            "elapsed_ms": round(report.elapsed_ms, 2),
+            "errors": report.errors,
+        }
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        elif report.ok:
+            print(f"OK: patch {report.patch_id or '<unknown>'} passed validation")
+        else:
+            print(f"REJECTED: {_first_error(report.errors)}", file=sys.stderr)
+        return 0 if report.ok else 1
+
+    if args.command == "apply":
+        patch = _load_patch(args.patch)
+        orch = PatchOrchestrator(project_root=project_root, ae_binary=args.ae_binary, dry_run=args.dry_run)
+        result = orch.apply(patch, trust_level=args.trust_level)
+        payload = {
+            "ok": result.ok,
+            "patch_id": result.patch_id,
+            "snapshot_id": result.snapshot_id,
+            "rolled_back": result.rolled_back,
+            "elapsed_ms": round(result.elapsed_ms, 2),
+            "errors": result.errors,
+        }
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        elif result.ok:
+            label = "DRY RUN OK" if args.dry_run else "APPLIED"
+            print(f"{label}: patch {result.patch_id or '<unknown>'}")
+            if result.snapshot_id:
+                print(f"Snapshot: {result.snapshot_id}")
+        else:
+            print(f"FAILED: {result.errors[0] if result.errors else 'apply failed'}", file=sys.stderr)
+            if result.rolled_back:
+                print("Rolled back to pre-apply snapshot.", file=sys.stderr)
+        return 0 if result.ok else 1
+
     store = SnapshotStore(project_root)
     audit = AuditLog(project_root)
 
@@ -123,6 +183,25 @@ def main() -> int:
         print(f"Pruned {removed} old snapshot archives. Kept {args.keep}.")
 
     return 0
+
+
+def _load_patch(path: Path) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        print(f"Error: patch file not found: {path}", file=sys.stderr)
+        raise SystemExit(2)
+    except json.JSONDecodeError as exc:
+        print(f"Error: invalid JSON in {path}: {exc}", file=sys.stderr)
+        raise SystemExit(2)
+    if not isinstance(payload, dict):
+        print(f"Error: patch file must contain one JSON object: {path}", file=sys.stderr)
+        raise SystemExit(2)
+    return payload
+
+
+def _first_error(errors: list[str]) -> str:
+    return errors[0] if errors else "validation failed"
 
 
 if __name__ == "__main__":

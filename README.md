@@ -195,7 +195,7 @@ flowchart TD
 ## ⚡ Python SDK — Quick Start
 
 ```bash
-pip install ai-safe-runtime
+pip install aether-runtime
 ```
 
 ```python
@@ -237,6 +237,18 @@ if report.ok:
 else:
     print(f"Rejected: {report.first_error}")
 ```
+
+Agent-friendly CLI:
+
+```bash
+aether validate patch.json
+aether apply patch.json
+aether rollback <snapshot-id>
+```
+
+`aether apply` runs validation, captures a snapshot, applies the patch, and
+rolls back on failure. The older `ae-safe` command remains available as a
+compatibility alias.
 
 ### Tier Selection
 

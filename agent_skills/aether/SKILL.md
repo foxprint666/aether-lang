@@ -109,6 +109,14 @@ if not result.ok:
     print(result.errors)
 ```
 
+For CLI-based agent wrappers, prefer:
+
+```bash
+aether validate patch.json
+aether apply patch.json
+aether rollback <snapshot-id>
+```
+
 ## Report Format
 
 When reporting results, include:

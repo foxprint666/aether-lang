@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ai-safe-runtime"
+name = "aether-runtime"
 version = "0.1.0"
 description = "AI-Safe Execution Infrastructure — structured, sandboxed, reversible AI code modification"
 readme = "README.md"
@@ -41,6 +41,7 @@ dev = [
 ]
 
 [project.scripts]
+aether = "ai_runtime.cli:main"
 ae-safe = "ai_runtime.cli:main"
 
 [tool.hatch.build.targets.wheel]

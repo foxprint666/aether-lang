@@ -33,7 +33,8 @@ sdk/python/ai_runtime/validation/patch_schema.json
 Then the host should run:
 
 ```bash
-ae-safe status --project .
+aether validate patch.json
+aether apply patch.json
 ```
 
 or call:
@@ -71,3 +72,19 @@ Verify-time savings: -7.649877%
 ```
 
 See `benchmarks/results/public/RISK_PROJECT_AB_REPORT.md`.
+
+## Install Status
+
+The Python distribution is now named `aether-runtime` and exposes:
+
+```bash
+aether validate patch.json
+aether apply patch.json
+aether rollback <snapshot-id>
+```
+
+Until a public package release is published, local development installs can use:
+
+```bash
+pip install -e sdk/python
+```

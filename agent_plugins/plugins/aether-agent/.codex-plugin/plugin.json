@@ -1,0 +1,29 @@
+{
+  "name": "aether-agent",
+  "version": "0.1.0",
+  "description": "Agent skill pack for Aether structured patch validation, apply, and rollback.",
+  "author": {
+    "name": "Ashley Allen",
+    "email": "ashallt232005@gmail.com",
+    "url": "https://github.com/foxprint666"
+  },
+  "homepage": "https://github.com/foxprint666/aether-lang",
+  "repository": "https://github.com/foxprint666/aether-lang",
+  "license": "AGPL-3.0",
+  "keywords": ["aether", "coding-agents", "structured-patches", "rollback"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Aether Agent",
+    "shortDescription": "Use structured Aether patches instead of raw rewrites.",
+    "longDescription": "Aether Agent teaches coding agents when to emit compact state-transition patches, validate them, apply them with snapshots, and roll back unsafe changes.",
+    "developerName": "Ashley Allen",
+    "category": "Developer Tools",
+    "capabilities": ["Code", "Write"],
+    "websiteURL": "https://github.com/foxprint666/aether-lang",
+    "defaultPrompt": [
+      "Use Aether to patch this code safely.",
+      "Convert this edit into an Aether patch.",
+      "Validate and apply this Aether patch."
+    ]
+  }
+}

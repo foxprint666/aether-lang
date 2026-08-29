@@ -85,9 +85,9 @@ Verify-time savings: -7.649877%
 This means an agent can describe the desired software state with far fewer
 tokens while Aether still produces the same working module.
 
-## Next Engineering Step
+## Agent CLI
 
-Add a small CLI wrapper around `PatchOrchestrator`:
+The Python SDK exposes a small CLI wrapper around `PatchOrchestrator`:
 
 ```bash
 aether validate patch.json
@@ -95,5 +95,7 @@ aether apply patch.json
 aether rollback <snapshot-id>
 ```
 
-This would make the skill pack immediately actionable for Codex, Claude Code,
-OpenRouter agents, local Ollama agents, and self-healing systems.
+This makes the skill pack immediately actionable for Codex, Claude Code,
+OpenRouter agents, local Ollama agents, and self-healing systems. The remaining
+packaging work is publishing/releasing the distribution and collecting larger
+live-agent benchmark runs.

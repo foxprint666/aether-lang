@@ -10,7 +10,7 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "ai-safe-runtime"
+name = "aether-runtime"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

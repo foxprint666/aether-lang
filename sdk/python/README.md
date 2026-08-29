@@ -21,7 +21,7 @@ When AI agents generate code and apply it directly to a codebase, several fundam
 | **No rollback path** | Recovery requires manual `git reset` or worse |
 | **Ambiguous intent** | Agent emits free-form diffs, no structured contract |
 
-`ai-safe-runtime` reframes the problem: instead of agents generating raw source code, they emit **structured patch instructions** — a typed JSON contract — that the runtime validates, sandboxes, and commits or rolls back automatically.
+`aether-runtime` reframes the problem: instead of agents generating raw source code, they emit **structured patch instructions** — a typed JSON contract — that the runtime validates, sandboxes, and commits or rolls back automatically.
 
 ---
 
@@ -128,7 +128,7 @@ aether-lang/
 ### Install
 
 ```bash
-pip install ai-safe-runtime
+pip install aether-runtime
 ```
 
 ### Basic usage
@@ -161,6 +161,20 @@ if report.ok:
 else:
     print(f"❌ Rejected: {report.first_error}")
 ```
+
+### Agent CLI
+
+After installation, agents can use Aether without writing Python glue:
+
+```bash
+aether validate patch.json
+aether apply patch.json
+aether rollback <snapshot-id>
+```
+
+`aether apply` runs validation through `PatchOrchestrator`, captures a snapshot,
+applies the patch, and rolls back if application fails. `ae-safe` is kept as a
+backwards-compatible alias for the same CLI.
 
 ### With snapshot + auto-rollback
 
@@ -391,7 +405,7 @@ Current suite: **94 tests, 94 passed** (Python 3.14 / Windows 11)
 | 1 — Validation Layer | ✅ Done | JSON Schema Gate + security rule allow-list |
 | 2 — Sandbox (T3) | ✅ Done | Subprocess isolation, Windows Job Objects, Unix rlimit |
 | 3 — Snapshot System | ✅ Done | `.tar.gz` archives, SQLite WAL, gitignore-aware, cross-platform locks |
-| 4 — Observability | ✅ Done | Structured diffs, audit log, `ae-safe status` CLI |
+| 4 — Observability | ✅ Done | Structured diffs, audit log, `aether status` CLI |
 | 5 — AST Apply Engine | 🔄 Next | Real `modify_function` / `add_function` via `ast` + `libcst` |
 | 6 — Node.js SDK | 🔜 Planned | `sdk/node/` TypeScript port |
 | 7 — T2 Sandbox (WASM) | 🔜 Planned | Wasmtime WASI integration |

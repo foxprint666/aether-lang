@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "patch_id": "33333333-3333-4333-8333-333333333333",
+  "action": "modify_function",
+  "target": {
+    "file": "src/cart.py",
+    "symbol": "calculate_total",
+    "symbol_type": "function"
+  },
+  "changes": {
+    "operation": "replace_body",
+    "payload": "return sum(item.price * item.quantity for item in items)\n"
+  },
+  "constraints": {
+    "timeout_ms": 5000,
+    "memory_limit_mb": 128,
+    "allow_network": false,
+    "allow_filesystem": false,
+    "sandbox_tier": "auto"
+  },
+  "metadata": {
+    "agent_id": "example-agent",
+    "model": "example-model",
+    "intent": "Use price times quantity for cart totals."
+  }
+}

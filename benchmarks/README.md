@@ -209,6 +209,9 @@ python benchmarks/run.py --suite agent --mode both --agent-adapter command --age
 
 Prefer a pinned `:free` model for evidence runs. Use `openrouter/free` for smoke checks where model routing variance is acceptable.
 
+For larger live-agent studies, follow
+[`docs/development/LIVE_AGENT_BENCHMARK_RUNBOOK.md`](../docs/development/LIVE_AGENT_BENCHMARK_RUNBOOK.md).
+
 For faster JavaScript Aether benchmark runs, build the Node SDK before running the benchmark:
 
 ```bash

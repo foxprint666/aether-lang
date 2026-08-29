@@ -38,7 +38,6 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .validation.rules import check_rules, RulesResult
-from .validation.rules import check_rules, RulesResult
 from .validation.schema import validate_schema, ValidationResult
 from .validation.ae_bridge import SemanticGate, BridgeResult
 from .snapshot.store import SnapshotStore
@@ -134,7 +133,12 @@ class PatchOrchestrator:
 
     # ── Public API ──────────────────────────────────────────────────────────
 
-    def apply(self, patch: dict[str, Any]) -> OrchestratorResult:
+    def apply(
+        self,
+        patch: dict[str, Any],
+        *,
+        trust_level: str = "standard",
+    ) -> OrchestratorResult:
         """
         Apply a patch with full safety guarantees.
 
@@ -155,7 +159,7 @@ class PatchOrchestrator:
         action = patch.get("action", "") if isinstance(patch, dict) else ""
 
         # ── Gates 1–3 ──────────────────────────────────────────────────────
-        validation = self._run_gates(patch)
+        validation = self._run_gates(patch, trust_level=trust_level)
 
         if not validation.ok:
             elapsed = (time.perf_counter() - t0) * 1000
@@ -268,16 +272,26 @@ class PatchOrchestrator:
             elapsed_ms=elapsed,
         )
 
-    def validate_only(self, patch: dict[str, Any]) -> ValidationReport:
+    def validate_only(
+        self,
+        patch: dict[str, Any],
+        *,
+        trust_level: str = "standard",
+    ) -> ValidationReport:
         """
         Run Gates 1–3 without applying the patch or taking a snapshot.
         Useful for pre-flight checks in CI.
         """
-        return self._run_gates(patch)
+        return self._run_gates(patch, trust_level=trust_level)
 
     # ── Private helpers ─────────────────────────────────────────────────────
 
-    def _run_gates(self, patch: dict[str, Any]) -> ValidationReport:
+    def _run_gates(
+        self,
+        patch: dict[str, Any],
+        *,
+        trust_level: str = "standard",
+    ) -> ValidationReport:
         t0 = time.perf_counter()
         patch_id = patch.get("patch_id", "") if isinstance(patch, dict) else ""
         action = patch.get("action", "") if isinstance(patch, dict) else ""
@@ -298,7 +312,7 @@ class PatchOrchestrator:
             )
 
         # Gate 2: Security rules
-        rules_result = check_rules(patch)
+        rules_result = check_rules(patch, trust_level=trust_level)
         if not rules_result.valid:
             elapsed = (time.perf_counter() - t0) * 1000
             errors.extend(rules_result.violations)
