@@ -1,6 +1,9 @@
 name: Publish Python Runtime
 
 on:
+  push:
+    tags:
+      - "v*"
   release:
     types: [published]
   workflow_dispatch:
