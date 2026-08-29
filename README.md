@@ -71,6 +71,12 @@ aether snapshots
 aether rollback <snapshot-id>
 ```
 
+Install the bundled Codex skill after `pip install`:
+
+```bash
+aether skill install-codex
+```
+
 For Python and JavaScript examples, see [`docs/public/QUICKSTART.md`](docs/public/QUICKSTART.md).
 
 ---

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aether-lang-runtime"
-version = "0.1.1"
+version = "0.1.2"
 description = "AI-Safe Execution Infrastructure: structured, sandboxed, reversible AI code modification"
 readme = "README.md"
 license = { text = "MIT" }
@@ -46,6 +46,9 @@ ae-safe = "ai_runtime.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["ai_runtime"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"ai_runtime/agent_skill/SKILL.md" = "ai_runtime/agent_skill/SKILL.md"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

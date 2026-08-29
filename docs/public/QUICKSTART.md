@@ -28,6 +28,23 @@ aether validate patch.json --json
 aether apply patch.json --json
 ```
 
+Install the bundled skill for Codex:
+
+```bash
+aether skill install-codex
+```
+
+Other useful skill commands:
+
+```bash
+aether skill show
+aether skill path
+aether skill export ./aether-skill
+```
+
+`install-codex` copies `SKILL.md` into `CODEX_HOME/skills/aether` when
+`CODEX_HOME` is set, otherwise into `~/.codex/skills/aether`.
+
 ## Node.js Runtime
 
 The Node.js SDK now includes CLI parity for JavaScript/TypeScript patching.
@@ -72,4 +89,3 @@ Observe repo -> choose transition -> emit patch JSON -> validate -> apply -> tes
 
 The useful savings come from avoiding repeated full-file regeneration during
 iterative repair, refactoring, and self-healing loops.
-

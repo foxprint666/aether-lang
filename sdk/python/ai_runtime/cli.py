@@ -12,13 +12,18 @@ Commands:
   aether snapshots               List available snapshots
   aether diff <snapshot_id>      View the diff between a snapshot and current state
   aether prune                   Clean up old snapshots
+  aether skill show              Print bundled agent skill instructions
+  aether skill install-codex     Install skill into ~/.codex/skills/aether
 """
 
 import argparse
 import json
+import os
+import shutil
 import sys
 import time
 from datetime import datetime
+from importlib import resources
 from pathlib import Path
 
 from .observability.audit_log import AuditLog
@@ -71,8 +76,29 @@ def main() -> int:
     prune_parser = subparsers.add_parser("prune", help="Clean up old snapshots")
     prune_parser.add_argument("--keep", type=int, default=10, help="Number of snapshots to keep")
 
+    skill_parser = subparsers.add_parser("skill", help="Show, export, or install the bundled agent skill")
+    skill_subparsers = skill_parser.add_subparsers(dest="skill_command", required=True)
+    skill_subparsers.add_parser("show", help="Print bundled SKILL.md")
+    skill_subparsers.add_parser("path", help="Print the bundled SKILL.md path")
+
+    export_parser = skill_subparsers.add_parser("export", help="Copy SKILL.md into a directory")
+    export_parser.add_argument("directory", type=Path, help="Destination directory")
+    export_parser.add_argument("--force", action="store_true", help="Overwrite an existing SKILL.md")
+
+    codex_parser = skill_subparsers.add_parser("install-codex", help="Install SKILL.md for Codex")
+    codex_parser.add_argument(
+        "--dest",
+        type=Path,
+        default=None,
+        help="Destination skill directory; defaults to CODEX_HOME/skills/aether or ~/.codex/skills/aether",
+    )
+    codex_parser.add_argument("--force", action="store_true", help="Overwrite an existing SKILL.md")
+
     args = parser.parse_args()
     project_root = Path(args.project).resolve()
+
+    if args.command == "skill":
+        return _handle_skill_command(args)
 
     if args.command == "validate":
         patch = _load_patch(args.patch)
@@ -202,6 +228,60 @@ def _load_patch(path: Path) -> dict:
 
 def _first_error(errors: list[str]) -> str:
     return errors[0] if errors else "validation failed"
+
+
+def _handle_skill_command(args: argparse.Namespace) -> int:
+    if args.skill_command == "show":
+        print(_skill_text(), end="")
+        return 0
+
+    if args.skill_command == "path":
+        print(_skill_path())
+        return 0
+
+    if args.skill_command == "export":
+        destination = Path(args.directory).expanduser().resolve() / "SKILL.md"
+        _copy_skill(destination, force=args.force)
+        print(f"Installed Aether skill: {destination}")
+        return 0
+
+    if args.skill_command == "install-codex":
+        destination_dir = args.dest.expanduser() if args.dest else _default_codex_skill_dir()
+        destination = destination_dir.resolve() / "SKILL.md"
+        _copy_skill(destination, force=args.force)
+        print(f"Installed Aether skill for Codex: {destination}")
+        print("Restart Codex or refresh skills if your client does not pick up new skills live.")
+        return 0
+
+    print(f"Unknown skill command: {args.skill_command}", file=sys.stderr)
+    return 2
+
+
+def _skill_resource():
+    return resources.files("ai_runtime.agent_skill").joinpath("SKILL.md")
+
+
+def _skill_text() -> str:
+    return _skill_resource().read_text(encoding="utf-8")
+
+
+def _skill_path() -> Path:
+    with resources.as_file(_skill_resource()) as path:
+        return path
+
+
+def _copy_skill(destination: Path, *, force: bool) -> None:
+    if destination.exists() and not force:
+        raise SystemExit(f"Error: {destination} already exists. Use --force to overwrite.")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with resources.as_file(_skill_resource()) as src:
+        shutil.copyfile(src, destination)
+
+
+def _default_codex_skill_dir() -> Path:
+    configured_home = os.environ.get("CODEX_HOME")
+    codex_home = Path(configured_home).expanduser() if configured_home else Path.home() / ".codex"
+    return codex_home / "skills" / "aether"
 
 
 if __name__ == "__main__":

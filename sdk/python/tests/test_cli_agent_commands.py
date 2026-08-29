@@ -130,3 +130,43 @@ def test_cli_validate_serializes_rule_errors(
     payload = json.loads(capsys.readouterr().out)
     assert payload["ok"] is False
     assert "operation_allow_list" in payload["errors"][0]
+
+
+def test_cli_skill_show_prints_bundled_skill(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["aether", "skill", "show"])
+
+    assert main() == 0
+    assert "Aether Agent Skill" in capsys.readouterr().out
+
+
+def test_cli_skill_export_writes_skill_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    destination = tmp_path / "exported"
+    monkeypatch.setattr(sys, "argv", ["aether", "skill", "export", str(destination)])
+
+    assert main() == 0
+    skill_file = destination / "SKILL.md"
+    assert skill_file.exists()
+    assert "Aether Agent Skill" in skill_file.read_text(encoding="utf-8")
+    assert "Installed Aether skill" in capsys.readouterr().out
+
+
+def test_cli_skill_install_codex_uses_codex_home(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / "codex-home"))
+    monkeypatch.setattr(sys, "argv", ["aether", "skill", "install-codex"])
+
+    assert main() == 0
+    skill_file = tmp_path / "codex-home" / "skills" / "aether" / "SKILL.md"
+    assert skill_file.exists()
+    assert "Aether Agent Skill" in skill_file.read_text(encoding="utf-8")
+    assert "Installed Aether skill for Codex" in capsys.readouterr().out
