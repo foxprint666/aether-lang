@@ -18,3 +18,13 @@ def test_agent_skill_patch_examples_match_schema() -> None:
     for path in EXAMPLE_PATCHES:
         report = validate_schema(json.loads(path.read_text(encoding="utf-8")))
         assert report.valid, f"{path}: {report.errors}"
+
+
+def test_packaged_skill_covers_debug_and_review_requests() -> None:
+    skill = (ROOT / "sdk" / "python" / "ai_runtime" / "agent_skill" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "debug this repo using Aether" in skill
+    assert "code task and an evaluation task" in skill
+    assert "what Aether made easier than raw editing" in skill

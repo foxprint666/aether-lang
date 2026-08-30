@@ -3,6 +3,22 @@
 Use this skill when an AI coding agent needs to modify code safely or cheaply.
 Aether is not a model. It is a structured execution layer for code changes.
 
+## Natural-Language Triggers
+
+Activate Aether mode when the user asks for any of the following, even if they
+do not mention patch JSON, snapshots, or rollback:
+
+- "debug this repo using Aether";
+- "use Aether and tell me how it performed";
+- "fix/refactor this project safely";
+- "try Aether on this codebase";
+- "use the Aether tool/skill for this repo";
+- "show whether Aether helped you".
+
+For these requests, treat the task as both a code task and an evaluation task:
+make suitable fixes with Aether where possible, run verification, and report how
+Aether helped or where it added friction.
+
 ## Core Rule
 
 Prefer an Aether patch when the task is an edit to an existing codebase and the
@@ -133,4 +149,10 @@ When reporting results, include:
 - whether snapshot was committed or rolled back;
 - tests run;
 - generated patch token/byte size if comparing efficiency;
+- what Aether made easier than raw editing;
+- any friction points, fallbacks, or operation types that were less effective;
 - limitations or checks not run.
+
+For user-facing review requests, answer plainly. Include a short verdict,
+examples of useful patches, safety outcomes, verification results, and whether
+you would continue using Aether on similar repositories.

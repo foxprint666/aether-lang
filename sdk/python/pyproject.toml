@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aether-lang-runtime"
-version = "0.1.3"
+version = "0.1.4"
 description = "AI-Safe Execution Infrastructure: structured, sandboxed, reversible AI code modification"
 readme = "README.md"
 license = { text = "MIT" }
